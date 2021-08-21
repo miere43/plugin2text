@@ -135,7 +135,7 @@ struct TextRecordWriter {
             return;
         }
 
-        const uint8_t* now = (uint8_t*)record + sizeof(Record);
+        const uint8_t* now = record->is_compressed() ? record->uncompress() : (uint8_t*)record + sizeof(Record);
         const uint8_t* end = now + record->data_size;
 
         if (!def) {

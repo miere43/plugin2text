@@ -19,11 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="miniz.c" />
+    <ClCompile Include="tes.cpp" />
     <ClCompile Include="typeinfo.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.hpp" />
+    <ClInclude Include="miniz.h" />
+    <ClInclude Include="tes.hpp" />
     <ClInclude Include="typeinfo.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
