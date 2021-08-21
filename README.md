@@ -1,7 +1,7 @@
 # plugin2text
 Converts Skyrim SE *.esp to text format 
 
-## Usage
+### Usage
 ```
 Usage: plugin2text.exe <source file> <destination file>
         
@@ -17,5 +17,31 @@ Examples:
             convert Skyrim.esm to text format and write resulting file to Skyrim.txt
         
         plugin2text.exe Dawnguard.txt Dawnguard.esm
-            convert Dawnguard.text to TES plugin and write resulting file to Dawnguard.esm
+            convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm
+```
+
+### Example output
+```
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.700000
+    Number Of Records
+      0
+    Next Object ID
+      14462
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  DATA
+    0000000000000000
+  MAST - Master File
+    "Update.esm"
+  DATA
+    0000000000000000
+  INTV
+    01000000
 ```

@@ -24,7 +24,7 @@ static void print_usage(const char* hint) {
         "           convert Skyrim.esm to text format and write resulting file to Skyrim.txt\n"
         "\n"
         "       plugin2text.exe Dawnguard.txt Dawnguard.esm\n"
-        "           convert Dawnguard.text to TES plugin and write resulting file to Dawnguard.esm\n"
+        "           convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm\n"
     );
 }
 
