@@ -16,5 +16,5 @@ uint8_t* Record::uncompress() const {
     auto result = mz_uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, data_size - sizeof(uint32_t));
     verify(result == MZ_OK);
 
-    return (uint8_t*)uncompressed_data;;
+    return (uint8_t*)uncompressed_data;
 }

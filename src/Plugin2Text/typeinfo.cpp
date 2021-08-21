@@ -95,9 +95,21 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) {
     return nullptr;
 }
 
+static TypeStructField Type_OBND_Fields[] = {
+    sf_int16("X1"),
+    sf_int16("Y1"),
+    sf_int16("Z1"),
+    sf_int16("X2"),
+    sf_int16("Y2"),
+    sf_int16("Z2"),
+};
+
+static TypeStruct Type_OBND{ "Object Bounds", 12, Type_OBND_Fields };
+
 static RecordFieldDef Record_Common_Fields[] = {
     rf_zstring("EDID", "Editor ID"),
     rf_lstring("FULL", "Name"),
+    { "OBND", &Type_OBND, "Object Bounds" },
 };
 
 static TypeStructField Type_TES4_HEDR_Fields[] = {
@@ -117,17 +129,6 @@ static RecordFieldDef Record_TES4_Fields[] = {
     rf_zstring("MAST", "Master File"),
     rf_zstring("CNAM", "Author"),
 };
-
-static TypeStructField Type_OBND_Fields[] = {
-    sf_int16("X1"),
-    sf_int16("Y1"),
-    sf_int16("Z1"),
-    sf_int16("X2"),
-    sf_int16("Y2"),
-    sf_int16("Z2"),
-};
-
-static TypeStruct Type_OBND{ "Object Bounds", 12, Type_OBND_Fields };
 
 static TypeStructField Type_WEAP_DATA_Fields[] = {
     sf_int32("Value"),
@@ -186,7 +187,6 @@ static TypeStructField Type_WEAP_CRDT_Fields[]{
 static TypeStruct Type_WEAP_CRDT{ "Critical Data", 24, Type_WEAP_CRDT_Fields };
 
 static RecordFieldDef Record_WEAP_Fields[] = {
-    { "OBND", &Type_OBND, "Object Bounds" },
     rf_zstring("MODL", "Model File Name"),
     rf_formid("ETYP", "Equipment Type"),
     rf_formid("BIDS", "Block Bash Impact Data Set"),

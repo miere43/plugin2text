@@ -14,11 +14,15 @@ enum class RecordFlags : uint32_t {
     Compressed = 0x40000,
 };
 
+struct FormID {
+    uint32_t value;
+};
+
 struct Record {
     RecordType type;
     uint32_t data_size;
     RecordFlags flags;
-    uint32_t id;
+    FormID id;
     uint32_t unused0;
     uint32_t unused1;
 

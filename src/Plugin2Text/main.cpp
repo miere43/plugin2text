@@ -104,7 +104,7 @@ struct TextRecordWriter {
             auto record = (Record*)now;
             write_record(record);
             write_newline();
-            now += sizeof(Record) + record->data_size;
+            now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
     }
 
@@ -118,7 +118,7 @@ struct TextRecordWriter {
             write_newline();
             write_indent();
             write_record(subrecord);
-            now += sizeof(Record) + subrecord->data_size;
+            now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
         indent -= 1;
     }
@@ -126,6 +126,10 @@ struct TextRecordWriter {
     void write_record(Record* record) {
         write_bytes(&record->type, 4);
         auto def = get_record_def(record->type);
+
+        if (record->type != RecordType::GRUP) {
+            write_format(" [%08X]", record->id.value);
+        }
 
         if (def && def->comment) {
             write_bytes(" - ", 3);
