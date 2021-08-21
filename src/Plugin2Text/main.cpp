@@ -1,0 +1,387 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#include "common.hpp"
+#include "esplugin.hpp"
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void* read_file(const wchar_t* path, uint32_t* size_out) {
+    auto handle = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    verify(handle != INVALID_HANDLE_VALUE);
+
+    uint64_t size;
+    verify(GetFileSizeEx(handle, (LARGE_INTEGER*)&size));
+    verify(size > 0 && size <= 0xffffffff);
+
+    auto buffer = ::operator new(size);
+    DWORD read = 0;
+    verify(ReadFile(handle, buffer, (uint32_t)size, &read, nullptr));
+    verify(read == size);
+
+    CloseHandle(handle);
+    if (size_out) {
+        *size_out = read;
+    }
+    return buffer;
+}
+
+TypeStructField Type_TES4_HEDR_Fields[] = {
+    {
+        &Type_float,
+        "Version",
+        0,
+    },
+    {
+        &Type_int32,
+        "Number Of Records",
+        4,
+    },
+    {
+        &Type_int32,
+        "Next Object ID",
+        8,
+    },
+};
+
+TypeStruct Type_TES4_HEDR = {
+    "TES4_HEDR",
+    12,
+    _countof(Type_TES4_HEDR_Fields),
+    Type_TES4_HEDR_Fields,
+};
+
+RecordFieldDef Record_TES4_Fields[] = {
+    {
+        RecordFieldType::HEDR,
+        &Type_TES4_HEDR,
+        "Header",
+    },
+    {
+        RecordFieldType::MAST,
+        &Type_ZString,
+        "Master File",
+    },
+    {
+        RecordFieldType::CNAM,
+        &Type_ZString,
+        "Author",
+    },
+};
+
+RecordDef Record_TES4{
+    RecordType::TES4,
+    "File Header",
+    _countof(Record_TES4_Fields),
+    Record_TES4_Fields,
+};
+
+
+TypeStructField Type_OBND_Fields[] = {
+    {
+        &Type_int16,
+        "X1",
+        sizeof(int16_t) * 0,
+    },
+    {
+        &Type_int16,
+        "Y1",
+        sizeof(int16_t) * 1,
+    },
+    {
+        &Type_int16,
+        "Z1",
+        sizeof(int16_t) * 2,
+    },
+        {
+        &Type_int16,
+        "X2",
+        sizeof(int16_t) * 3,
+    },
+    {
+        &Type_int16,
+        "Y2",
+        sizeof(int16_t) * 4,
+    },
+    {
+        &Type_int16,
+        "Z2",
+        sizeof(int16_t) * 5,
+    },
+};
+
+TypeStruct Type_OBND{ "Object Bounds", 12, _countof(Type_OBND_Fields), Type_OBND_Fields };
+
+RecordFieldDef Record_WEAP_Fields[] = {
+    {
+        RecordFieldType::EDID,
+        &Type_ZString,
+        "Editor ID",
+    },
+    {
+        RecordFieldType::OBND,
+        &Type_OBND,
+        "Object Bounds",
+    },
+    {
+        RecordFieldType::FULL,
+        &Type_LString,
+        "Name",
+    },
+    {
+        RecordFieldType::MODL,
+        &Type_ZString,
+        "Model File Name",
+    },
+};
+
+RecordDef Record_WEAP{
+    RecordType::WEAP,
+    "Weapon",
+    _countof(Record_WEAP_Fields),
+    Record_WEAP_Fields,
+};
+
+struct TextRecordWriter {
+    HANDLE output_handle = 0;
+    int indent = 0;
+    bool localized_strings = false;
+
+    void open(const wchar_t* path) {
+        verify(!output_handle);
+        output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        verify(output_handle != INVALID_HANDLE_VALUE);
+    }
+
+    void close() {
+        verify(output_handle);
+        CloseHandle(output_handle);
+        output_handle = 0;
+    }
+
+    void write_format(const char* format, ...) {
+        char buffer[4096];
+        
+        va_list args;
+        va_start(args, format);
+        int count = vsprintf_s(buffer, format, args);
+        va_end(args);
+    
+        verify(count > 0);
+        write_bytes(buffer, count);
+    }
+
+    void write_byte_array(const uint8_t* data, size_t size) {
+        auto buffer = new uint8_t[size * 2];
+        static const char alphabet[17] = "0123456789abcdef";
+
+        for (size_t i = 0; i < size; ++i) {
+            uint8_t c = data[i];
+            buffer[(i * 2) + 0] = alphabet[c / 16];
+            buffer[(i * 2) + 1] = alphabet[c % 16];
+        }
+        
+        write_bytes(buffer, size * 2);
+        delete[] buffer;
+    }
+
+    void write_indent() {
+        for (int i = 0; i < indent; ++i) {
+            write_bytes("  ", 2);
+        }
+    }
+
+    void write_newline() {
+        write_bytes("\n", 1);
+    }
+
+    void write_bytes(const void* data, size_t size) {
+        DWORD written = 0;
+        verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
+    }
+
+    RecordDef* get_record_def(RecordType type) {
+        if (type == RecordType::TES4) {
+            return &Record_TES4;
+        } else if (type == RecordType::WEAP) {
+            return &Record_WEAP;
+        }
+        return nullptr;
+    }
+
+    void write_records(const uint8_t* start, const uint8_t* end) {
+        const uint8_t* now = start;
+        while (now < end) {
+            auto record = (Record*)now;
+            write_record(record);
+            write_newline();
+            now += sizeof(Record) + record->data_size;
+        }
+    }
+
+    void write_grup_record(GrupRecord* record) {
+        const uint8_t* now = (uint8_t*)record + sizeof(GrupRecord);
+        const uint8_t* end = now + record->group_size - sizeof(GrupRecord);
+
+        indent += 1;
+        while (now < end) {
+            auto subrecord = (Record*)now;
+            if (subrecord->type == (RecordType)0) {
+                break;
+            }
+            write_newline();
+            write_indent();
+            write_record(subrecord);
+            now += subrecord->data_size;
+        }
+        indent -= 1;
+    }
+
+    void write_record(Record* record) {
+        write_bytes(&record->type, 4);
+        auto def = get_record_def(record->type);
+
+        if (def && def->comment) {
+            write_bytes(" - ", 3);
+            write_bytes(def->comment, strlen(def->comment));
+        }
+
+        if (record->type == RecordType::GRUP) {
+            write_grup_record((GrupRecord*)record);
+            return;
+        }
+
+        const uint8_t* now = (uint8_t*)record + sizeof(Record);
+        const uint8_t* end = now + record->data_size;
+
+        indent += 1;
+        if (def) {
+            while (now < end) {
+                auto field = (RecordField*)now;
+                write_newline();
+                write_indent();
+                indent += 1;
+                write_field(def, field);
+                indent -= 1;
+                now += sizeof(RecordField) + field->size;
+            }
+        } else {
+            write_newline();
+            write_indent();
+            write_byte_array(now, end - now);
+        }
+        indent -= 1;
+    }
+
+    void write_type(const Type* type, void* value, size_t size) {
+        switch (type->kind) {
+            case TypeKind::ZString: {
+                if (size == 0) {
+                    write_bytes("\"\"", 2);
+                } else {
+                    write_bytes("\"", 1);
+                    write_bytes(value, size - 1);
+                    write_bytes("\"", 1);
+                }
+            } break;
+
+            case TypeKind::LString: {
+                verify(!localized_strings);
+                if (size == 0) {
+                    write_bytes("\"\"", 2);
+                } else {
+                    write_bytes("\"", 1);
+                    write_bytes(value, size - 1);
+                    write_bytes("\"", 1);
+                }
+            } break;
+
+            case TypeKind::ByteArray: {
+                write_byte_array((uint8_t*)value, size);
+            } break;
+
+            case TypeKind::Integer: {
+                verify(type->size == size);
+                auto integer_type = (const TypeInteger*)type;
+                verify(integer_type->is_unsigned == false);
+                switch (size) {
+                    case 4: write_format("%d", *(int*)value); break;
+                    case 2: write_format("%d", *(int16_t*)value); break;
+                    case 1: write_format("%d", *(int8_t*)value); break;
+                }
+            } break;
+
+            case TypeKind::Float: {
+                verify(type->size == size);
+                switch (size) {
+                    case sizeof(float) : {
+                        write_format("%f", *(float*)value);
+                    } break;
+
+                    case sizeof(double) : {
+                        write_format("%f", *(double*)value);
+                    } break;
+                }
+            } break;
+
+            case TypeKind::Struct: {
+                verify(type->size == size);
+                auto struct_type = (const TypeStruct*)type;
+                for (int i = 0; i < struct_type->field_count; ++i) {
+                    const auto& field = struct_type->fields[i];
+
+                    write_bytes(field.name, strlen(field.name));
+                    write_newline();
+
+                    indent += 1;
+                    write_indent();
+
+                    write_type(field.type, (uint8_t*)value + field.offset, field.type->size);
+                    
+                    indent -= 1;
+                    if (i != struct_type->field_count - 1) {
+                        write_newline();
+                        write_indent();
+                    }
+                }
+            } break;
+
+            default: {
+                verify(false);
+            } break;
+        }
+    }
+
+    void write_field(RecordDef* decl, RecordField* field) {
+        write_bytes(&field->type, 4);
+        auto field_def = decl->get_field_def(field->type);
+
+        if (field_def && field_def->comment) {
+            write_bytes(" - ", 3);
+            write_bytes(field_def->comment, strlen(field_def->comment));
+        }
+
+        write_newline();
+        write_indent();
+
+        auto now = (uint8_t*)field + sizeof(RecordField);
+        if (field_def) {
+            write_type(field_def->data_type, now, field->size);
+        } else {
+            write_byte_array(now, field->size);
+        }
+    }
+};
+
+int main() {
+    TextRecordWriter writer;
+    writer.open(L"C:\\test.txt");
+
+    uint32_t size = 0;
+    uint8_t* plugin = (uint8_t*)read_file(L"C:\\Steam\\steamapps\\common\\Skyrim Special Edition\\Data\\empty.esp", &size);
+    writer.write_records(plugin, plugin + size);
+    
+    writer.close();
+    return 0;
+}
