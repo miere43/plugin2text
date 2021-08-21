@@ -95,44 +95,48 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     return nullptr;
 }
 
-static TypeStructField Type_OBND_Fields[] = {
-    sf_int16("X1"),
-    sf_int16("Y1"),
-    sf_int16("Z1"),
-    sf_int16("X2"),
-    sf_int16("Y2"),
-    sf_int16("Z2"),
-};
+#define CONCAT(a, b) a##b
+#define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
+    static TypeStructField CONCAT(Type_, m_type)_Fields[]{ \
+        __VA_ARGS__                                        \
+    };                                                     \
+                                                           \
+    static TypeStruct Type_##m_type{                       \
+        m_name,                                            \
+        m_size,                                            \
+        CONCAT(Type_, m_type)_Fields                       \
+    }
 
-static TypeStruct Type_OBND{ "Object Bounds", 12, Type_OBND_Fields };
+TYPE_STRUCT(CELL_XCLL, "Lighting", 92,
+    sf_uint32("Ambient"),
+    sf_uint32("Directional"),
+    sf_uint32("Fog Near"),
+    sf_float("Fog Near"),
+    sf_float("Fog Far"),
+    sf_int32("Rotation XY"),
+    sf_int32("Rotation Z"),
+);
 
-static RecordFieldDef Record_Common_Fields[] = {
-    rf_zstring("EDID", "Editor ID"),
-    rf_lstring("FULL", "Name"),
-    { "OBND", &Type_OBND, "Object Bounds" },
-};
+TYPE_STRUCT(QUST_DNAM, "Quest Data", 12,
+    sf_uint8("Flags"),
+    sf_uint8("Flags 2"),
+    sf_uint8("Priority"),
+    sf_uint8("Unknown"),
+    sf_int32("Unknown 2"),
+    sf_uint32("Quest Type"),
+);
 
-static TypeStructField Type_TES4_HEDR_Fields[] = {
-    sf_float("Version"),
-    sf_int32("Number Of Records"),
-    sf_int32("Next Object ID"),
-};
+TYPE_STRUCT(WEAP_CRDT, "Critical Data", 24,
+    sf_uint16("Critical Damage"),
+    sf_uint16("Unknown"),
+    sf_float("Critical % Mult"),
+    sf_uint32("Flags"),
+    sf_uint32("Unknown"),
+    sf_formid("Critical Spell Effect"),
+    sf_uint32("Unknown"),
+);
 
-TypeStruct Type_TES4_HEDR = {
-    "TES4_HEDR",
-    12,
-    Type_TES4_HEDR_Fields,
-};
-
-static TypeStructField Type_WEAP_DATA_Fields[] = {
-    sf_int32("Value"),
-    sf_float("Weight"),
-    sf_int16("Damage"),
-};
-
-static TypeStruct Type_WEAP_DATA{ "Game Data", 10, Type_WEAP_DATA_Fields };
-
-static TypeStructField Type_WEAP_DNAM_Fields[] = {
+TYPE_STRUCT(WEAP_DNAM, "Data", 100,
     sf_uint8("Animation Type"),
     sf_int8("Unknown 0"),
     sf_int16("Unknown 1"),
@@ -164,50 +168,33 @@ static TypeStructField Type_WEAP_DNAM_Fields[] = {
     sf_int32("Resist"),
     sf_uint32("Blank"),
     sf_float("Stagger"),
-};
+);
 
-static TypeStruct Type_WEAP_DNAM{ "Data", 100, Type_WEAP_DNAM_Fields };
+TYPE_STRUCT(WEAP_DATA, "Game Data", 10,
+    sf_int32("Value"),
+    sf_float("Weight"),
+    sf_int16("Damage"),
+);
 
-static TypeStructField Type_WEAP_CRDT_Fields[]{
-    sf_uint16("Critical Damage"),
-    sf_uint16("Unknown"),
-    sf_float("Critical % Mult"),
-    sf_uint32("Flags"),
-    sf_uint32("Unknown"),
-    sf_formid("Critical Spell Effect"),
-    sf_uint32("Unknown"),
-};
+TYPE_STRUCT(TES4_HEDR, "Header", 12,
+    sf_float("Version"),
+    sf_int32("Number Of Records"),
+    sf_int32("Next Object ID"),
+);
 
-static TypeStruct Type_WEAP_CRDT{ "Critical Data", 24, Type_WEAP_CRDT_Fields };
-
-static TypeStructField Type_QUST_DNAM_Fields[]{
-    sf_uint8("Flags"),
-    sf_uint8("Flags 2"),
-    sf_uint8("Priority"),
-    sf_uint8("Unknown"),
-    sf_int32("Unknown 2"),
-    sf_uint32("Quest Type"),
-};
-
-static TypeStruct Type_QUST_DNAM{ "Quest Data", 12, Type_QUST_DNAM_Fields };
-
-static TypeStructField Type_CELL_XCLL_Fields[]{
-    sf_uint32("Ambient"),
-    sf_uint32("Directional"),
-    sf_uint32("Fog Near"),
-    sf_float("Fog Near"),
-    sf_float("Fog Far"),
-    sf_int32("Rotation XY"),
-    sf_int32("Rotation Z"),
-};
-
-static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
+TYPE_STRUCT(OBND, "Object Bounds", 12,
+    sf_int16("X1"),
+    sf_int16("Y1"),
+    sf_int16("Z1"),
+    sf_int16("X2"),
+    sf_int16("Y2"),
+    sf_int16("Z2"),
+);
 
 //static RecordFieldDef Record_CELL_Fields[]{
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
 
-#define CONCAT(a, b) a##b
 #define RECORD(m_type, m_name, ...)                         \
     static RecordFieldDef CONCAT(Record_, m_type)_Fields[]{ \
         __VA_ARGS__                                         \
@@ -218,6 +205,12 @@ static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
         m_name,                                             \
         CONCAT(Record_, m_type)_Fields,                     \
     }
+
+static RecordFieldDef Record_Common_Fields[] = {
+    rf_zstring("EDID", "Editor ID"),
+    rf_lstring("FULL", "Name"),
+    { "OBND", &Type_OBND, "Object Bounds" },
+};
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
 
