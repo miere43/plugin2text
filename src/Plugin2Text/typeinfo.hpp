@@ -76,12 +76,9 @@ struct RecordDef {
     template<size_t N>
     constexpr RecordDef(char const type[5], const char* comment, const RecordFieldDef(&fields)[N]) : type((RecordType)fourcc(type)), comment(comment), field_count(N), fields(fields) { }
 
-    const RecordFieldDef* get_field_def(RecordFieldType type);
+    const RecordFieldDef* get_field_def(RecordFieldType type) const;
 };
 
 extern RecordDef Record_Common;
-extern RecordDef Record_TES4;
-extern RecordDef Record_WEAP;
-extern RecordDef Record_QUST;
-extern RecordDef Record_CELL;
-extern RecordDef Record_REFR;
+
+RecordDef* get_record_def(RecordType type);

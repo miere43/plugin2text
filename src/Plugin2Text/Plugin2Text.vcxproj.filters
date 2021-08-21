@@ -7,6 +7,7 @@
     <ClCompile Include="tes.cpp" />
     <ClCompile Include="esp_to_text.cpp" />
     <ClCompile Include="os.cpp" />
+    <ClCompile Include="text_to_esp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typeinfo.hpp" />

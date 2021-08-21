@@ -85,7 +85,7 @@ TypeStructField Type_Vector3_Fields[] = {
 
 TypeStruct Type_Vector3{ "Vector3", 12, Type_Vector3_Fields };
 
-const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) {
+const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     for (int i = 0; i < field_count; ++i) {
         const auto& field = fields[i];
         if (field.type == type) {
@@ -246,3 +246,16 @@ RecordDef Record_WEAP { "WEAP", "Weapon", Record_WEAP_Fields };
 RecordDef Record_QUST{ "QUST", "Quest", Record_QUST_Fields };
 RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields };
 RecordDef Record_REFR{ "REFR", "Reference", Record_REFR_Fields };
+
+RecordDef* get_record_def(RecordType type) {
+    #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
+    switch (type) {
+        CASE(TES4);
+        CASE(WEAP);
+        CASE(QUST);
+        CASE(CELL);
+        CASE(REFR);
+    }
+    #undef CASE
+    return nullptr;
+}

@@ -66,19 +66,7 @@ struct TextRecordWriter {
     void write_bytes(const void* data, size_t size) {
         DWORD written = 0;
         verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
-    }
-
-    RecordDef* get_record_def(RecordType type) {
-        #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
-        switch (type) {
-            CASE(TES4);
-            CASE(WEAP);
-            CASE(QUST);
-            CASE(CELL);
-            CASE(REFR);
-        }
-        #undef CASE
-        return nullptr;
+        verify(written == size);
     }
 
     void write_records(const uint8_t* start, const uint8_t* end) {
@@ -269,9 +257,9 @@ struct TextRecordWriter {
         }
     }
 
-    void write_field(RecordDef* decl, RecordField* field) {
+    void write_field(RecordDef* def, RecordField* field) {
         write_bytes(&field->type, 4);
-        auto field_def = decl->get_field_def(field->type);
+        auto field_def = def->get_field_def(field->type);
         if (!field_def) {
             field_def = Record_Common.get_field_def(field->type);
         }

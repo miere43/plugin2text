@@ -23,6 +23,7 @@
     <ClCompile Include="miniz.c" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="tes.cpp" />
+    <ClCompile Include="text_to_esp.cpp" />
     <ClCompile Include="typeinfo.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
