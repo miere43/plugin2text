@@ -68,6 +68,7 @@ enum class TypeKind {
     ZString,
     LString,
     FormID,
+    FormIDArray,
 };
 
 struct Type {
@@ -105,14 +106,22 @@ extern Type Type_LString;
 extern Type Type_ByteArray;
 extern Type Type_float;
 extern Type Type_FormID;
-extern TypeInteger Type_int32;
+extern TypeInteger Type_int8;
 extern TypeInteger Type_int16;
+extern TypeInteger Type_int32;
+extern TypeInteger Type_int64;
+extern TypeInteger Type_uint8;
+extern TypeInteger Type_uint16;
+extern TypeInteger Type_uint32;
+extern TypeInteger Type_uint64;
 extern TypeStruct Type_Vector3;
 
 struct RecordFieldDef {
     RecordFieldType type;
     const Type* data_type;
     const char* comment = nullptr;
+
+    constexpr RecordFieldDef(char const type[5], const Type* data_type, const char* comment) : type((RecordFieldType)fourcc(type)), data_type(data_type), comment(comment) { }
 };
 
 struct RecordDef {

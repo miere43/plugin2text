@@ -111,13 +111,10 @@ struct TextRecordWriter {
         indent += 1;
         while (now < end) {
             auto subrecord = (Record*)now;
-            if (subrecord->type == (RecordType)0) {
-                break;
-            }
             write_newline();
             write_indent();
             write_record(subrecord);
-            now += subrecord->data_size;
+            now += sizeof(Record) + subrecord->data_size;
         }
         indent -= 1;
     }
@@ -188,11 +185,18 @@ struct TextRecordWriter {
             case TypeKind::Integer: {
                 verify(type->size == size);
                 auto integer_type = (const TypeInteger*)type;
-                verify(integer_type->is_unsigned == false);
-                switch (size) {
-                    case 4: write_format("%d", *(int*)value); break;
-                    case 2: write_format("%d", *(int16_t*)value); break;
-                    case 1: write_format("%d", *(int8_t*)value); break;
+                if (integer_type->is_unsigned) {
+                    switch (size) {
+                        case 1: write_format("%u", *(int8_t*)value); break;
+                        case 2: write_format("%u", *(int16_t*)value); break;
+                        case 4: write_format("%u", *(int*)value); break;
+                    }
+                } else {
+                    switch (size) {
+                        case 1: write_format("%d", *(int8_t*)value); break;
+                        case 2: write_format("%d", *(int16_t*)value); break;
+                        case 4: write_format("%d", *(int*)value); break;
+                    }
                 }
             } break;
 
@@ -227,6 +231,25 @@ struct TextRecordWriter {
 
                     indent -= 1;
                     if (i != struct_type->field_count - 1) {
+                        write_newline();
+                        write_indent();
+                    }
+                }
+                verify(offset == size);
+            } break;
+
+            case TypeKind::FormID: {
+                verify(type->size == size);
+                verify(size == sizeof(int));
+                write_format("[%08X]", *(int*)value);
+            } break;
+
+            case TypeKind::FormIDArray: {
+                verify((size % sizeof(int)) == 0);
+                const int keyword_count = size / sizeof(int);
+                for (int i = 0; i < keyword_count; ++i) {
+                    write_format("[%08X]", ((int*)value)[i]);
+                    if (i != keyword_count - 1) {
                         write_newline();
                         write_indent();
                     }
