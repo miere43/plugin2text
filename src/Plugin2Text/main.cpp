@@ -2,7 +2,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "common.hpp"
-#include "esplugin.hpp"
+#include "typeinfo.hpp"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,122 +26,6 @@ void* read_file(const wchar_t* path, uint32_t* size_out) {
     }
     return buffer;
 }
-
-TypeStructField Type_TES4_HEDR_Fields[] = {
-    {
-        &Type_float,
-        "Version",
-        0,
-    },
-    {
-        &Type_int32,
-        "Number Of Records",
-        4,
-    },
-    {
-        &Type_int32,
-        "Next Object ID",
-        8,
-    },
-};
-
-TypeStruct Type_TES4_HEDR = {
-    "TES4_HEDR",
-    12,
-    _countof(Type_TES4_HEDR_Fields),
-    Type_TES4_HEDR_Fields,
-};
-
-RecordFieldDef Record_TES4_Fields[] = {
-    {
-        RecordFieldType::HEDR,
-        &Type_TES4_HEDR,
-        "Header",
-    },
-    {
-        RecordFieldType::MAST,
-        &Type_ZString,
-        "Master File",
-    },
-    {
-        RecordFieldType::CNAM,
-        &Type_ZString,
-        "Author",
-    },
-};
-
-RecordDef Record_TES4{
-    RecordType::TES4,
-    "File Header",
-    _countof(Record_TES4_Fields),
-    Record_TES4_Fields,
-};
-
-
-TypeStructField Type_OBND_Fields[] = {
-    {
-        &Type_int16,
-        "X1",
-        sizeof(int16_t) * 0,
-    },
-    {
-        &Type_int16,
-        "Y1",
-        sizeof(int16_t) * 1,
-    },
-    {
-        &Type_int16,
-        "Z1",
-        sizeof(int16_t) * 2,
-    },
-        {
-        &Type_int16,
-        "X2",
-        sizeof(int16_t) * 3,
-    },
-    {
-        &Type_int16,
-        "Y2",
-        sizeof(int16_t) * 4,
-    },
-    {
-        &Type_int16,
-        "Z2",
-        sizeof(int16_t) * 5,
-    },
-};
-
-TypeStruct Type_OBND{ "Object Bounds", 12, _countof(Type_OBND_Fields), Type_OBND_Fields };
-
-RecordFieldDef Record_WEAP_Fields[] = {
-    {
-        RecordFieldType::EDID,
-        &Type_ZString,
-        "Editor ID",
-    },
-    {
-        RecordFieldType::OBND,
-        &Type_OBND,
-        "Object Bounds",
-    },
-    {
-        RecordFieldType::FULL,
-        &Type_LString,
-        "Name",
-    },
-    {
-        RecordFieldType::MODL,
-        &Type_ZString,
-        "Model File Name",
-    },
-};
-
-RecordDef Record_WEAP{
-    RecordType::WEAP,
-    "Weapon",
-    _countof(Record_WEAP_Fields),
-    Record_WEAP_Fields,
-};
 
 struct TextRecordWriter {
     HANDLE output_handle = 0;
@@ -328,6 +212,7 @@ struct TextRecordWriter {
             case TypeKind::Struct: {
                 verify(type->size == size);
                 auto struct_type = (const TypeStruct*)type;
+                size_t offset = 0;
                 for (int i = 0; i < struct_type->field_count; ++i) {
                     const auto& field = struct_type->fields[i];
 
@@ -337,8 +222,9 @@ struct TextRecordWriter {
                     indent += 1;
                     write_indent();
 
-                    write_type(field.type, (uint8_t*)value + field.offset, field.type->size);
-                    
+                    write_type(field.type, (uint8_t*)value + offset, field.type->size);
+                    offset += field.type->size;
+
                     indent -= 1;
                     if (i != struct_type->field_count - 1) {
                         write_newline();

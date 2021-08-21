@@ -2,10 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="esplugin.cpp" />
+    <ClCompile Include="typeinfo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="esplugin.hpp" />
+    <ClInclude Include="typeinfo.hpp" />
     <ClInclude Include="common.hpp" />
   </ItemGroup>
 </Project>

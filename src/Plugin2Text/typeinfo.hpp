@@ -89,7 +89,6 @@ struct TypeSpecial : Type {
 struct TypeStructField {
     const Type* type = nullptr;
     const char* name = nullptr;
-    size_t offset = 0;
 };
 
 struct TypeStruct : Type {
@@ -121,3 +120,6 @@ struct RecordDef {
 
     const RecordFieldDef* get_field_def(RecordFieldType type);
 };
+
+extern RecordDef Record_TES4;
+extern RecordDef Record_WEAP;
