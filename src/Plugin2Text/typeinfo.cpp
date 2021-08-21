@@ -2,6 +2,8 @@
 #include "common.hpp"
 #include <stdlib.h>
 
+#define CONCAT(a, b) a##b
+
 constexpr RecordFieldDef rf_zstring(char const type[5], const char* name) {
     return { type, &Type_ZString, name };
 }
@@ -21,6 +23,9 @@ constexpr RecordFieldDef rf_int32(char const type[5], const char* name) {
 constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
     return { type, &Type_FormID, name };
 }
+
+#define rf_subrecord(m_record, m_subrecord, m_name) \
+    { #m_subrecord, &CONCAT(Type_, m_record)_##m_subrecord, m_name }
 
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8, name };
@@ -95,7 +100,6 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     return nullptr;
 }
 
-#define CONCAT(a, b) a##b
 #define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
     static TypeStructField CONCAT(Type_, m_type)_Fields[]{ \
         __VA_ARGS__                                        \
@@ -191,6 +195,11 @@ TYPE_STRUCT(OBND, "Object Bounds", 12,
     sf_int16("Z2"),
 );
 
+TYPE_STRUCT(CONT_CNTO, "Item", 8,
+    sf_formid("Item"),
+    sf_uint32("Count"),
+);
+
 //static RecordFieldDef Record_CELL_Fields[]{
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
@@ -210,18 +219,18 @@ static RecordFieldDef Record_Common_Fields[] = {
     rf_zstring("EDID", "Editor ID"),
     rf_lstring("FULL", "Name"),
     { "OBND", &Type_OBND, "Object Bounds" },
+    rf_zstring("MODL", "Model File Name"),
 };
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
 
 RECORD(TES4, "File Header",
-    { "HEDR", &Type_TES4_HEDR, "Header" },
+    rf_subrecord(TES4, HEDR, "Header"),
     rf_zstring("MAST", "Master File"),
     rf_zstring("CNAM", "Author"),
 );
 
 RECORD(WEAP, "Weapon",
-    rf_zstring("MODL", "Model File Name"),
     rf_formid("ETYP", "Equipment Type"),
     rf_formid("BIDS", "Block Bash Impact Data Set"),
     rf_formid("BAMT", "Alternate Block Material"),
@@ -233,9 +242,9 @@ RECORD(WEAP, "Weapon",
     rf_formid("TNAM", "Attack Fail Sound"),
     rf_formid("NAM9", "Equip Sound"),
     rf_formid("NAM8", "Unequip Sound"),
-    { "DATA", &Type_WEAP_DATA, "Game Data" },
-    { "DNAM", &Type_WEAP_DNAM, "Weapon Data" },
-    { "CRDT", &Type_WEAP_CRDT, "Critical Data" },
+    rf_subrecord(WEAP, DATA, "Game Data"),
+    rf_subrecord(WEAP, DNAM, "Weapon Data"),
+    rf_subrecord(WEAP, CRDT, "Critical Data"),
     rf_int32("VNAM", "Detection Sound Level"),
 );
 
@@ -249,6 +258,11 @@ RECORD(REFR, "Reference",
     rf_formid("NAME", "Form ID"),
 );
 
+RECORD(CONT, "Container",
+    rf_int32("COCT", "Item Count"),
+    rf_subrecord(CONT, CNTO, "Items"),
+);
+
 #undef RECORD
 
 RecordDef* get_record_def(RecordType type) {
@@ -259,6 +273,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(QUST);
         CASE(CELL);
         CASE(REFR);
+        CASE(CONT);
     }
     #undef CASE
     return nullptr;
