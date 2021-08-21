@@ -86,7 +86,7 @@ struct TextRecordWriter {
     }
 
     RecordDef* get_record_def(RecordType type) {
-        #define CASE(rec) case RecordType::rec: return &Record_##rec
+        #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
         switch (type) {
             CASE(TES4);
             CASE(WEAP);

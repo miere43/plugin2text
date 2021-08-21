@@ -6,14 +6,7 @@ constexpr uint32_t fourcc(char const p[5]) {
 }
 
 enum class RecordType : uint32_t {
-    TES4 = 0x34534554,
-    WEAP = 0x50414557,
-    GRUP = 0x50555247,
-    ARMO = 0x4F4D5241,
-    HEDR = 0x52444548,
-    CELL = 0x4c4c4543,
-    QUST = fourcc("QUST"),
-    REFR = fourcc("REFR"),
+    GRUP = fourcc("GRUP"),
 };
 
 enum class RecordFlags : uint32_t {
@@ -48,20 +41,6 @@ struct GrupRecord {
 static_assert(sizeof(GrupRecord) == 24, "sizeof(GrupRecord) == 24");
 
 enum class RecordFieldType : uint32_t {
-    FULL = 1280070982,
-    BOD2 = 0x32444f42,
-    BODT = 0x54444f42,
-    BMDT = 0x54444d42,
-    DNAM = 0x4d414e44,
-    KSIZ = 0x5a49534b,
-    KWDA = 0x4144574b,
-    MAST = 0x5453414d,
-    CNAM = fourcc("CNAM"),
-    INTV = fourcc("INTV"),
-    HEDR = fourcc("HEDR"),
-    EDID = fourcc("EDID"),
-    OBND = fourcc("OBND"),
-    MODL = fourcc("MODL"),
 };
 
 #pragma pack(push, 1)
