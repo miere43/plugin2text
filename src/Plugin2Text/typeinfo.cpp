@@ -128,6 +128,24 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     return nullptr;
 }
 
+#define TYPE_ENUM(m_type, m_name, m_size, ...)           \
+    static TypeEnumField CONCAT(Type_, m_type)_Fields[]{ \
+        __VA_ARGS__                                      \
+    };                                                   \
+                                                         \
+    static TypeEnum Type_##m_type{                       \
+        m_name,                                          \
+        m_size,                                          \
+        CONCAT(Type_, m_type)_Fields                     \
+    }
+
+TYPE_ENUM(NPC__NAM8, "Sound Level", sizeof(uint32_t),
+    { "Loud", 0 },
+    { "Normal", 1 },
+    { "Silent", 2 },
+    { "Very Loud", 3 },
+);
+
 #define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
     static TypeStructField CONCAT(Type_, m_type)_Fields[]{ \
         __VA_ARGS__                                        \
@@ -223,7 +241,7 @@ TYPE_STRUCT(OBND, "Object Bounds", 12,
     sf_int16("Z2"),
 );
 
-TYPE_STRUCT(CONT_CNTO, "Item", 8,
+TYPE_STRUCT(CNTO, "Item", 8,
     sf_formid("Item"),
     sf_uint32("Count"),
 );
@@ -247,6 +265,35 @@ TYPE_STRUCT(NPC__ACBS, "Base Stats", 24,
     sf_uint16("Bleedout Override"),
 );
 
+TYPE_STRUCT(NPC__QNAM, "Skin Tone", 12,
+    sf_float("Red"),
+    sf_float("Green"),
+    sf_float("Blue"),
+);
+
+TYPE_STRUCT(NPC__NAM9, "Face Morph", 76,
+    sf_float("Nose Long/Short"),
+    sf_float("Nose Up/Down"),
+    sf_float("Jaw Up/Down"),
+    sf_float("Jaw Narrow/Wide"),
+    sf_float("Jaw Forward/Back"),
+    sf_float("Cheeks Up/Down"),
+    sf_float("Cheeks Forward/Back"),
+    sf_float("Eyes Up/Down"),
+    sf_float("Eyes In/Out"),
+    sf_float("Brows Up/Down"),
+    sf_float("Brows In/Out"),
+    sf_float("Brows Forward/Back"),
+    sf_float("Lips Up/Down"),
+    sf_float("Lips In/Out"),
+    sf_float("Chin Thin/Wide"),
+    sf_float("Chin Up/Down"),
+    sf_float("Chin Underbite/Overbite"),
+    sf_float("Eyes Forward/Back"),
+    sf_uint32("Unknown"),
+);
+
+//
 //static RecordFieldDef Record_CELL_Fields[]{
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
@@ -262,12 +309,13 @@ TYPE_STRUCT(NPC__ACBS, "Base Stats", 24,
         CONCAT(Record_, m_type)_Fields,                     \
     }
 
-static RecordFieldDef Record_Common_Fields[] = {
+static RecordFieldDef Record_Common_Fields[]{
     rf_zstring("EDID", "Editor ID"),
     rf_lstring("FULL", "Name"),
     { "OBND", &Type_OBND, "Object Bounds" },
     rf_zstring("MODL", "Model File Name"),
     rf_int32("COCT", "Item Count"),
+    { "CNTO", &Type_CNTO, "Items" },
 };
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
@@ -307,7 +355,7 @@ RECORD(REFR, "Reference",
 );
 
 RECORD(CONT, "Container",
-    rf_subrecord(CONT, CNTO, "Items"),
+    { "CNTO", &Type_CNTO, "Items" },
     rf_subrecord(CONT, DATA, "Data"),
 );
 
@@ -319,9 +367,15 @@ RECORD(NPC_, "Non-Player Character",
     rf_formid("ATKR", "Attack Race"),
     rf_formid("PNAM", "Head Part"),
     rf_formid("HCLF", "Hair Color"),
+    rf_formid("ZNAM", "Combat Style"),
     rf_float("NAM6", "Height"),
     rf_float("NAM7", "Weight"),
-    rf_uint32("NAM8", "Sound Level"),
+    rf_subrecord(NPC_, NAM8, "Sound Level"),
+    rf_formid("DOFT", "Default Outfit"),
+    rf_formid("DPLT", "Default Package List"),
+    rf_formid("FTST", "Face Texture Set"),
+    rf_subrecord(NPC_, QNAM, "Skin Tone"),
+    rf_subrecord(NPC_, NAM9, "Face Morph"),
 );
 
 #undef RECORD

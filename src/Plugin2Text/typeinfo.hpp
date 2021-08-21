@@ -12,6 +12,7 @@ enum class TypeKind {
     LString,
     FormID,
     FormIDArray,
+    Enum,
 };
 
 struct Type {
@@ -42,6 +43,19 @@ struct TypeStruct : Type {
 
     template<size_t N>
     constexpr TypeStruct(const char* name, size_t size, const TypeStructField(&fields)[N]) : Type(TypeKind::Struct, name, size), field_count(N), fields(fields) { }
+};
+
+struct TypeEnumField {
+    const char* name = 0;
+    uint32_t value = 0;
+};
+
+struct TypeEnum : Type {
+    size_t field_count = 0;
+    const TypeEnumField* fields = nullptr;
+
+    template<size_t N>
+    constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N]) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields) { }
 };
 
 extern Type Type_ZString;

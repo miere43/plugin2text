@@ -251,6 +251,31 @@ struct TextRecordWriter {
                 }
             } break;
 
+            case TypeKind::Enum: {
+                verify(type->size == size);
+                
+                uint32_t enum_value = 0;
+                switch (size) {
+                    case 1: enum_value = *(uint8_t*)value; break;
+                    case 2: enum_value = *(uint16_t*)value; break;
+                    case 4: enum_value = *(uint32_t*)value; break;
+                    case 8: verify(false); break; //enum_value = *(uint64_t*)value; break;
+                    default: verify(false); break;
+                }
+                
+                auto enum_type = (const TypeEnum*)type;
+                for (size_t i = 0; i < enum_type->field_count; ++i) {
+                    const auto& field = enum_type->fields[i];
+                    if (field.value == enum_value) {
+                        write_bytes(field.name, strlen(field.name));
+                        goto ok;
+                    }
+                }
+
+                write_format("%u", enum_value);
+                ok: break;
+            } break;
+
             default: {
                 verify(false);
             } break;
