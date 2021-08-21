@@ -23,3 +23,4 @@ privDefer<F> defer_func(F f) {
 __declspec(noreturn) void exit_error(const wchar_t* format, ...);
 bool string_equals(const wchar_t* a, const wchar_t* b);
 bool memory_equals(const void* a, const void* b, size_t size);
+int string_last_index_of(const wchar_t* str, char c);

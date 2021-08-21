@@ -13,11 +13,14 @@ static void print_usage(const char* hint) {
         "Usage: plugin2text.exe <source file> <destination file>\n"
         "\n"
         "       <source file>       file to convert (*.esp, *.esm, *.esl, *.txt)\n"
-        "       <destination file>  output path\n"
+        "       [destination file]  output path\n"
         "\n"
         "If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted\n"
         "to text format. If <source file> has TXT extension, then <source file> will be converted\n"
         "to TES plugin.\n"
+        "\n"
+        "If [destination file] is omitted, then [destination file] is <source file> with extension\n"
+        "changed to plugin or text format.\n"
         "\n"
         "Examples:\n"
         "       plugin2text.exe Skyrim.esm Skyrim.txt\n"
@@ -29,13 +32,24 @@ static void print_usage(const char* hint) {
 }
 
 static const wchar_t* get_file_extension(const wchar_t* string) {
-    const auto count = wcslen(string);
-    for (size_t i = count - 1; i >= 0; --i) {
-        if (string[i] == '.') {
-            return &string[i];
-        }
+    int index = string_last_index_of(string, '.');
+    return index ? &string[index] : L"";
+}
+
+static const wchar_t* replace_destination_file_extension(const wchar_t* source_file, const wchar_t* source_file_extension) {
+    const wchar_t* destination_file_extension = L".txt";
+    if (string_equals(source_file_extension, L".txt")) {
+        destination_file_extension = L".esp";
     }
-    return L"";
+
+    const auto no_extension_count = wcslen(source_file) - wcslen(source_file_extension);
+    const auto count = no_extension_count + wcslen(destination_file_extension);
+
+    auto destination_file = new wchar_t[count + 1];
+    memcpy(&destination_file[0], source_file, sizeof(wchar_t) * no_extension_count);
+    memcpy(&destination_file[no_extension_count], destination_file_extension, sizeof(wchar_t) * wcslen(destination_file_extension));
+    destination_file[count] = L'\0';
+    return destination_file;
 }
 
 int main() {
@@ -46,15 +60,12 @@ int main() {
     if (argc == 1) {
         print_usage("<source file> and <destination file> arguments are missing.\n\n");
         return 1;
-    } else if (argc == 2) {
-        print_usage("<destination file> argument is missing.\n\n");
-        return 1;
     }
 
     const auto source_file = argv[1];
-    const auto destination_file = argv[2];
+    const auto source_file_extension = get_file_extension(source_file);
+    const auto destination_file = argc > 2 ? argv[2] : replace_destination_file_extension(source_file, source_file_extension);
 
-    auto source_file_extension = get_file_extension(source_file);
     if (string_equals(source_file_extension, L".txt")) {
         text_to_esp(source_file, destination_file);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {

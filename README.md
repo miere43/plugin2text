@@ -6,11 +6,14 @@ Converts Skyrim SE *.esp to text format
 Usage: plugin2text.exe <source file> <destination file>
         
         <source file>       file to convert (*.esp, *.esm, *.esl, *.txt)
-        <destination file>  output path
+        [destination file]  output path
         
 If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted
 to text format. If <source file> has TXT extension, then <source file> will be converted
 to TES plugin.
+        
+If [destination file] is omitted, then [destination file] is <source file> with extension
+changed to plugin or text format.
         
 Examples:
         plugin2text.exe Skyrim.esm Skyrim.txt
