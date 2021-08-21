@@ -124,12 +124,6 @@ TypeStruct Type_TES4_HEDR = {
     Type_TES4_HEDR_Fields,
 };
 
-static RecordFieldDef Record_TES4_Fields[] = {
-    { "HEDR", &Type_TES4_HEDR, "Header" },
-    rf_zstring("MAST", "Master File"),
-    rf_zstring("CNAM", "Author"),
-};
-
 static TypeStructField Type_WEAP_DATA_Fields[] = {
     sf_int32("Value"),
     sf_float("Weight"),
@@ -186,25 +180,6 @@ static TypeStructField Type_WEAP_CRDT_Fields[]{
 
 static TypeStruct Type_WEAP_CRDT{ "Critical Data", 24, Type_WEAP_CRDT_Fields };
 
-static RecordFieldDef Record_WEAP_Fields[] = {
-    rf_zstring("MODL", "Model File Name"),
-    rf_formid("ETYP", "Equipment Type"),
-    rf_formid("BIDS", "Block Bash Impact Data Set"),
-    rf_formid("BAMT", "Alternate Block Material"),
-    rf_int32("KSIZ", "Keyword Count"),
-    { "KWDA", &Type_FormIDArray, "Keywords" },
-    rf_lstring("DESC", "Description"),
-    rf_formid("INAM", "Impact Data Set"),
-    rf_formid("WNAM", "1st Person Model Object"),
-    rf_formid("TNAM", "Attack Fail Sound"),
-    rf_formid("NAM9", "Equip Sound"),
-    rf_formid("NAM8", "Unequip Sound"),
-    { "DATA", &Type_WEAP_DATA, "Game Data" },
-    { "DNAM", &Type_WEAP_DNAM, "Weapon Data" },
-    { "CRDT", &Type_WEAP_CRDT, "Critical Data" },
-    rf_int32("VNAM", "Detection Sound Level"),
-};
-
 static TypeStructField Type_QUST_DNAM_Fields[]{
     sf_uint8("Flags"),
     sf_uint8("Flags 2"),
@@ -215,10 +190,6 @@ static TypeStructField Type_QUST_DNAM_Fields[]{
 };
 
 static TypeStruct Type_QUST_DNAM{ "Quest Data", 12, Type_QUST_DNAM_Fields };
-
-static RecordFieldDef Record_QUST_Fields[] = {
-    { "DNAM", &Type_QUST_DNAM, "Quest Data" },
-};
 
 static TypeStructField Type_CELL_XCLL_Fields[]{
     sf_uint32("Ambient"),
@@ -236,16 +207,56 @@ static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
 
-static RecordFieldDef Record_REFR_Fields[] = {
-    rf_formid("NAME", "Form ID"),
-};
+#define CONCAT(a, b) a##b
+#define RECORD(m_type, m_name, ...)                         \
+    static RecordFieldDef CONCAT(Record_, m_type)_Fields[]{ \
+        __VA_ARGS__                                         \
+    };                                                      \
+                                                            \
+    static RecordDef Record_##m_type{                       \
+        #m_type,                                            \
+        m_name,                                             \
+        CONCAT(Record_, m_type)_Fields,                     \
+    }
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
-RecordDef Record_TES4 { "TES4", "File Header", Record_TES4_Fields };
-RecordDef Record_WEAP { "WEAP", "Weapon", Record_WEAP_Fields };
-RecordDef Record_QUST{ "QUST", "Quest", Record_QUST_Fields };
-RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields };
-RecordDef Record_REFR{ "REFR", "Reference", Record_REFR_Fields };
+
+RECORD(TES4, "File Header",
+    { "HEDR", &Type_TES4_HEDR, "Header" },
+    rf_zstring("MAST", "Master File"),
+    rf_zstring("CNAM", "Author"),
+);
+
+RECORD(WEAP, "Weapon",
+    rf_zstring("MODL", "Model File Name"),
+    rf_formid("ETYP", "Equipment Type"),
+    rf_formid("BIDS", "Block Bash Impact Data Set"),
+    rf_formid("BAMT", "Alternate Block Material"),
+    rf_int32("KSIZ", "Keyword Count"),
+    { "KWDA", &Type_FormIDArray, "Keywords" },
+    rf_lstring("DESC", "Description"),
+    rf_formid("INAM", "Impact Data Set"),
+    rf_formid("WNAM", "1st Person Model Object"),
+    rf_formid("TNAM", "Attack Fail Sound"),
+    rf_formid("NAM9", "Equip Sound"),
+    rf_formid("NAM8", "Unequip Sound"),
+    { "DATA", &Type_WEAP_DATA, "Game Data" },
+    { "DNAM", &Type_WEAP_DNAM, "Weapon Data" },
+    { "CRDT", &Type_WEAP_CRDT, "Critical Data" },
+    rf_int32("VNAM", "Detection Sound Level"),
+);
+
+RECORD(QUST, "Quest",
+    { "DNAM", &Type_QUST_DNAM, "Quest Data" },
+);
+
+RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields }; // @TODO
+
+RECORD(REFR, "Reference",
+    rf_formid("NAME", "Form ID"),
+);
+
+#undef RECORD
 
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
