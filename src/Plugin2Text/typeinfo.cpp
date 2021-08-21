@@ -16,8 +16,36 @@ constexpr RecordFieldDef rf_float(char const type[5], const char* name) {
     return { type, &Type_float, name };
 }
 
+constexpr RecordFieldDef rf_int8(char const type[5], const char* name) {
+    return { type, &Type_int8, name };
+}
+
+constexpr RecordFieldDef rf_int16(char const type[5], const char* name) {
+    return { type, &Type_int16, name };
+}
+
 constexpr RecordFieldDef rf_int32(char const type[5], const char* name) {
     return { type, &Type_int32, name };
+}
+
+constexpr RecordFieldDef rf_int64(char const type[5], const char* name) {
+    return { type, &Type_int64, name };
+}
+
+constexpr RecordFieldDef rf_uint8(char const type[5], const char* name) {
+    return { type, &Type_uint8, name };
+}
+
+constexpr RecordFieldDef rf_uint16(char const type[5], const char* name) {
+    return { type, &Type_uint16, name };
+}
+
+constexpr RecordFieldDef rf_uint32(char const type[5], const char* name) {
+    return { type, &Type_uint32, name };
+}
+
+constexpr RecordFieldDef rf_uint64(char const type[5], const char* name) {
+    return { type, &Type_uint64, name };
 }
 
 constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
@@ -200,6 +228,25 @@ TYPE_STRUCT(CONT_CNTO, "Item", 8,
     sf_uint32("Count"),
 );
 
+TYPE_STRUCT(CONT_DATA, "Data", 5,
+    sf_uint8("Flags"),
+    sf_float("Unknown"),
+);
+
+TYPE_STRUCT(NPC__ACBS, "Base Stats", 24,
+    sf_uint32("Flags"), // @TODO: wrong stuff
+    sf_uint16("Magicka Offset"),
+    sf_uint16("Stamina Offset"),
+    sf_uint16("Level"),
+    sf_uint16("Calc Min Level"),
+    sf_uint16("Calc Max Level"),
+    sf_uint16("Speed Multiplier"),
+    sf_uint16("Disposition Base"),
+    sf_uint16("Template Data Flags"),
+    sf_uint16("Health Offset"),
+    sf_uint16("Bleedout Override"),
+);
+
 //static RecordFieldDef Record_CELL_Fields[]{
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
@@ -220,6 +267,7 @@ static RecordFieldDef Record_Common_Fields[] = {
     rf_lstring("FULL", "Name"),
     { "OBND", &Type_OBND, "Object Bounds" },
     rf_zstring("MODL", "Model File Name"),
+    rf_int32("COCT", "Item Count"),
 };
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
@@ -249,7 +297,7 @@ RECORD(WEAP, "Weapon",
 );
 
 RECORD(QUST, "Quest",
-    { "DNAM", &Type_QUST_DNAM, "Quest Data" },
+    rf_subrecord(QUST, DNAM, "Quest Data"),
 );
 
 RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields }; // @TODO
@@ -259,8 +307,21 @@ RECORD(REFR, "Reference",
 );
 
 RECORD(CONT, "Container",
-    rf_int32("COCT", "Item Count"),
     rf_subrecord(CONT, CNTO, "Items"),
+    rf_subrecord(CONT, DATA, "Data"),
+);
+
+RECORD(NPC_, "Non-Player Character",
+    rf_subrecord(NPC_, ACBS, "Base Stats"),
+    rf_formid("VTCK", "Voice Type"),
+    rf_formid("TPLT", "Template"),
+    rf_formid("RACE", "Race"),
+    rf_formid("ATKR", "Attack Race"),
+    rf_formid("PNAM", "Head Part"),
+    rf_formid("HCLF", "Hair Color"),
+    rf_float("NAM6", "Height"),
+    rf_float("NAM7", "Weight"),
+    rf_uint32("NAM8", "Sound Level"),
 );
 
 #undef RECORD
@@ -274,6 +335,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(CELL);
         CASE(REFR);
         CASE(CONT);
+        CASE(NPC_);
     }
     #undef CASE
     return nullptr;
