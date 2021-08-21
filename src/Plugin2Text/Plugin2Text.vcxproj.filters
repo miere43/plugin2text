@@ -12,4 +12,7 @@
     <ClInclude Include="miniz.h" />
     <ClInclude Include="tes.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Plugin2Text.natvis" />
+  </ItemGroup>
 </Project>

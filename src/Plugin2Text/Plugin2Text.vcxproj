@@ -30,6 +30,9 @@
     <ClInclude Include="tes.hpp" />
     <ClInclude Include="typeinfo.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="Plugin2Text.natvis" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
