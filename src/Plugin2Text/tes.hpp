@@ -13,6 +13,7 @@ enum class RecordType : uint32_t {
     HEDR = 0x52444548,
     CELL = 0x4c4c4543,
     QUST = fourcc("QUST"),
+    REFR = fourcc("REFR"),
 };
 
 enum class RecordFlags : uint32_t {

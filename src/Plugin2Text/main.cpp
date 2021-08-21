@@ -92,6 +92,7 @@ struct TextRecordWriter {
             CASE(WEAP);
             CASE(QUST);
             CASE(CELL);
+            CASE(REFR);
         }
         #undef CASE
         return nullptr;

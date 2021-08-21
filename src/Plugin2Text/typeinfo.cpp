@@ -228,7 +228,6 @@ static TypeStructField Type_CELL_XCLL_Fields[]{
     sf_float("Fog Far"),
     sf_int32("Rotation XY"),
     sf_int32("Rotation Z"),
-
 };
 
 static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
@@ -237,8 +236,13 @@ static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
 //};
 
+static RecordFieldDef Record_REFR_Fields[] = {
+    rf_formid("NAME", "Form ID"),
+};
+
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
 RecordDef Record_TES4 { "TES4", "File Header", Record_TES4_Fields };
 RecordDef Record_WEAP { "WEAP", "Weapon", Record_WEAP_Fields };
 RecordDef Record_QUST{ "QUST", "Quest", Record_QUST_Fields };
 RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields };
+RecordDef Record_REFR{ "REFR", "Reference", Record_REFR_Fields };
