@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="esp_to_text.cpp" />
     <ClCompile Include="miniz.c" />
     <ClCompile Include="os.cpp" />
