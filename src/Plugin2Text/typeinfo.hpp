@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 
+constexpr uint32_t fourcc(char const p[5]) {
+    return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
+}
+
 enum class RecordType : uint32_t {
     TES4 = 0x34534554,
     WEAP = 0x50414557,
@@ -8,6 +12,7 @@ enum class RecordType : uint32_t {
     ARMO = 0x4F4D5241,
     HEDR = 0x52444548,
     CELL = 0x4c4c4543,
+    QUST = fourcc("QUST"),
 };
 
 struct Record {
@@ -29,10 +34,6 @@ struct GrupRecord {
     uint32_t unused1;
 };
 static_assert(sizeof(GrupRecord) == 24, "sizeof(GrupRecord) == 24");
-
-constexpr uint32_t fourcc(char const p[5]) {
-    return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
-}
 
 enum class RecordFieldType : uint32_t {
     FULL = 1280070982,
@@ -131,10 +132,13 @@ struct RecordDef {
     const RecordFieldDef* fields = nullptr;
 
     template<size_t N>
-    constexpr RecordDef(RecordType type, const char* comment, const RecordFieldDef(&fields)[N]) : type(type), comment(comment), field_count(N), fields(fields) { }
+    constexpr RecordDef(char const type[5], const char* comment, const RecordFieldDef(&fields)[N]) : type((RecordType)fourcc(type)), comment(comment), field_count(N), fields(fields) { }
 
     const RecordFieldDef* get_field_def(RecordFieldType type);
 };
 
+extern RecordDef Record_Common;
 extern RecordDef Record_TES4;
 extern RecordDef Record_WEAP;
+extern RecordDef Record_QUST;
+

@@ -95,6 +95,11 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) {
     return nullptr;
 }
 
+static RecordFieldDef Record_Common_Fields[] = {
+    rf_zstring("EDID", "Editor ID"),
+    rf_lstring("FULL", "Name"),
+};
+
 static TypeStructField Type_TES4_HEDR_Fields[] = {
     sf_float("Version"),
     sf_int32("Number Of Records"),
@@ -180,10 +185,8 @@ static TypeStructField Type_WEAP_CRDT_Fields[]{
 
 static TypeStruct Type_WEAP_CRDT{ "Critical Data", 24, Type_WEAP_CRDT_Fields };
 
-RecordFieldDef Record_WEAP_Fields[] = {
-    rf_zstring("EDID", "Editor ID"),
+static RecordFieldDef Record_WEAP_Fields[] = {
     { "OBND", &Type_OBND, "Object Bounds" },
-    rf_lstring("FULL", "Name"),
     rf_zstring("MODL", "Model File Name"),
     rf_formid("ETYP", "Equipment Type"),
     rf_formid("BIDS", "Block Bash Impact Data Set"),
@@ -197,10 +200,27 @@ RecordFieldDef Record_WEAP_Fields[] = {
     rf_formid("NAM9", "Equip Sound"),
     rf_formid("NAM8", "Unequip Sound"),
     { "DATA", &Type_WEAP_DATA, "Game Data" },
-    { "DNAM", &Type_WEAP_DNAM, "Data" },
+    { "DNAM", &Type_WEAP_DNAM, "Weapon Data" },
     { "CRDT", &Type_WEAP_CRDT, "Critical Data" },
     rf_int32("VNAM", "Detection Sound Level"),
 };
 
-RecordDef Record_TES4 { RecordType::TES4, "File Header", Record_TES4_Fields };
-RecordDef Record_WEAP { RecordType::WEAP, "Weapon", Record_WEAP_Fields };
+static TypeStructField Type_QUST_DNAM_Fields[]{
+    sf_uint8("Flags"),
+    sf_uint8("Flags 2"),
+    sf_uint8("Priority"),
+    sf_uint8("Unknown"),
+    sf_int32("Unknown 2"),
+    sf_uint32("Quest Type"),
+};
+
+static TypeStruct Type_QUST_DNAM{ "Quest Data", 12, Type_QUST_DNAM_Fields };
+
+static RecordFieldDef Record_QUST_Fields[] = {
+    { "DNAM", &Type_QUST_DNAM, "Quest Data" },
+};
+
+RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
+RecordDef Record_TES4 { "TES4", "File Header", Record_TES4_Fields };
+RecordDef Record_WEAP { "WEAP", "Weapon", Record_WEAP_Fields };
+RecordDef Record_QUST{ "QUST", "Quest", Record_QUST_Fields };

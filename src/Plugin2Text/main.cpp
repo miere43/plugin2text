@@ -86,11 +86,13 @@ struct TextRecordWriter {
     }
 
     RecordDef* get_record_def(RecordType type) {
-        if (type == RecordType::TES4) {
-            return &Record_TES4;
-        } else if (type == RecordType::WEAP) {
-            return &Record_WEAP;
+        #define CASE(rec) case RecordType::rec: return &Record_##rec
+        switch (type) {
+            CASE(TES4);
+            CASE(WEAP);
+            CASE(QUST);
         }
+        #undef CASE
         return nullptr;
     }
 
@@ -136,21 +138,19 @@ struct TextRecordWriter {
         const uint8_t* now = (uint8_t*)record + sizeof(Record);
         const uint8_t* end = now + record->data_size;
 
+        if (!def) {
+            def = &Record_Common;
+        }
+
         indent += 1;
-        if (def) {
-            while (now < end) {
-                auto field = (RecordField*)now;
-                write_newline();
-                write_indent();
-                indent += 1;
-                write_field(def, field);
-                indent -= 1;
-                now += sizeof(RecordField) + field->size;
-            }
-        } else {
+        while (now < end) {
+            auto field = (RecordField*)now;
             write_newline();
             write_indent();
-            write_byte_array(now, end - now);
+            indent += 1;
+            write_field(def, field);
+            indent -= 1;
+            now += sizeof(RecordField) + field->size;
         }
         indent -= 1;
     }
@@ -187,15 +187,17 @@ struct TextRecordWriter {
                 auto integer_type = (const TypeInteger*)type;
                 if (integer_type->is_unsigned) {
                     switch (size) {
-                        case 1: write_format("%u", *(int8_t*)value); break;
-                        case 2: write_format("%u", *(int16_t*)value); break;
-                        case 4: write_format("%u", *(int*)value); break;
+                        case 1: write_format("%u", *(uint8_t*)value); break;
+                        case 2: write_format("%u", *(uint16_t*)value); break;
+                        case 4: write_format("%u", *(uint32_t*)value); break;
+                        case 8: write_format("%llu", *(uint64_t*)value); break;
                     }
                 } else {
                     switch (size) {
                         case 1: write_format("%d", *(int8_t*)value); break;
                         case 2: write_format("%d", *(int16_t*)value); break;
-                        case 4: write_format("%d", *(int*)value); break;
+                        case 4: write_format("%d", *(int32_t*)value); break;
+                        case 8: write_format("%lld", *(int64_t*)value); break;
                     }
                 }
             } break;
@@ -265,6 +267,9 @@ struct TextRecordWriter {
     void write_field(RecordDef* decl, RecordField* field) {
         write_bytes(&field->type, 4);
         auto field_def = decl->get_field_def(field->type);
+        if (!field_def) {
+            field_def = Record_Common.get_field_def(field->type);
+        }
 
         if (field_def && field_def->comment) {
             write_bytes(" - ", 3);
