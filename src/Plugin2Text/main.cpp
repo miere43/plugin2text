@@ -30,7 +30,7 @@ static void print_usage(const char* hint) {
 
 static const wchar_t* get_file_extension(const wchar_t* string) {
     const auto count = wcslen(string);
-    for (int i = count - 1; i >= 0; --i) {
+    for (size_t i = count - 1; i >= 0; --i) {
         if (string[i] == '.') {
             return &string[i];
         }
@@ -55,9 +55,9 @@ int main() {
     const auto destination_file = argv[2];
 
     auto source_file_extension = get_file_extension(source_file);
-    if (0 == wcscmp(source_file_extension, L".txt")) {
+    if (string_equals(source_file_extension, L".txt")) {
         text_to_esp(source_file, destination_file);
-    } else if (0 == wcscmp(source_file_extension, L".esp") || 0 == wcscmp(source_file_extension, L".esm") || 0 == wcscmp(source_file_extension, L".esl")) {
+    } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
         esp_to_text(source_file, destination_file);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);

@@ -245,7 +245,7 @@ struct TextRecordReader {
             return false;
         }
 
-        if (0 == memcmp(now, string, count)) {
+        if (memory_equals(now, string, count)) {
             now += count;
             return true;
         }
@@ -257,7 +257,7 @@ struct TextRecordReader {
         int indents = 0;
         auto curr = now;
         while (curr + 2 < end) {
-            if (0 == memcmp(curr, "  ", 2)) {
+            if (memory_equals(curr, "  ", 2)) {
                 ++indents;
                 curr += 2;
             } else {

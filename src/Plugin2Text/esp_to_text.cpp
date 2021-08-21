@@ -241,8 +241,8 @@ struct TextRecordWriter {
 
             case TypeKind::FormIDArray: {
                 verify((size % sizeof(int)) == 0);
-                const int keyword_count = size / sizeof(int);
-                for (int i = 0; i < keyword_count; ++i) {
+                const size_t keyword_count = size / sizeof(int);
+                for (size_t i = 0; i < keyword_count; ++i) {
                     write_format("[%08X]", ((int*)value)[i]);
                     if (i != keyword_count - 1) {
                         write_newline();
