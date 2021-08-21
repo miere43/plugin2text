@@ -31,6 +31,19 @@ struct Record {
 };
 static_assert(sizeof(Record) == 24, "sizeof(Record) == 24");
 
+enum class RecordGroupType : uint32_t {
+    Top = 0,
+    WorldChildren = 1,
+    InteriorCellBlock = 2,
+    InteriorCellSubBlock = 3,
+    ExteriorCellBlock = 4,
+    ExteriorCellSubBlock = 5,
+    CellChildren = 6,
+    TopicChildren = 7,
+    CellPersistentChildren = 8,
+    CellTemporaryChildren = 9,
+};
+
 struct GrupRecord {
     RecordType type;
     uint32_t group_size;
@@ -38,7 +51,7 @@ struct GrupRecord {
         uint32_t label_as_uint32;
         char     label_as_chars[4];
     };
-    uint32_t group_type;
+    RecordGroupType group_type;
     uint32_t unused0;
     uint32_t unused1;
 };

@@ -19,7 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="esp_to_text.cpp" />
     <ClCompile Include="miniz.c" />
+    <ClCompile Include="os.cpp" />
     <ClCompile Include="tes.cpp" />
     <ClCompile Include="typeinfo.cpp" />
     <ClCompile Include="main.cpp" />
@@ -27,7 +29,10 @@
   <ItemGroup>
     <ClInclude Include="common.hpp" />
     <ClInclude Include="miniz.h" />
+    <ClInclude Include="os.hpp" />
     <ClInclude Include="tes.hpp" />
+    <ClInclude Include="esp_to_text.hpp" />
+    <ClInclude Include="text_to_esp.hpp" />
     <ClInclude Include="typeinfo.hpp" />
   </ItemGroup>
   <ItemGroup>

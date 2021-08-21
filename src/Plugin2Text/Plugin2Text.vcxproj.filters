@@ -5,12 +5,17 @@
     <ClCompile Include="typeinfo.cpp" />
     <ClCompile Include="miniz.c" />
     <ClCompile Include="tes.cpp" />
+    <ClCompile Include="esp_to_text.cpp" />
+    <ClCompile Include="os.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typeinfo.hpp" />
     <ClInclude Include="common.hpp" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="tes.hpp" />
+    <ClInclude Include="text_to_esp.hpp" />
+    <ClInclude Include="esp_to_text.hpp" />
+    <ClInclude Include="os.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Plugin2Text.natvis" />
