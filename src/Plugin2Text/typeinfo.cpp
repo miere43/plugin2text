@@ -24,7 +24,7 @@ TypeStructField Type_Vector3_Fields[] = {
     }
 };
 
-TypeStruct Type_Vector3{ "Vector3", 12, _countof(Type_Vector3_Fields), Type_Vector3_Fields };
+TypeStruct Type_Vector3{ "Vector3", 12, Type_Vector3_Fields };
 
 const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) {
     for (int i = 0; i < field_count; ++i) {
@@ -55,7 +55,6 @@ TypeStructField Type_TES4_HEDR_Fields[] = {
 TypeStruct Type_TES4_HEDR = {
     "TES4_HEDR",
     12,
-    _countof(Type_TES4_HEDR_Fields),
     Type_TES4_HEDR_Fields,
 };
 
@@ -111,7 +110,7 @@ TypeStructField Type_OBND_Fields[] = {
     },
 };
 
-TypeStruct Type_OBND{ "Object Bounds", 12, _countof(Type_OBND_Fields), Type_OBND_Fields };
+TypeStruct Type_OBND{ "Object Bounds", 12, Type_OBND_Fields };
 
 RecordFieldDef Record_WEAP_Fields[] = {
     {

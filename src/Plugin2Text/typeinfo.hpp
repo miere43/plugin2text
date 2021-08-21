@@ -95,7 +95,8 @@ struct TypeStruct : Type {
     size_t field_count = 0;
     const TypeStructField* fields = nullptr;
 
-    constexpr TypeStruct(const char* name, size_t size, size_t field_count, const TypeStructField* fields) : Type(TypeKind::Struct, name, size), field_count(field_count), fields(fields) { }
+    template<size_t N>
+    constexpr TypeStruct(const char* name, size_t size, TypeStructField(&fields)[N]) : Type(TypeKind::Struct, name, size), field_count(N), fields(fields) { }
 };
 
 extern Type Type_ZString;
