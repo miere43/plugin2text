@@ -83,4 +83,4 @@ extern RecordDef Record_Common;
 extern RecordDef Record_TES4;
 extern RecordDef Record_WEAP;
 extern RecordDef Record_QUST;
-
+extern RecordDef Record_CELL;

@@ -220,7 +220,25 @@ static RecordFieldDef Record_QUST_Fields[] = {
     { "DNAM", &Type_QUST_DNAM, "Quest Data" },
 };
 
+static TypeStructField Type_CELL_XCLL_Fields[]{
+    sf_uint32("Ambient"),
+    sf_uint32("Directional"),
+    sf_uint32("Fog Near"),
+    sf_float("Fog Near"),
+    sf_float("Fog Far"),
+    sf_int32("Rotation XY"),
+    sf_int32("Rotation Z"),
+
+};
+
+static TypeStruct Type_CELL_XCLL{ "Lighting", 92, Type_CELL_XCLL_Fields };
+
+//static RecordFieldDef Record_CELL_Fields[]{
+    //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
+//};
+
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
 RecordDef Record_TES4 { "TES4", "File Header", Record_TES4_Fields };
 RecordDef Record_WEAP { "WEAP", "Weapon", Record_WEAP_Fields };
 RecordDef Record_QUST{ "QUST", "Quest", Record_QUST_Fields };
+RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields };

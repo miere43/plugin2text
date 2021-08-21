@@ -91,6 +91,7 @@ struct TextRecordWriter {
             CASE(TES4);
             CASE(WEAP);
             CASE(QUST);
+            CASE(CELL);
         }
         #undef CASE
         return nullptr;
