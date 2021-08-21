@@ -67,6 +67,7 @@ enum class TypeKind {
     ByteArray,
     ZString,
     LString,
+    FormID,
 };
 
 struct Type {
@@ -96,13 +97,14 @@ struct TypeStruct : Type {
     const TypeStructField* fields = nullptr;
 
     template<size_t N>
-    constexpr TypeStruct(const char* name, size_t size, TypeStructField(&fields)[N]) : Type(TypeKind::Struct, name, size), field_count(N), fields(fields) { }
+    constexpr TypeStruct(const char* name, size_t size, const TypeStructField(&fields)[N]) : Type(TypeKind::Struct, name, size), field_count(N), fields(fields) { }
 };
 
 extern Type Type_ZString;
 extern Type Type_LString;
 extern Type Type_ByteArray;
 extern Type Type_float;
+extern Type Type_FormID;
 extern TypeInteger Type_int32;
 extern TypeInteger Type_int16;
 extern TypeStruct Type_Vector3;
@@ -116,8 +118,11 @@ struct RecordFieldDef {
 struct RecordDef {
     RecordType type;
     const char* comment = nullptr;
-    int field_count = 0;
+    size_t field_count = 0;
     const RecordFieldDef* fields = nullptr;
+
+    template<size_t N>
+    constexpr RecordDef(RecordType type, const char* comment, const RecordFieldDef(&fields)[N]) : type(type), comment(comment), field_count(N), fields(fields) { }
 
     const RecordFieldDef* get_field_def(RecordFieldType type);
 };
