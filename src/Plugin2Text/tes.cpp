@@ -7,7 +7,7 @@ bool Record::is_compressed() const {
     return (uint32_t)flags & (uint32_t)RecordFlags::Compressed;
 }
 
-uint8_t* Record::uncompress() const {
+uint8_t* Record::uncompress(uint32_t* out_uncompressed_data_size) const {
     verify(is_compressed());
     mz_ulong uncompressed_data_size = *(uint32_t*)((uint8_t*)this + sizeof(Record));
     uint8_t* compressed_data = (uint8_t*)this + sizeof(Record) + sizeof(uint32_t);
@@ -16,24 +16,8 @@ uint8_t* Record::uncompress() const {
     auto result = mz_uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, data_size - sizeof(uint32_t));
     verify(result == MZ_OK);
 
+    *out_uncompressed_data_size = uncompressed_data_size;
     return (uint8_t*)uncompressed_data;
-}
-
-RecordGroupType parse_record_group_type(const char* str, size_t count) {
-    #define CASE(m_type, m_string) if (strncmp(m_string, str, count) == 0) return RecordGroupType::m_type
-    CASE(Top, "Top");
-    CASE(WorldChildren, "World");
-    CASE(InteriorCellBlock, "Interior Block");
-    CASE(InteriorCellSubBlock, "Interior Sub-Block");
-    CASE(ExteriorCellBlock, "Exterior");
-    CASE(ExteriorCellSubBlock, "Exterior Sub-Block");
-    CASE(CellChildren, "Cell");
-    CASE(TopicChildren, "Topic");
-    CASE(CellPersistentChildren, "Persistent");
-    CASE(CellTemporaryChildren, "Temporary");
-    #undef CASE
-    verify(false);
-    return (RecordGroupType)0;
 }
 
 const char* record_group_type_to_string(RecordGroupType type) {

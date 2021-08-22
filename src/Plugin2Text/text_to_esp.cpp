@@ -75,6 +75,23 @@ struct TextRecordReader {
         }
     }
 
+    RecordGroupType expect_record_group_type() {
+        #define CASE(m_type, m_string) if (expect(m_string)) return RecordGroupType::m_type
+        CASE(WorldChildren, "World");
+        CASE(InteriorCellSubBlock, "Interior Sub-Block");
+        CASE(InteriorCellBlock, "Interior Block");
+        CASE(ExteriorCellSubBlock, "Exterior Sub-Block");
+        CASE(ExteriorCellBlock, "Exterior");
+        CASE(CellChildren, "Cell");
+        CASE(TopicChildren, "Topic");
+        CASE(Top, "Top");
+        CASE(CellPersistentChildren, "Persistent");
+        CASE(CellTemporaryChildren, "Temporary");
+        #undef CASE
+        verify(false);
+        return (RecordGroupType)0;
+    }
+
     GrupRecord* read_grup_record() {
         auto record_start_offset = buffer.now;
 
@@ -85,7 +102,40 @@ struct TextRecordReader {
 
         if (expect(" - ")) {
             auto line_end = peek_end_of_current_line();
-            group.group_type = parse_record_group_type(now, line_end - now);
+            group.group_type = expect_record_group_type();
+
+            switch (group.group_type) {
+                case RecordGroupType::InteriorCellBlock:
+                case RecordGroupType::InteriorCellSubBlock: {
+                    verify(expect(" "));
+                    group.label = expect_int();
+                } break;
+                
+                case RecordGroupType::ExteriorCellBlock:
+                case RecordGroupType::ExteriorCellSubBlock: {
+                    verify(expect(" ("));
+                    group.grid_x = expect_int();
+                    verify(expect("; "));
+                    group.grid_y = expect_int();
+                    verify(expect(")"));
+                } break;
+
+                case RecordGroupType::CellChildren: 
+                case RecordGroupType::CellPersistentChildren: 
+                case RecordGroupType::CellTemporaryChildren: 
+                case RecordGroupType::WorldChildren:
+                case RecordGroupType::TopicChildren: {
+                    // @TODO: It's possible to infer "group.value" by looking at previous record.
+                    verify(expect(" "));
+                    group.label = read_formid().value;
+                } break;
+
+                default: {
+                    verify(false);
+                } break;
+            }
+        } else {
+            group.group_type = RecordGroupType::Top;
         }
 
         skip_to_next_line();
@@ -96,12 +146,26 @@ struct TextRecordReader {
             if (indents == indent) {
                 expect_indent();
                 auto record = read_record();
-                if (group.group_type == RecordGroupType::Top) {
-                    if (group.label == 0) {
-                        group.label = (uint32_t)record->type;
-                    } else {
-                        verify(record->type == RecordType::GRUP || group.label == (uint32_t)record->type);
-                    }
+                switch (group.group_type) {
+                    case RecordGroupType::Top: {
+                        if (group.label == 0) {
+                            group.label = (uint32_t)record->type;
+                        } else {
+                            verify(record->type == RecordType::GRUP || group.label == (uint32_t)record->type);
+                        }
+                    } break;
+
+                    //case RecordGroupType::TopicChildren: {
+                    //    verify(false);
+                    //} break;
+                
+                    //case RecordGroupType::CellChildren: 
+                    //case RecordGroupType::CellPersistentChildren:
+                    //case RecordGroupType::CellTemporaryChildren: {
+                    //    if (group.label == 0 && record->type == RecordType::CELL) {
+                    //        group.label = record->id.value;
+                    //    }
+                    //} break;
                 }
             } else {
                 verify(indents < indent);
@@ -109,6 +173,19 @@ struct TextRecordReader {
             }
         }
         indent -= 1;
+
+        // validate
+        switch (group.group_type) {
+            case RecordGroupType::Top: {
+                verify(group.label);
+            } break;
+
+            //case RecordGroupType::CellChildren:
+            //case RecordGroupType::CellPersistentChildren:
+            //case RecordGroupType::CellTemporaryChildren: {
+            //    verify(group.label);
+            //} break;
+        }
 
         group.group_size = (uint32_t)(buffer.now - record_start_offset);
         write_struct_at(record_start_offset, &group);
@@ -178,16 +255,18 @@ struct TextRecordReader {
         indent -= 1;
 
         if (use_compression_buffer) {
-            mz_ulong uncompressed_data_size = buffer.now - buffer.start;
+            auto uncompressed_data_size = static_cast<mz_ulong>(buffer.now - buffer.start);
             verify(uncompressed_data_size > 0);
 
-            mz_ulong compressed_size = esp_buffer.end - esp_buffer.now; // remaining ESP size
-            auto result = mz_compress(&record_start_offset[sizeof(record)], &compressed_size, buffer.start, uncompressed_data_size);
+            auto compressed_size = static_cast<mz_ulong>(esp_buffer.end - esp_buffer.now); // remaining ESP size
+            auto result = mz_compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer.start, uncompressed_data_size);
             verify(result == MZ_OK);
 
-            record.data_size = compressed_size;
+            *(uint32_t*)&record_start_offset[sizeof(record)] = uncompressed_data_size;
+
+            record.data_size = compressed_size + sizeof(uint32_t);
             buffer = esp_buffer;
-            buffer.now += compressed_size;
+            buffer.now += record.data_size;
 
             inside_compressed_record = false;
         } else {
@@ -254,10 +333,10 @@ struct TextRecordReader {
 
                 const auto line_end = peek_end_of_current_line();
                 const auto count = (line_end - now) - 2;
-                expect("\"");
-                write_bytes(now, count);
+                verify(now[0] == '"');
+                write_bytes(now + 1, count);
                 write_bytes("\0", 1);
-                expect("\"");
+                verify(now[count + 1] == '"');
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
@@ -417,7 +496,7 @@ struct TextRecordReader {
 
         RecordField field;
         field.type = read_record_field_type();
-        
+
         buffer.now += sizeof(field);
         auto field_def = def->get_field_def(field.type);
         if (!field_def) {
@@ -463,6 +542,14 @@ struct TextRecordReader {
         }
         
         return false;
+    }
+
+    int expect_int() {
+        int value = 0;
+        int nread = 0;
+        verify(1 == _snscanf_s(now, end - now, "%d%n", &value, &nread));
+        now += nread;
+        return value;
     }
 
     int peek_indents() {

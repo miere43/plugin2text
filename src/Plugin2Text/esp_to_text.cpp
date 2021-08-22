@@ -91,6 +91,22 @@ struct TextRecordWriter {
         //write_format(" %04X", record->timestamp);
         if (record->group_type != RecordGroupType::Top) {
             write_format(" - %s", record_group_type_to_string(record->group_type));
+            
+            switch (record->group_type) {
+                case RecordGroupType::ExteriorCellBlock:
+                case RecordGroupType::ExteriorCellSubBlock: {
+                    write_format(" (%d; %d)", record->grid_x, record->grid_y);
+                } break;
+
+                case RecordGroupType::InteriorCellBlock:
+                case RecordGroupType::InteriorCellSubBlock: {
+                    write_format(" %d", (int)record->label);
+                } break;
+
+                default: {
+                    write_format(" [%08X]", record->label);
+                } break;
+            }
         }
 
         indent += 1;
@@ -134,8 +150,17 @@ struct TextRecordWriter {
             indent -= 1;
         }
 
-        const uint8_t* now = record->is_compressed() ? record->uncompress() : (uint8_t*)record + sizeof(Record);
-        const uint8_t* end = now + record->data_size;
+
+        const uint8_t* now;
+        const uint8_t* end;
+        if (record->is_compressed()) {
+            uint32_t size = 0;
+            now = record->uncompress(&size);
+            end = now + size;
+        } else {
+            now = (uint8_t*)record + sizeof(Record);
+            end = now + record->data_size;
+        }
 
         if (!def) {
             def = &Record_Common;

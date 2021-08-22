@@ -7,6 +7,7 @@ constexpr uint32_t fourcc(char const p[5]) {
 
 enum class RecordType : uint32_t {
     GRUP = fourcc("GRUP"),
+    CELL = fourcc("CELL"),
 };
 
 enum class RecordFlags : uint32_t {
@@ -34,7 +35,7 @@ struct Record {
     uint16_t unknown = 0;
 
     bool is_compressed() const;
-    uint8_t* uncompress() const;
+    uint8_t* uncompress(uint32_t* out_uncompressed_data_size) const;
 };
 static_assert(sizeof(Record) == 24, "sizeof(Record) == 24");
 
@@ -51,17 +52,24 @@ enum class RecordGroupType : uint32_t {
     CellTemporaryChildren = 9,
 };
 
-RecordGroupType parse_record_group_type(const char* str, size_t count);
 const char* record_group_type_to_string(RecordGroupType type);
 
 struct GrupRecord {
     RecordType type = (RecordType)0;
     uint32_t group_size = 0;
-    uint32_t label = 0;
+    union {
+        struct {
+            int16_t grid_y;
+            int16_t grid_x;
+        };
+        uint32_t label;
+    };
     RecordGroupType group_type = (RecordGroupType)0;
     uint16_t timestamp = 0;
     uint16_t version_control_info = 0;
     uint32_t unknown = 0;
+
+    inline GrupRecord() : label(0) { }
 };
 static_assert(sizeof(GrupRecord) == 24, "sizeof(GrupRecord) == 24");
 
