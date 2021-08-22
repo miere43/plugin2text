@@ -3,6 +3,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
 
 __declspec(noreturn) void exit_error(const wchar_t* format, ...) {
     wprintf(L"error: ");
@@ -31,4 +34,24 @@ int string_last_index_of(const wchar_t* str, char c) {
         }
     }
     return -1;
+}
+
+uint8_t* VirtualMemoryBuffer::advance(size_t size) {
+    verify(now + size <= end);
+    auto result = now;
+    now += size;
+    return result;
+}
+
+size_t VirtualMemoryBuffer::remaining_size() const {
+    return end - now;
+}
+
+VirtualMemoryBuffer VirtualMemoryBuffer::alloc(size_t size) {
+    VirtualMemoryBuffer buffer;
+    buffer.start = (uint8_t*)VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    verify(buffer.start);
+    buffer.now = buffer.start;
+    buffer.end = buffer.start + size;
+    return buffer;
 }

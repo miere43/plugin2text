@@ -52,6 +52,10 @@ constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
     return { type, &Type_FormID, name };
 }
 
+constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
+    return { type, &Type_ByteArrayCompressed, name };
+}
+
 #define rf_subrecord_shared(m_record, m_subrecord, m_name) \
     { #m_subrecord, &CONCAT(Type_, m_record)_##m_subrecord, m_name }
 
@@ -125,6 +129,7 @@ constexpr TypeStructField sf_formid(const char* name) {
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
 Type Type_LString{ TypeKind::LString, "LString", 0 };
 Type Type_ByteArray{ TypeKind::ByteArray, "Byte Array", 0 };
+Type Type_ByteArrayCompressed{ TypeKind::ByteArrayCompressed, "Byte Array (Compressed)", 0 };
 Type Type_float{ TypeKind::Float, "float", sizeof(float) };
 Type Type_FormID{ TypeKind::FormID, "Form ID", sizeof(int) };
 Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
@@ -425,6 +430,7 @@ RECORD(NPC_, "Non-Player Character",
 
 RECORD(NAVI, "Navigation",
     rf_uint32("NVER", "Version"),
+    rf_compressed("NVPP", "Preferred Pathing Data"),
     //rf_subrecord("NVMI", "Navmesh Data", 4,
     //    sf_formid("Form ID"),
     //),

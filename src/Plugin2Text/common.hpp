@@ -24,3 +24,14 @@ __declspec(noreturn) void exit_error(const wchar_t* format, ...);
 bool string_equals(const wchar_t* a, const wchar_t* b);
 bool memory_equals(const void* a, const void* b, size_t size);
 int string_last_index_of(const wchar_t* str, char c);
+
+struct VirtualMemoryBuffer {
+    uint8_t* start = nullptr;
+    uint8_t* now = nullptr;
+    uint8_t* end = nullptr;
+
+	uint8_t* advance(size_t size);
+	size_t remaining_size() const;
+
+	static VirtualMemoryBuffer alloc(size_t size);
+};

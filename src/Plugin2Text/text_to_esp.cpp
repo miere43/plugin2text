@@ -9,24 +9,20 @@
 #include <stdlib.h>
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "miniz.h"
+#include "base64.hpp"
 
 struct TextRecordReader {
-    struct Buffer {
-        uint8_t* start = nullptr;
-        uint8_t* now = nullptr;
-        uint8_t* end = nullptr;
-    };
-
     // Current buffer. If writing compressed data, then points to "compression_buffer", otherwise to "esp_buffer".
-    Buffer buffer;
+    VirtualMemoryBuffer* buffer = nullptr;
 
     // Buffer for writing ESP.
-    Buffer esp_buffer;
+    VirtualMemoryBuffer esp_buffer;
 
     // Buffer for writing compressed data. Content from this buffer will be blitted into "esp_buffer" after compression.
     // @NOTE: It's possible to compress data inplace, but code for that is very annoying.
     // Looks like more trouble than worth.
-    Buffer compression_buffer;
+    // Used as scratch buffer when decompressing base64-encoded fields.
+    VirtualMemoryBuffer compression_buffer;
 
     bool inside_compressed_record = false;
 
@@ -36,28 +32,19 @@ struct TextRecordReader {
 
     int indent = 0;
 
-    Buffer new_buffer(size_t size) {
-        Buffer buffer;
-        buffer.start = (uint8_t*)VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-        verify(buffer.start);
-        buffer.now = buffer.start;
-        buffer.end = buffer.start + size;
-        return buffer;
-    }
-
     void open() {
-        esp_buffer = new_buffer(1024 * 1024 * 1024);
-        compression_buffer = new_buffer(1024 * 1024 * 32);
-        buffer = esp_buffer;
+        esp_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 1024);
+        compression_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 32);
+        buffer = &esp_buffer;
     }
 
     void close(const wchar_t* path) {
         auto output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
         verify(output_handle != INVALID_HANDLE_VALUE);
 
-        auto esp_size = (uint32_t)(buffer.now - buffer.start);
+        auto esp_size = (uint32_t)(buffer->now - buffer->start);
         DWORD written = 0;
-        verify(WriteFile(output_handle, buffer.start, esp_size, &written, nullptr));
+        verify(WriteFile(output_handle, buffer->start, esp_size, &written, nullptr));
         verify(written == esp_size);
 
         CloseHandle(output_handle);
@@ -93,12 +80,12 @@ struct TextRecordReader {
     }
 
     GrupRecord* read_grup_record() {
-        auto record_start_offset = buffer.now;
+        auto record_start_offset = buffer->now;
 
         GrupRecord group;
         group.type = RecordType::GRUP;
     
-        buffer.now += sizeof(GrupRecord);
+        buffer->now += sizeof(GrupRecord);
 
         if (expect(" - ")) {
             auto line_end = peek_end_of_current_line();
@@ -187,14 +174,14 @@ struct TextRecordReader {
             //} break;
         }
 
-        group.group_size = (uint32_t)(buffer.now - record_start_offset);
+        group.group_size = (uint32_t)(buffer->now - record_start_offset);
         write_struct_at(record_start_offset, &group);
 
         return (GrupRecord*)record_start_offset;
     }
 
     Record* read_record() {
-        auto record_start_offset = buffer.now;
+        auto record_start_offset = buffer->now;
 
         Record record;
         record.type = read_record_type();
@@ -204,7 +191,7 @@ struct TextRecordReader {
         }
 
         record.version = 44; // @TODO
-        buffer.now += sizeof(record);
+        buffer->now += sizeof(record);
 
         verify(expect(" "));
         record.id = read_formid();
@@ -237,8 +224,7 @@ struct TextRecordReader {
         if (use_compression_buffer) {
             verify(!inside_compressed_record);
             inside_compressed_record = true;
-            esp_buffer = buffer;
-            buffer = compression_buffer;
+            buffer = &compression_buffer;
         }
 
         indent += 1;
@@ -255,22 +241,23 @@ struct TextRecordReader {
         indent -= 1;
 
         if (use_compression_buffer) {
-            auto uncompressed_data_size = static_cast<mz_ulong>(buffer.now - buffer.start);
+            auto uncompressed_data_size = static_cast<mz_ulong>(compression_buffer.now - compression_buffer.start);
             verify(uncompressed_data_size > 0);
 
             auto compressed_size = static_cast<mz_ulong>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-            auto result = mz_compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer.start, uncompressed_data_size);
+            auto result = mz_compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size);
             verify(result == MZ_OK);
 
             *(uint32_t*)&record_start_offset[sizeof(record)] = uncompressed_data_size;
 
             record.data_size = compressed_size + sizeof(uint32_t);
-            buffer = esp_buffer;
-            buffer.now += record.data_size;
+            buffer = &esp_buffer;
+            buffer->now += record.data_size;
+            compression_buffer.now = compression_buffer.start;
 
             inside_compressed_record = false;
         } else {
-            record.data_size = (uint32_t)(buffer.now - record_start_offset - sizeof(record));
+            record.data_size = (uint32_t)(buffer->now - record_start_offset - sizeof(record));
         }
         write_struct_at(record_start_offset, &record);
 
@@ -313,7 +300,7 @@ struct TextRecordReader {
                 const auto count = (line_end - now) / 2;
                 verify(((line_end - now) % 2) == 0);
             
-                const auto buffer = new uint8_t[count];
+                const auto buffer = new uint8_t[count]; // @TODO: use scratch
                 
                 for (int i = 0; i < count; ++i) {
                     uint8_t a = parse_hex_char(now[(i * 2) + 0]);
@@ -326,7 +313,32 @@ struct TextRecordReader {
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
-            
+
+            case TypeKind::ByteArrayCompressed: {
+                const auto line_end = peek_end_of_current_line();
+                const auto count = line_end - now;
+
+                uint32_t decompressed_size = 0;
+                int nread = 0;
+                verify(1 == _snscanf_s(now, count, "%X%n", &decompressed_size, &nread));
+                now += nread;
+                verify(expect(" "));
+
+                auto base64_buffer = compression_buffer.now;
+                mz_ulong base64_size = (mz_ulong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
+                compression_buffer.advance(base64_size);
+               
+                auto result_size = (mz_ulong)decompressed_size;
+                const auto decompressed_buffer = compression_buffer.advance(result_size);
+                const auto result = mz_uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
+                verify(result == MZ_OK);
+
+                write_bytes(decompressed_buffer, result_size);
+
+                compression_buffer.now = base64_buffer;
+                now = line_end + 1; // +1 for '\n'.
+            } break;
+
             case TypeKind::ZString:
             case TypeKind::LString: {
                 // @TODO: localized LString
@@ -492,12 +504,12 @@ struct TextRecordReader {
     }
 
     void read_field(const RecordDef* def, Record* record) {
-        auto field_start_offset = buffer.now;
+        auto field_start_offset = buffer->now;
 
         RecordField field;
         field.type = read_record_field_type();
 
-        buffer.now += sizeof(field);
+        buffer->now += sizeof(field);
         auto field_def = def->get_field_def(field.type);
         if (!field_def) {
             field_def = Record_Common.get_field_def(field.type);
@@ -512,7 +524,7 @@ struct TextRecordReader {
 
         indent -= 1;
 
-        field.size = (uint16_t)(buffer.now - field_start_offset - sizeof(field));
+        field.size = (uint16_t)(buffer->now - field_start_offset - sizeof(field));
         write_struct_at(field_start_offset, &field);
     }
 
@@ -609,13 +621,13 @@ struct TextRecordReader {
     }
 
     void write_bytes(const void* data, size_t size) {
-        write_bytes_at(buffer.now, data, size);
-        buffer.now += size;
+        write_bytes_at(buffer->now, data, size);
+        buffer->now += size;
     }
 
     void write_bytes_at(uint8_t* pos, const void* data, size_t size) {
-        verify(pos >= buffer.start);
-        verify(pos + size <= buffer.end);
+        verify(pos >= buffer->start);
+        verify(pos + size <= buffer->end);
         memcpy(pos, data, size);
     }
 };

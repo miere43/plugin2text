@@ -7,8 +7,13 @@
 #include "common.hpp"
 #include "typeinfo.hpp"
 #include <stdio.h>
+#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#include "miniz.h"
+#include "base64.hpp"
 
 struct TextRecordWriter {
+    VirtualMemoryBuffer scratch_buffer;
+
     HANDLE output_handle = 0;
     int indent = 0;
     bool localized_strings = false;
@@ -17,6 +22,8 @@ struct TextRecordWriter {
         verify(!output_handle);
         output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
         verify(output_handle != INVALID_HANDLE_VALUE);
+
+        scratch_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 32);
 
         write_format("plugin2text version 1.00\n---\n");
     }
@@ -204,6 +211,24 @@ struct TextRecordWriter {
 
             case TypeKind::ByteArray: {
                 write_byte_array((uint8_t*)value, size);
+            } break;
+
+            case TypeKind::ByteArrayCompressed: {
+                auto buffer = scratch_buffer.advance(size);
+
+                auto compressed_size = static_cast<mz_ulong>(scratch_buffer.remaining_size());
+                auto result = mz_compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<mz_ulong>(size));
+                verify(result == MZ_OK);
+
+                scratch_buffer.now += compressed_size;
+
+                write_format("%X ", (uint32_t)size);
+                auto output_size = base64_encode(buffer, compressed_size, (char*)scratch_buffer.now, scratch_buffer.end - scratch_buffer.now);
+                write_bytes(scratch_buffer.now, output_size);
+                
+                write_byte_array(buffer, compressed_size);
+
+                scratch_buffer.now = buffer;
             } break;
 
             case TypeKind::Integer: {

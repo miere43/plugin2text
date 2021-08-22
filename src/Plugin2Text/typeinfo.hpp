@@ -8,6 +8,7 @@ enum class TypeKind {
     Float,
     Integer,
     ByteArray,
+    ByteArrayCompressed,
     ZString,
     LString,
     FormID,
@@ -61,6 +62,7 @@ struct TypeEnum : Type {
 extern Type Type_ZString;
 extern Type Type_LString;
 extern Type Type_ByteArray;
+extern Type Type_ByteArrayCompressed;
 extern Type Type_float;
 extern Type Type_FormID;
 extern TypeInteger Type_int8;

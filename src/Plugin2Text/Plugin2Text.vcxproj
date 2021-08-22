@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="base64.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="esp_to_text.cpp" />
     <ClCompile Include="miniz.c" />
@@ -29,6 +30,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="base64.hpp" />
     <ClInclude Include="common.hpp" />
     <ClInclude Include="miniz.h" />
     <ClInclude Include="os.hpp" />
