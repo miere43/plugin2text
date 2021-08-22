@@ -83,21 +83,21 @@ struct TextRecordWriter {
         const uint8_t* now = (uint8_t*)record + sizeof(GrupRecord);
         const uint8_t* end = now + record->group_size - sizeof(GrupRecord);
 
-        const char* group_type = "";
+        const char* group_type = nullptr;
         switch (record->group_type) {
-            case RecordGroupType::Top: group_type = "Top"; break;
-            case RecordGroupType::WorldChildren: group_type = "World Children"; break;
-            case RecordGroupType::InteriorCellBlock: group_type = "Interior Cell Block"; break;
-            case RecordGroupType::InteriorCellSubBlock: group_type = "Interior Cell Sub-Block"; break;
-            case RecordGroupType::ExteriorCellBlock: group_type = "Exterior Cell"; break;
-            case RecordGroupType::ExteriorCellSubBlock: group_type = "Exterior Cell Sub-Block"; break;
-            case RecordGroupType::CellChildren: group_type = "Cell Children"; break;
-            case RecordGroupType::TopicChildren: group_type = "Topic Children"; break;
-            case RecordGroupType::CellPersistentChildren: group_type = "Cell Persistent"; break;
-            case RecordGroupType::CellTemporaryChildren: group_type = "Cell Temporary Children"; break;
-
+            case RecordGroupType::WorldChildren: group_type = "World"; break;
+            case RecordGroupType::InteriorCellBlock: group_type = "Interior Block"; break;
+            case RecordGroupType::InteriorCellSubBlock: group_type = "Interior Sub-Block"; break;
+            case RecordGroupType::ExteriorCellBlock: group_type = "Exterior"; break;
+            case RecordGroupType::ExteriorCellSubBlock: group_type = "Exterior Sub-Block"; break;
+            case RecordGroupType::CellChildren: group_type = "Cell"; break;
+            case RecordGroupType::TopicChildren: group_type = "Topic"; break;
+            case RecordGroupType::CellPersistentChildren: group_type = "Persistent"; break;
+            case RecordGroupType::CellTemporaryChildren: group_type = "Temporary"; break;
         }
-        write_format(" - %s", group_type);
+        if (group_type) {
+            write_format(" - %s", group_type);
+        }
 
         indent += 1;
         while (now < end) {
