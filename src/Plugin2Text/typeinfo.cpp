@@ -69,6 +69,7 @@ constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
         return { m_subrecord, &type, m_name };          \
     })()
 
+#define rf_enum_uint16(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 2, __VA_ARGS__)
 #define rf_enum_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, __VA_ARGS__)
 
 constexpr TypeStructField sf_int8(const char* name) {
@@ -111,9 +112,15 @@ constexpr TypeStructField sf_formid(const char* name) {
     return { &Type_FormID, name };
 }
 
-constexpr TypeEnumField ef(const char* name, uint32_t value) {
-    return { name, value };
-}
+#define sf_enum(m_name, m_size, ...)                    \
+    ([]() -> const TypeEnum* {                          \
+        static TypeEnumField fields[]{ __VA_ARGS__ };   \
+        static TypeEnum type{ m_name, m_size, fields }; \
+        return &type;                                   \
+    })()
+
+#define sf_enum_uint16(m_name, ...) sf_enum(m_name, 2, __VA_ARGS__)
+#define sf_enum_uint32(m_name, ...) sf_enum(m_name, 4, __VA_ARGS__)
 
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
 Type Type_LString{ TypeKind::LString, "LString", 0 };
@@ -215,6 +222,9 @@ static RecordFieldDef Record_Common_Fields[]{
     rf_zstring("MODL", "Model File Name"),
     rf_int32("COCT", "Item Count"),
     { "CNTO", &Type_CNTO, "Items" },
+    rf_int32("KSIZ", "Keyword Count"),
+    { "KWDA", &Type_FormIDArray, "Keywords" },
+    rf_zstring("FLTR", "Object Window Filter"),
 };
 
 RecordDef Record_Common{ "0000", "-- common -- ", Record_Common_Fields};
@@ -233,8 +243,6 @@ RECORD(WEAP, "Weapon",
     rf_formid("ETYP", "Equipment Type"),
     rf_formid("BIDS", "Block Bash Impact Data Set"),
     rf_formid("BAMT", "Alternate Block Material"),
-    rf_int32("KSIZ", "Keyword Count"),
-    { "KWDA", &Type_FormIDArray, "Keywords" },
     rf_lstring("DESC", "Description"),
     rf_formid("INAM", "Impact Data Set"),
     rf_formid("WNAM", "1st Person Model Object"),
@@ -300,6 +308,27 @@ RECORD(QUST, "Quest",
         sf_int32("Unknown 2"),
         sf_uint32("Quest Type"),
     ),
+    rf_subrecord("INDX", "Index", 4, 
+        sf_uint16("Journal Index"),
+        sf_uint8("Flags"),
+        sf_int8("Unknown"),
+    ),
+    rf_lstring("CNAM", "Journal Entry"),
+    rf_uint8("QSDT", "Flags"),
+    rf_int16("QOBJ", "Objective Index"),
+    rf_uint32("FNAM", "Objective Flags"),
+    rf_lstring("NNAM", "Objective Text"),
+    rf_subrecord("QSTA", "Quest Target", 8,
+        sf_int32("Target Alias"),
+        sf_int32("Flags"),
+    ),
+    rf_uint32("ANAM", "Next Alias ID"),
+    rf_uint32("ALST", "Alias ID"),
+    rf_uint32("ALLS", "Location Alias ID"),
+    rf_zstring("ALID", "Alias Name"),
+    rf_formid("ALFR", "Alias Forced Reference"),
+    rf_formid("ALUA", "Alias Unique Actor"),
+    rf_formid("VTCK", "Voice Type"),
 );
 
 RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields }; // @TODO
@@ -394,6 +423,37 @@ RECORD(NPC_, "Non-Player Character",
     ),
 );
 
+RECORD(NAVI, "Navigation",
+    rf_uint32("NVER", "Version"),
+    //rf_subrecord("NVMI", "Navmesh Data", 4,
+    //    sf_formid("Form ID"),
+    //),
+);
+
+RECORD(DLVW, "Dialogue View",
+    rf_formid("QNAM", "Parent Quest"),
+    rf_formid("BNAM", "Branch"),
+    rf_formid("TNAM", "Topic"),
+    rf_uint32("ENAM", "Unknown"),
+    rf_uint8("DNAM", "Show All Text"),
+);
+
+RECORD(DLBR, "Dialogue Branch",
+    rf_formid("QNAM", "Parent Quest"),
+    rf_uint32("TNAM", "Unknown"),
+    rf_uint32("DNAM", "Flags"),
+    rf_formid("SNAM", "Start Dialogue"),
+);
+
+RECORD(INFO, "Topic Info",
+    rf_subrecord("ENAM", "Data", 4,
+        sf_uint16("Flags"),
+        sf_uint16("Reset Time"),
+    ),
+    rf_formid("PNAM", "Previous Info"),
+    rf_uint8("CNAM", "Favor Level"),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -404,6 +464,10 @@ RecordDef* get_record_def(RecordType type) {
         CASE(REFR);
         CASE(CONT);
         CASE(NPC_);
+        CASE(NAVI);
+        CASE(DLVW);
+        CASE(DLBR);
+        CASE(INFO);
     }
     #undef CASE
     return nullptr;
