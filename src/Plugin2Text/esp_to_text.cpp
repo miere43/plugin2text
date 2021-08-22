@@ -116,6 +116,9 @@ struct TextRecordWriter {
 
         if (record->type != RecordType::GRUP) {
             write_format(" [%08X]", record->id.value);
+            if (record->version != 44) {
+                write_format(",v%d", record->version);
+            }
         }
 
         if (def && def->comment) {

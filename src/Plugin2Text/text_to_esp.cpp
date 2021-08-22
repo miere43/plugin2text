@@ -9,24 +9,34 @@
 #include <stdlib.h>
 
 struct TextRecordReader {
-    HANDLE output_handle = 0;
-    uint32_t offset_in_file = 0;
+    uint8_t* esp_buffer_start = nullptr;
+    uint8_t* esp_buffer_now = nullptr;
+    uint8_t* esp_buffer_end = nullptr;
+
     const char* start = nullptr;
     const char* now = nullptr;
     const char* end = nullptr;
 
     int indent = 0;
 
-    void open(const wchar_t* path) {
-        verify(!output_handle);
-        output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-        verify(output_handle != INVALID_HANDLE_VALUE);
+    void open() {
+        constexpr size_t EspMaxSize = 1024 * 1024 * 1024;
+        esp_buffer_start = (uint8_t*)VirtualAlloc(0, EspMaxSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+        verify(esp_buffer_start);
+        esp_buffer_now = esp_buffer_start;
+        esp_buffer_end = esp_buffer_start + EspMaxSize;
     }
 
-    void close() {
-        verify(output_handle);
+    void close(const wchar_t* path) {
+        auto output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        verify(output_handle != INVALID_HANDLE_VALUE);
+
+        auto esp_size = (uint32_t)(esp_buffer_now - esp_buffer_start);
+        DWORD written = 0;
+        verify(WriteFile(output_handle, esp_buffer_start, esp_size, &written, nullptr));
+        verify(written == esp_size);
+
         CloseHandle(output_handle);
-        output_handle = 0;
     }
 
     void read_records(const char* start, const char* end) {
@@ -43,14 +53,12 @@ struct TextRecordReader {
     }
 
     void read_record() {
+        auto record_start_offset = esp_buffer_now;
+
         Record record;
         record.type = read_record_type();
-        record.data_size = 0;
-        record.flags = (RecordFlags)0;
-        record.id.value = 0;
-        record.unused0 = 0;
-        record.unused1 = 0;
-        write_struct(&record);
+        record.version = 44; // @TODO
+        esp_buffer_now += sizeof(record);
 
         skip_to_next_line();
 
@@ -71,6 +79,9 @@ struct TextRecordReader {
             }
         }
         indent -= 1;
+
+        record.data_size = (uint32_t)(esp_buffer_now - record_start_offset - sizeof(record));
+        write_struct_at(record_start_offset, &record);
     }
 
     static uint8_t parse_hex_char(char c) {
@@ -208,11 +219,12 @@ struct TextRecordReader {
     }
 
     void read_field(const RecordDef* def, Record* record) {
+        auto field_start_offset = esp_buffer_now;
+
         RecordField field;
         field.type = read_record_field_type();
-        field.size = 0;
-        write_struct(&field);
-
+        
+        esp_buffer_now += sizeof(field);
         auto field_def = def->get_field_def(field.type);
 
         skip_to_next_line();
@@ -223,6 +235,9 @@ struct TextRecordReader {
         read_type(field_def ? field_def->data_type : &Type_ByteArray);
 
         indent -= 1;
+
+        field.size = (uint16_t)(esp_buffer_now - field_start_offset - sizeof(field));
+        write_struct_at(field_start_offset, &field);
     }
 
     RecordType read_record_type() {
@@ -304,21 +319,30 @@ struct TextRecordReader {
         write_bytes(data, sizeof(T));
     }
 
+    template<typename T>
+    void write_struct_at(uint8_t* pos, const T* data) {
+        write_bytes_at(pos, data, sizeof(T));
+    }
+
     void write_bytes(const void* data, size_t size) {
-        DWORD written = 0;
-        verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
-        verify(written == size);
-        offset_in_file += written;
+        write_bytes_at(esp_buffer_now, data, size);
+        esp_buffer_now += size;
+    }
+
+    void write_bytes_at(uint8_t* pos, const void* data, size_t size) {
+        verify(pos >= esp_buffer_start);
+        verify(pos + size <= esp_buffer_end);
+        memcpy(pos, data, size);
     }
 };
 
 void text_to_esp(const wchar_t* text_path, const wchar_t* esp_path) {
     TextRecordReader reader;
-    reader.open(esp_path);
+    reader.open();
 
     uint32_t size = 0;
     char* text = (char*)read_file(text_path, &size);
     reader.read_records(text, text + size);
 
-    reader.close();
+    reader.close(esp_path);
 }

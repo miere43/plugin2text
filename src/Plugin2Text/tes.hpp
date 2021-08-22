@@ -15,16 +15,18 @@ enum class RecordFlags : uint32_t {
 };
 
 struct FormID {
-    uint32_t value;
+    uint32_t value = 0;
 };
 
 struct Record {
-    RecordType type;
-    uint32_t data_size;
-    RecordFlags flags;
+    RecordType type = (RecordType)0;
+    uint32_t data_size = 0;
+    RecordFlags flags = (RecordFlags)0;
     FormID id;
-    uint32_t unused0;
-    uint32_t unused1;
+    uint16_t timestamp = 0;
+    uint16_t version_control_info = 0;
+    uint16_t version = 0;
+    uint16_t unknown = 0;
 
     bool is_compressed() const;
     uint8_t* uncompress() const;
@@ -62,8 +64,8 @@ enum class RecordFieldType : uint32_t {
 
 #pragma pack(push, 1)
 struct RecordField {
-    RecordFieldType type;
-    uint16_t size;
+    RecordFieldType type = (RecordFieldType)0;
+    uint16_t size = 0;
 };
 #pragma pack(pop)
 static_assert(sizeof(RecordField) == 6, "sizeof(RecordField) == 6");
