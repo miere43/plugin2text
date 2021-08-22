@@ -63,6 +63,11 @@ struct TextRecordWriter {
         write_bytes("\n", 1);
     }
 
+    template<size_t N>
+    void write_literal(const char(&data)[N]) {
+        write_bytes(data, N - 1);
+    }
+
     void write_bytes(const void* data, size_t size) {
         DWORD written = 0;
         verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
@@ -118,6 +123,15 @@ struct TextRecordWriter {
         if (record->type == RecordType::GRUP) {
             write_grup_record((GrupRecord*)record);
             return;
+        }
+
+        // @TODO: write all flags
+        if (record->is_compressed()) {
+            indent += 1;
+            write_newline();
+            write_indent();
+            write_literal("+ Compressed");
+            indent -= 1;
         }
 
         const uint8_t* now = record->is_compressed() ? record->uncompress() : (uint8_t*)record + sizeof(Record);
