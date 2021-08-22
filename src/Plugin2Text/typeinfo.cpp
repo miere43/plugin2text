@@ -55,12 +55,21 @@ constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
 #define rf_subrecord_shared(m_record, m_subrecord, m_name) \
     { #m_subrecord, &CONCAT(Type_, m_record)_##m_subrecord, m_name }
 
-#define rf_subrecord(m_subrecord, m_name, m_size, ...) \
-    ([]() -> RecordFieldDef {                                 \
-        static TypeStructField fields[]{ __VA_ARGS__ };       \
-        static TypeStruct type{ m_name, m_size, fields };     \
-        return { m_subrecord, &type, m_name };                \
+#define rf_subrecord(m_subrecord, m_name, m_size, ...)    \
+    ([]() -> RecordFieldDef {                             \
+        static TypeStructField fields[]{ __VA_ARGS__ };   \
+        static TypeStruct type{ m_name, m_size, fields }; \
+        return { m_subrecord, &type, m_name };            \
     })()
+
+#define rf_enum(m_subrecord, m_name, m_size, ...)       \
+    ([]() -> RecordFieldDef {                           \
+        static TypeEnumField fields[]{ __VA_ARGS__ };   \
+        static TypeEnum type{ m_name, m_size, fields }; \
+        return { m_subrecord, &type, m_name };          \
+    })()
+
+#define rf_enum_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, __VA_ARGS__)
 
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8, name };
@@ -100,6 +109,10 @@ constexpr TypeStructField sf_float(const char* name) {
 
 constexpr TypeStructField sf_formid(const char* name) {
     return { &Type_FormID, name };
+}
+
+constexpr TypeEnumField ef(const char* name, uint32_t value) {
+    return { name, value };
 }
 
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
@@ -145,13 +158,6 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
         m_size,                                          \
         CONCAT(Type_, m_type)_Fields                     \
     }
-
-TYPE_ENUM(NPC__NAM8, "Sound Level", sizeof(uint32_t),
-    { "Loud", 0 },
-    { "Normal", 1 },
-    { "Silent", 2 },
-    { "Very Loud", 3 },
-);
 
 #define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
     static TypeStructField CONCAT(Type_, m_type)_Fields[]{ \
@@ -332,7 +338,12 @@ RECORD(NPC_, "Non-Player Character",
     rf_formid("ZNAM", "Combat Style"),
     rf_float("NAM6", "Height"),
     rf_float("NAM7", "Weight"),
-    rf_subrecord_shared(NPC_, NAM8, "Sound Level"),
+    rf_enum_uint32("NAM8", "Sound Level",
+        { "Loud", 0 },
+        { "Normal", 1 },
+        { "Silent", 2 },
+        { "Very Loud", 3 },
+    ),
     rf_formid("DOFT", "Default Outfit"),
     rf_formid("DPLT", "Default Package List"),
     rf_formid("FTST", "Face Texture Set"),
