@@ -10,9 +10,14 @@ enum class RecordType : uint32_t {
 };
 
 enum class RecordFlags : uint32_t {
+    None = 0,
     TES4_Master = 0x1,
     Compressed = 0x40000,
 };
+inline RecordFlags operator|(const RecordFlags& a, const RecordFlags& b) { return (RecordFlags)((uint32_t)a | (uint32_t)b); }
+inline RecordFlags& operator|=(RecordFlags& a, const RecordFlags& b) {
+    return (a = a | b);
+}
 
 struct FormID {
     uint32_t value = 0;
@@ -21,7 +26,7 @@ struct FormID {
 struct Record {
     RecordType type = (RecordType)0;
     uint32_t data_size = 0;
-    RecordFlags flags = (RecordFlags)0;
+    RecordFlags flags = RecordFlags::None;
     FormID id;
     uint16_t timestamp = 0;
     uint16_t version_control_info = 0;

@@ -110,6 +110,23 @@ struct TextRecordReader {
 
         skip_to_next_line();
 
+        indent += 1;
+        while (true) {
+            auto indents = peek_indents();
+            if (indents == indent) {
+                if (&now[indent * 2] < end && now[indent * 2] != '+') {
+                    break;
+                }
+                expect_indent();
+                verify(expect("+ Compressed\n"));
+                record.flags |= RecordFlags::Compressed;
+            } else {
+                verify(indents < indent);
+                break;
+            }
+        }
+        indent -= 1;
+
         auto def = get_record_def(record.type);
         if (!def) {
             def = &Record_Common;
