@@ -48,17 +48,61 @@ struct TextRecordReader {
 
         while (now < end) {
             read_record();
-            break;
         }
     }
 
-    void read_record() {
+    GrupRecord* read_grup_record() {
+        auto record_start_offset = esp_buffer_now;
+
+        GrupRecord group;
+        group.type = RecordType::GRUP;
+    
+        esp_buffer_now += sizeof(GrupRecord);
+
+        skip_to_next_line();
+
+        indent += 1;
+        while (true) {
+            auto indents = peek_indents();
+            if (indents == indent) {
+                expect_indent();
+                auto record = read_record();
+                verify(record->type != RecordType::GRUP);
+                if (group.group_type == RecordGroupType::Top) {
+                    if (group.label == 0) {
+                        group.label = (uint32_t)record->type;
+                    } else {
+                        verify(group.label == (uint32_t)record->type);
+                    }
+                }
+            } else {
+                verify(indents < indent);
+                break;
+            }
+        }
+        indent -= 1;
+
+        group.group_size = (uint32_t)(esp_buffer_now - record_start_offset);
+        write_struct_at(record_start_offset, &group);
+
+        return (GrupRecord*)record_start_offset;
+    }
+
+    Record* read_record() {
         auto record_start_offset = esp_buffer_now;
 
         Record record;
         record.type = read_record_type();
+
+        if (record.type == RecordType::GRUP) {
+            return (Record*)read_grup_record();
+        }
+
         record.version = 44; // @TODO
         esp_buffer_now += sizeof(record);
+
+        verify(expect(" "));
+        record.id = read_formid();
 
         skip_to_next_line();
 
@@ -82,6 +126,8 @@ struct TextRecordReader {
 
         record.data_size = (uint32_t)(esp_buffer_now - record_start_offset - sizeof(record));
         write_struct_at(record_start_offset, &record);
+
+        return (Record*)record_start_offset;
     }
 
     static uint8_t parse_hex_char(char c) {
@@ -93,6 +139,24 @@ struct TextRecordReader {
         }
         verify(false);
         return 0;
+    }
+
+    FormID read_formid() {
+        int nread = 0;
+        FormID formid;
+        int count = sscanf_s(now, "[%08X]%n", &formid.value, &nread);
+        verify(count == 1);
+        verify(nread == 1 + 8 + 1); // [DEADBEEF]
+        return formid;
+    }
+
+    void read_formid_line() {
+        auto line_end = peek_end_of_current_line();
+        auto formid = read_formid();
+        write_struct(&formid);
+        now += 1 + 8 + 1; // [DEADBEEF]
+        verify(now == line_end);
+        now = line_end + 1; // +1 for '\n'.
     }
 
     void read_type(const Type* type) {
@@ -212,6 +276,24 @@ struct TextRecordReader {
                 }
             } break;
 
+            case TypeKind::FormID: {
+                read_formid_line();
+            } break;
+
+            case TypeKind::FormIDArray: {
+                read_formid_line();
+                while (true) {
+                    auto current_indent = peek_indents();
+                    if (indent == current_indent) {
+                        expect_indent();
+                        read_formid_line();
+                    } else {
+                        verify(current_indent < indent);
+                        break;
+                    }
+                }
+            } break;
+
             default: {
                 verify(false);
             } break;
@@ -226,6 +308,9 @@ struct TextRecordReader {
         
         esp_buffer_now += sizeof(field);
         auto field_def = def->get_field_def(field.type);
+        if (!field_def) {
+            field_def = Record_Common.get_field_def(field.type);
+        }
 
         skip_to_next_line();
 

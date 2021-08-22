@@ -47,15 +47,13 @@ enum class RecordGroupType : uint32_t {
 };
 
 struct GrupRecord {
-    RecordType type;
-    uint32_t group_size;
-    union {
-        uint32_t label_as_uint32;
-        char     label_as_chars[4];
-    };
-    RecordGroupType group_type;
-    uint32_t unused0;
-    uint32_t unused1;
+    RecordType type = (RecordType)0;
+    uint32_t group_size = 0;
+    uint32_t label = 0;
+    RecordGroupType group_type = (RecordGroupType)0;
+    uint16_t timestamp = 0;
+    uint16_t version_control_info = 0;
+    uint32_t unknown = 0;
 };
 static_assert(sizeof(GrupRecord) == 24, "sizeof(GrupRecord) == 24");
 

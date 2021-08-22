@@ -1,0 +1,156 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.700000
+    Number Of Records
+      2
+    Next Object ID
+      3426
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  DATA
+    0000000000000000
+  MAST - Master File
+    "Update.esm"
+  DATA
+    0000000000000000
+  INTV
+    01000000
+GRUP
+  WEAP [02000D61] - Weapon
+    EDID - Editor ID
+      "SteelSwordDUPLICATE001"
+    OBND - Object Bounds
+      X1
+        0
+      Y1
+        0
+      Z1
+        0
+      X2
+        0
+      Y2
+        0
+      Z2
+        0
+    FULL - Name
+      "Steel Sword"
+    MODL - Model File Name
+      "Weapons\Steel\SteelSword.nif"
+    MODT
+      020000000000000000000000
+    ETYP - Equipment Type
+      [00013F42]
+    BIDS - Block Bash Impact Data Set
+      [000183FF]
+    BAMT - Alternate Block Material
+      [000774C2]
+    KSIZ - Keyword Count
+      3
+    KWDA - Keywords
+      [0001E719]
+      [0001E711]
+      [0008F958]
+    DESC - Description
+      ""
+    INAM - Impact Data Set
+      [00013CAC]
+    WNAM - 1st Person Model Object
+      [000140EF]
+    TNAM - Attack Fail Sound
+      [0003C730]
+    NAM9 - Equip Sound
+      [0003C72E]
+    NAM8 - Unequip Sound
+      [0003C72F]
+    DATA - Game Data
+      Value
+        45
+      Weight
+        10.000000
+      Damage
+        8
+    DNAM - Weapon Data
+      Animation Type
+        1
+      Unknown 0
+        0
+      Unknown 1
+        0
+      Speed
+        1.000000
+      Reach
+        1.000000
+      Flags
+        64
+      Flags?
+        0
+      Sight FOV
+        0.000000
+      Blank
+        0
+      VATS to hit
+        0
+      Unknown 1
+        -1
+      Projectiles
+        1
+      Embedded Weapon
+        0
+      Min Range
+        0.000000
+      Max Range
+        0.000000
+      Unknown 2
+        0
+      Flags
+        256
+      Unknown
+        1.000000
+      Unknown
+        0.800000
+      Rumble Left
+        0.500000
+      Rumble Right
+        1.000000
+      Rumble Duration
+        0.330000
+      Blank
+        0
+      Blank
+        0
+      Blank
+        0
+      Skill
+        6
+      Blank
+        0
+      Blank
+        0
+      Resist
+        -1
+      Blank
+        0
+      Stagger
+        0.750000
+    CRDT - Critical Data
+      Critical Damage
+        4
+      Unknown
+        0
+      Critical % Mult
+        1.000000
+      Flags
+        1
+      Unknown
+        0
+      Critical Spell Effect
+        [00000000]
+      Unknown
+        0
+    VNAM - Detection Sound Level
+      1

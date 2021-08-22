@@ -95,6 +95,7 @@ struct TextRecordWriter {
             case RecordGroupType::CellPersistentChildren: group_type = "Persistent"; break;
             case RecordGroupType::CellTemporaryChildren: group_type = "Temporary"; break;
         }
+        //write_format(" %04X", record->timestamp);
         if (group_type) {
             write_format(" - %s", group_type);
         }
