@@ -52,6 +52,10 @@ constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
     return { type, &Type_FormID, name };
 }
 
+constexpr RecordFieldDef rf_bytes(char const type[5], const char* name) {
+    return { type, &Type_ByteArray, name };
+}
+
 constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
     return { type, &Type_ByteArrayCompressed, name };
 }
@@ -338,8 +342,18 @@ RECORD(QUST, "Quest",
 
 RecordDef Record_CELL{ "CELL", "Cell", Record_Common_Fields }; // @TODO
 
+auto Type_LocationData = rf_subrecord("DATA", "Data", 24,
+    sf_float("Pos X"),
+    sf_float("Pos Y"),
+    sf_float("Pos Z"),
+    sf_float("Rot X"),
+    sf_float("Rot Y"),
+    sf_float("Rot Z"),
+);
+
 RECORD(REFR, "Reference",
-    rf_formid("NAME", "Form ID"),
+    rf_formid("NAME", "Base Form ID"),
+    Type_LocationData,
 );
 
 RECORD(CONT, "Container",
@@ -430,10 +444,8 @@ RECORD(NPC_, "Non-Player Character",
 
 RECORD(NAVI, "Navigation",
     rf_uint32("NVER", "Version"),
+    rf_bytes("NVMI", "Navmesh Data"),
     rf_compressed("NVPP", "Preferred Pathing Data"),
-    //rf_subrecord("NVMI", "Navmesh Data", 4,
-    //    sf_formid("Form ID"),
-    //),
 );
 
 RECORD(DLVW, "Dialogue View",
@@ -458,6 +470,22 @@ RECORD(INFO, "Topic Info",
     ),
     rf_formid("PNAM", "Previous Info"),
     rf_uint8("CNAM", "Favor Level"),
+    rf_formid("TCLT", "Topic Links"),
+    rf_zstring("NAM2", "Notes"),
+    rf_zstring("NAM3", "Edits"),
+);
+
+RECORD(ACHR, "Actor",
+    rf_formid("NAME", "Base NPC"),
+    rf_bytes("XRGD", "Ragdoll Data"),
+    Type_LocationData,
+);
+
+RECORD(DIAL, "Dialogue Topic",
+    rf_float("PNAM", "Priority"),
+    rf_formid("BNAM", "Owning Branch"),
+    rf_formid("QNAM", "Owning Quest"),
+    rf_uint32("TIFC", "Info Count"),
 );
 
 RecordDef* get_record_def(RecordType type) {
@@ -474,6 +502,8 @@ RecordDef* get_record_def(RecordType type) {
         CASE(DLVW);
         CASE(DLBR);
         CASE(INFO);
+        CASE(ACHR);
+        CASE(DIAL);
     }
     #undef CASE
     return nullptr;
