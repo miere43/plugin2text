@@ -46,6 +46,9 @@ enum class RecordGroupType : uint32_t {
     CellTemporaryChildren = 9,
 };
 
+RecordGroupType parse_record_group_type(const char* str, size_t count);
+const char* record_group_type_to_string(RecordGroupType type);
+
 struct GrupRecord {
     RecordType type = (RecordType)0;
     uint32_t group_size = 0;

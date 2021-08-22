@@ -83,21 +83,9 @@ struct TextRecordWriter {
         const uint8_t* now = (uint8_t*)record + sizeof(GrupRecord);
         const uint8_t* end = now + record->group_size - sizeof(GrupRecord);
 
-        const char* group_type = nullptr;
-        switch (record->group_type) {
-            case RecordGroupType::WorldChildren: group_type = "World"; break;
-            case RecordGroupType::InteriorCellBlock: group_type = "Interior Block"; break;
-            case RecordGroupType::InteriorCellSubBlock: group_type = "Interior Sub-Block"; break;
-            case RecordGroupType::ExteriorCellBlock: group_type = "Exterior"; break;
-            case RecordGroupType::ExteriorCellSubBlock: group_type = "Exterior Sub-Block"; break;
-            case RecordGroupType::CellChildren: group_type = "Cell"; break;
-            case RecordGroupType::TopicChildren: group_type = "Topic"; break;
-            case RecordGroupType::CellPersistentChildren: group_type = "Persistent"; break;
-            case RecordGroupType::CellTemporaryChildren: group_type = "Temporary"; break;
-        }
         //write_format(" %04X", record->timestamp);
-        if (group_type) {
-            write_format(" - %s", group_type);
+        if (record->group_type != RecordGroupType::Top) {
+            write_format(" - %s", record_group_type_to_string(record->group_type));
         }
 
         indent += 1;

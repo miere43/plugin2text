@@ -59,6 +59,11 @@ struct TextRecordReader {
     
         esp_buffer_now += sizeof(GrupRecord);
 
+        if (expect(" - ")) {
+            auto line_end = peek_end_of_current_line();
+            group.group_type = parse_record_group_type(now, line_end - now);
+        }
+
         skip_to_next_line();
 
         indent += 1;
@@ -67,12 +72,11 @@ struct TextRecordReader {
             if (indents == indent) {
                 expect_indent();
                 auto record = read_record();
-                verify(record->type != RecordType::GRUP);
                 if (group.group_type == RecordGroupType::Top) {
                     if (group.label == 0) {
                         group.label = (uint32_t)record->type;
                     } else {
-                        verify(group.label == (uint32_t)record->type);
+                        verify(record->type == RecordType::GRUP || group.label == (uint32_t)record->type);
                     }
                 }
             } else {
@@ -292,6 +296,50 @@ struct TextRecordReader {
                         break;
                     }
                 }
+            } break;
+
+            case TypeKind::Enum: {
+                const auto enum_type = (const TypeEnum*)type;
+                auto line_end = peek_end_of_current_line();
+                auto count = line_end - now;
+                
+                for (int i = 0; i < enum_type->field_count; ++i) {
+                    const auto& field = enum_type->fields[i];
+                    if (strlen(field.name) == count && 0 == memcmp(now, field.name, count)) {
+                        switch (enum_type->size) {
+                            case 1: {
+                                uint8_t value = (uint8_t)field.value;
+                                write_struct(&value);
+                            } break;
+
+                            case 2: {
+                                uint16_t value = (uint16_t)field.value;
+                                write_struct(&value);
+                            } break;
+
+                            case 4: {
+                                uint32_t value = (uint32_t)field.value;
+                                write_struct(&value);
+                            } break;
+
+                            case 8: {
+                                uint64_t value = (uint64_t)field.value;
+                                write_struct(&value);
+                            } break;
+
+                            default: {
+                                verify(false);
+                            } break;
+                        }
+                        
+                        now = line_end + 1; // +1 for '\n'.
+                        goto ok;
+                    }
+                }
+
+                verify(false); // Unknown field.
+                
+                ok: break;
             } break;
 
             default: {
