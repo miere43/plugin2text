@@ -293,6 +293,25 @@ TYPE_STRUCT(NPC__NAM9, "Face Morph", 76,
     sf_uint32("Unknown"),
 );
 
+TYPE_STRUCT(NPC__PRKR, "Perk", 8,
+    sf_formid("Perk"),
+    sf_uint32("Unknown"),
+);
+
+TYPE_STRUCT(NPC__AIDT, "AI Data", 20,
+    sf_uint8("Aggression"),
+    sf_uint8("Confidence"),
+    sf_uint8("Energy"),
+    sf_uint8("Morality"),
+    sf_uint8("Mood"),
+    sf_uint8("Assistance"),
+    sf_uint8("Flags"),
+    sf_uint8("Unknown"),
+    sf_uint32("Warn"),
+    sf_uint32("Warn/Attack"),
+    sf_uint32("Attack"),
+);
+
 //
 //static RecordFieldDef Record_CELL_Fields[]{
     //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
@@ -376,6 +395,10 @@ RECORD(NPC_, "Non-Player Character",
     rf_formid("FTST", "Face Texture Set"),
     rf_subrecord(NPC_, QNAM, "Skin Tone"),
     rf_subrecord(NPC_, NAM9, "Face Morph"),
+    rf_formid("RNAM", "Race"),
+    rf_uint32("PRKZ", "Perk Count"),
+    rf_subrecord(NPC_, PRKR, "Perk"),
+    rf_subrecord(NPC_, AIDT, "AI Data"),
 );
 
 #undef RECORD
