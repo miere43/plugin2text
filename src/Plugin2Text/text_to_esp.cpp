@@ -136,9 +136,22 @@ struct TextRecordReader {
                 switch (group.group_type) {
                     case RecordGroupType::Top: {
                         if (record->type == RecordType::GRUP) {
-                            auto record_as_group = (GrupRecord*)record;
-                            verify(record_as_group->group_type == RecordGroupType::InteriorCellBlock);
-                            group.label = fourcc("CELL");
+                            if (!group.label) {
+                                auto record_as_group = (GrupRecord*)record;
+                                switch (record_as_group->group_type) {
+                                    case RecordGroupType::InteriorCellBlock: {
+                                        group.label = fourcc("CELL");
+                                    } break;
+
+                                    case RecordGroupType::WorldChildren: {
+                                        group.label = fourcc("WRLD");
+                                    } break;
+
+                                    default: {
+                                        verify(false);
+                                    } break;
+                                }
+                            }
                         } else if (group.label == 0) {
                             group.label = (uint32_t)record->type;
                         } else {
