@@ -516,46 +516,90 @@ struct TextRecordReader {
 
             case TypeKind::Enum: {
                 const auto enum_type = (const TypeEnum*)type;
-                auto line_end = peek_end_of_current_line();
-                auto count = line_end - now;
-                
-                for (int i = 0; i < enum_type->field_count; ++i) {
-                    const auto& field = enum_type->fields[i];
-                    if (strlen(field.name) == count && 0 == memcmp(now, field.name, count)) {
-                        switch (enum_type->size) {
-                            case 1: {
-                                uint8_t value = (uint8_t)field.value;
-                                write_struct(&value);
-                            } break;
 
-                            case 2: {
-                                uint16_t value = (uint16_t)field.value;
-                                write_struct(&value);
-                            } break;
+                uint32_t result = 0;
 
-                            case 4: {
-                                uint32_t value = (uint32_t)field.value;
-                                write_struct(&value);
-                            } break;
-
-                            case 8: {
-                                uint64_t value = (uint64_t)field.value;
-                                write_struct(&value);
-                            } break;
-
-                            default: {
-                                verify(false);
-                            } break;
+                if (enum_type->flags) {
+                    while (true) {
+                        if (!expect("+ ")) {
+                            verify(now + 1 < end && now[0] == '\n');
+                            ++now;
+                            break;
                         }
-                        
-                        now = line_end + 1; // +1 for '\n'.
-                        goto ok;
+
+                        auto line_end = peek_end_of_current_line();
+                        auto count = line_end - now;
+                        verify(count > 0);
+
+                        for (int i = 0; i < enum_type->field_count; ++i) {
+                            const auto& flag = enum_type->fields[i];
+                            if (strlen(flag.name) == count && memory_equals(flag.name, now, count)) {
+                                result |= flag.value;
+                                goto parse_flag_ok;
+                            }
+                        }
+
+                        uint32_t unrecognized_flags;
+                        int nread;
+                        verify(1 == _snscanf_s(now, count, "%X%n", &unrecognized_flags, &nread));
+                        verify(nread == count);
+
+                        result |= unrecognized_flags;
+
+                        parse_flag_ok:
+                        now = line_end + 1;
+
+                        auto indents = peek_indents();
+                        if (indents == indent) {
+                            expect_indent();
+                            continue;
+                        } else {
+                            verify(indents < indent);
+                            break;
+                        }
                     }
+                } else {
+                    auto line_end = peek_end_of_current_line();
+                    auto count = line_end - now;
+                
+                    for (int i = 0; i < enum_type->field_count; ++i) {
+                        const auto& field = enum_type->fields[i];
+                        if (strlen(field.name) == count && 0 == memcmp(now, field.name, count)) {
+                            result = field.value;
+                            now = line_end + 1; // +1 for '\n'.
+                            goto parse_ok;
+                        }
+                    }
+                
+                    verify(false); // Unknown field.
+                    parse_ok: {};
                 }
 
-                verify(false); // Unknown field.
-                
-                ok: break;
+                switch (enum_type->size) {
+                    case 1: {
+                        uint8_t value = (uint8_t)result;
+                        write_struct(&value);
+                    } break;
+
+                    case 2: {
+                        uint16_t value = (uint16_t)result;
+                        write_struct(&value);
+                    } break;
+
+                    case 4: {
+                        uint32_t value = (uint32_t)result;
+                        write_struct(&value);
+                    } break;
+
+                    case 8: {
+                        uint64_t value = (uint64_t)result;
+                        write_struct(&value);
+                    } break;
+
+                    default: {
+                        verify(false);
+                    } break;
+                }
             } break;
 
             default: {

@@ -54,9 +54,10 @@ struct TypeEnumField {
 struct TypeEnum : Type {
     size_t field_count = 0;
     const TypeEnumField* fields = nullptr;
+    bool flags = false;
 
     template<size_t N>
-    constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N]) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields) { }
+    constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N], bool flags) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields), flags(flags) { }
 };
 
 extern Type Type_ZString;

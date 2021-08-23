@@ -70,15 +70,20 @@ constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
         return { m_subrecord, &type, m_name };            \
     })()
 
-#define rf_enum(m_subrecord, m_name, m_size, ...)       \
-    ([]() -> RecordFieldDef {                           \
-        static TypeEnumField fields[]{ __VA_ARGS__ };   \
-        static TypeEnum type{ m_name, m_size, fields }; \
-        return { m_subrecord, &type, m_name };          \
+#define rf_enum(m_subrecord, m_name, m_size, m_flags, ...)       \
+    ([]() -> RecordFieldDef {                                    \
+        static TypeEnumField fields[]{ __VA_ARGS__ };            \
+        static TypeEnum type{ m_name, m_size, fields, m_flags }; \
+        return { m_subrecord, &type, m_name };                   \
     })()
 
-#define rf_enum_uint16(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 2, __VA_ARGS__)
-#define rf_enum_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, __VA_ARGS__)
+#define rf_enum_uint8(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 1, false, __VA_ARGS__)
+#define rf_enum_uint16(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 2, false, __VA_ARGS__)
+#define rf_enum_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, false, __VA_ARGS__)
+
+#define rf_flags_uint8(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 1, true, __VA_ARGS__)
+#define rf_flags_uint16(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 2, true, __VA_ARGS__)
+#define rf_flags_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, true, __VA_ARGS__)
 
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8, name };
@@ -239,7 +244,6 @@ RecordDef Record_Common{
             sf_int16("Y2"),
             sf_int16("Z2"),
         ),
-        rf_zstring("MODL", "Model File Name"),
         rf_int32("COCT", "Item Count"),
         { "CNTO", &Type_CNTO, "Items" },
         rf_int32("KSIZ", "Keyword Count"),
@@ -568,7 +572,11 @@ RECORD(TXST, "Texture Set",
         rf_zstring("TX04", "Detail Map"),
         rf_zstring("TX05", "Environment Map"),
         rf_zstring("TX07", "Specularity Map"),
-        rf_uint16("DNAM", "Flags"),
+        rf_flags_uint16("DNAM", "Flags", 
+            { "not has specular map", 0x01 },
+            { "facegen textures", 0x02 },
+            { "has model space normal map", 0x04 },
+        ),
     ),
 );
 

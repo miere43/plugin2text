@@ -16,7 +16,7 @@ struct TextRecordWriter {
 
     HANDLE output_handle = 0;
     int indent = 0;
-    bool localized_strings = false;
+    bool localized_strings = false; // @TODO: load value from TES4 record
 
     void open(const wchar_t* path) {
         verify(!output_handle);
@@ -80,6 +80,7 @@ struct TextRecordWriter {
     }
 
     void write_bytes(const void* data, size_t size) {
+        // @TODO: add buffering
         DWORD written = 0;
         verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
         verify(written == size);
@@ -333,6 +334,7 @@ struct TextRecordWriter {
 
             case TypeKind::Enum: {
                 verify(type->size == size);
+                const auto enum_type = (const TypeEnum*)type;
                 
                 uint32_t enum_value = 0;
                 switch (size) {
@@ -342,18 +344,43 @@ struct TextRecordWriter {
                     case 8: verify(false); break; //enum_value = *(uint64_t*)value; break;
                     default: verify(false); break;
                 }
-                
-                auto enum_type = (const TypeEnum*)type;
-                for (size_t i = 0; i < enum_type->field_count; ++i) {
-                    const auto& field = enum_type->fields[i];
-                    if (field.value == enum_value) {
-                        write_bytes(field.name, strlen(field.name));
-                        goto ok;
-                    }
-                }
 
-                write_format("%u", enum_value);
-                ok: break;
+                if (enum_type->flags) {
+                    verify(type->size <= sizeof(uint32_t));
+
+                    for (size_t i = 0; i < enum_type->field_count; ++i) {
+                        const auto& field = enum_type->fields[i];
+                        if (enum_value & field.value) {
+                            write_literal("+ ");
+                            write_string(field.name);
+
+                            enum_value = clear_bit(enum_value, field.value);
+                            if (enum_value == 0) {
+                                break; // fast exit if wrote all bits.
+                            } else {
+                                write_newline();
+                                write_indent();
+                            }
+                        }
+                    }
+
+                    if (enum_value) {
+                        write_newline();
+                        write_indent();
+                        write_format("+ %X", enum_value);
+                    }
+                } else {
+                    for (size_t i = 0; i < enum_type->field_count; ++i) {
+                        const auto& field = enum_type->fields[i];
+                        if (field.value == enum_value) {
+                            write_bytes(field.name, strlen(field.name));
+                            goto ok;
+                        }
+                    }
+
+                    write_format("%u", enum_value);
+                    ok: break;
+                }
             } break;
 
             default: {
