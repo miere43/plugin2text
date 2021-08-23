@@ -264,6 +264,7 @@ RECORD(
         ),
         rf_zstring("MAST", "Master File"),
         rf_zstring("CNAM", "Author"),
+        //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!
     ),
     record_flags(
         { 0x1, "Master" },
@@ -547,6 +548,30 @@ RECORD(DIAL, "Dialogue Topic",
     )
 );
 
+RECORD(KYWD, "Keyword",
+    record_fields(
+        rf_subrecord("CNAM", "Color", 4,
+            sf_uint8("Red"),
+            sf_uint8("Green"),
+            sf_uint8("Blue"),
+            sf_uint8("Alpha"), // this is constant 0
+        ),
+    ),
+);
+
+RECORD(TXST, "Texture Set",
+    record_fields(
+        rf_zstring("TX00", "Color Map"),
+        rf_zstring("TX01", "Normal Map"),
+        rf_zstring("TX02", "Mask"),
+        rf_zstring("TX03", "Tone Map"),
+        rf_zstring("TX04", "Detail Map"),
+        rf_zstring("TX05", "Environment Map"),
+        rf_zstring("TX07", "Specularity Map"),
+        rf_uint16("DNAM", "Flags"),
+    ),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -563,6 +588,8 @@ RecordDef* get_record_def(RecordType type) {
         CASE(INFO);
         CASE(ACHR);
         CASE(DIAL);
+        CASE(KYWD);
+        CASE(TXST);
     }
     #undef CASE
     return nullptr;
