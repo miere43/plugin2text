@@ -225,30 +225,29 @@ TYPE_STRUCT(CNTO, "Item", 8,
         return { fields, _countof(fields) };           \
     })()
 
-static RecordFieldDef Record_Common_Fields[]{
-    rf_zstring("EDID", "Editor ID"),
-    rf_lstring("FULL", "Name"),
-    rf_subrecord("OBND", "Object Bounds", 12,
-        sf_int16("X1"),
-        sf_int16("Y1"),
-        sf_int16("Z1"),
-        sf_int16("X2"),
-        sf_int16("Y2"),
-        sf_int16("Z2"),
-    ),
-    rf_zstring("MODL", "Model File Name"),
-    rf_int32("COCT", "Item Count"),
-    { "CNTO", &Type_CNTO, "Items" },
-    rf_int32("KSIZ", "Keyword Count"),
-    { "KWDA", &Type_FormIDArray, "Keywords" },
-    rf_zstring("FLTR", "Object Window Filter"),
-};
-
 RecordDef Record_Common{
     "0000",
-    "-- common -- ",
-    { Record_Common_Fields, _countof(Record_Common_Fields) },
+    "-- common --",
+    record_fields(
+        rf_zstring("EDID", "Editor ID"),
+        rf_lstring("FULL", "Name"),
+        rf_subrecord("OBND", "Object Bounds", 12,
+            sf_int16("X1"),
+            sf_int16("Y1"),
+            sf_int16("Z1"),
+            sf_int16("X2"),
+            sf_int16("Y2"),
+            sf_int16("Z2"),
+        ),
+        rf_zstring("MODL", "Model File Name"),
+        rf_int32("COCT", "Item Count"),
+        { "CNTO", &Type_CNTO, "Items" },
+        rf_int32("KSIZ", "Keyword Count"),
+        { "KWDA", &Type_FormIDArray, "Keywords" },
+        rf_zstring("FLTR", "Object Window Filter"),
+    ),
     record_flags(
+        { 0x20, "Deleted" },
         { (uint32_t)RecordFlags::Compressed, "Compressed" },
         { 0x8000000, "NavMesh Generation - Bounding Box" },
     ),
@@ -369,7 +368,14 @@ RECORD(QUST, "Quest",
     )
 );
 
-RecordDef Record_CELL{ "CELL", "Cell", { Record_Common_Fields, _countof(Record_Common_Fields) } }; // @TODO
+RECORD(CELL, "Cell",
+    record_fields(
+      rf_uint16("DATA", "Flags"),
+    ),
+    record_flags(
+        { 0x400, "Persistent" },
+    ),
+);
 
 auto Type_LocationData = rf_subrecord("DATA", "Data", 24,
     sf_float("Pos X"),
