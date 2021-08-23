@@ -217,6 +217,13 @@ struct TextRecordWriter {
                 if (size == 0) {
                     write_bytes("\"\"", 2);
                 } else {
+                    auto data_now = (uint8_t*)value;
+                    auto data_end = data_now + (size - 1);
+                    while (data_now < data_end) {
+                        char c = *data_now++;
+                        verify(c >= 32 && c < 127); // @TODO: Escape string
+                    }
+
                     write_bytes("\"", 1);
                     write_bytes(value, size - 1);
                     write_bytes("\"", 1);
