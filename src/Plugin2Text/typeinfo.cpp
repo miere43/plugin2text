@@ -159,6 +159,8 @@ TypeStructField Type_Vector3_Fields[] = {
 
 TypeStruct Type_Vector3{ "Vector3", 12, Type_Vector3_Fields };
 
+auto Field_MODL = rf_zstring("MODL", "Model File Name");
+
 const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     for (int i = 0; i < fields.count; ++i) {
         const auto& field = fields.data[i];
@@ -253,6 +255,7 @@ RecordDef Record_Common{
     record_flags(
         { 0x20, "Deleted" },
         { (uint32_t)RecordFlags::Compressed, "Compressed" },
+        { 0x800000, "Is Marker" },
         { 0x8000000, "NavMesh Generation - Bounding Box" },
     ),
 };
@@ -638,6 +641,36 @@ RECORD(SPEL, "Spell",
     ),
 );
 
+RECORD(FLST, "Form List",
+    record_fields(
+        rf_formid("LNAM", "Object"),
+    ),
+);
+
+RECORD(STAT, "Static",
+    record_fields(
+        rf_subrecord("DNAM", "Data", 12, 
+            sf_float("Max Angle"),
+            sf_formid("Directional Material"),
+            sf_uint32("Unknown"),
+        ),
+        Field_MODL,
+    ),
+);
+
+RECORD(MISC, "Misc Item",
+    record_fields(
+        Field_MODL,
+    ),
+);
+
+RECORD(FURN, "Furniture",
+    record_fields(
+        Field_MODL,
+        rf_zstring("XMRK", "Marker Model File Name"),
+    ),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -661,6 +694,10 @@ RecordDef* get_record_def(RecordType type) {
         CASE(SOUN);
         CASE(MGEF);
         CASE(SPEL);
+        CASE(FLST);
+        CASE(STAT);
+        CASE(MISC);
+        CASE(FURN);
     }
     #undef CASE
     return nullptr;
