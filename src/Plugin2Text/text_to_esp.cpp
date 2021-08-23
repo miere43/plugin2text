@@ -135,10 +135,14 @@ struct TextRecordReader {
                 auto record = read_record();
                 switch (group.group_type) {
                     case RecordGroupType::Top: {
-                        if (group.label == 0) {
+                        if (record->type == RecordType::GRUP) {
+                            auto record_as_group = (GrupRecord*)record;
+                            verify(record_as_group->group_type == RecordGroupType::InteriorCellBlock);
+                            group.label = fourcc("CELL");
+                        } else if (group.label == 0) {
                             group.label = (uint32_t)record->type;
                         } else {
-                            verify(record->type == RecordType::GRUP || group.label == (uint32_t)record->type);
+                            verify(group.label == (uint32_t)record->type);
                         }
                     } break;
 
@@ -573,7 +577,7 @@ struct TextRecordReader {
     }
 
     RecordType read_record_type() {
-        verify(now + 4 < end);
+        verify(now + 4 <= end);
         auto result = *(RecordType*)now;
         now += 4;
         return result;
