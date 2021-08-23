@@ -249,7 +249,8 @@ RecordDef Record_Common{
     "-- common -- ",
     { Record_Common_Fields, _countof(Record_Common_Fields) },
     record_flags(
-        { (uint32_t)RecordFlags::Compressed, "Compressed" }
+        { (uint32_t)RecordFlags::Compressed, "Compressed" },
+        { 0x8000000, "NavMesh Generation - Bounding Box" },
     ),
 };
 

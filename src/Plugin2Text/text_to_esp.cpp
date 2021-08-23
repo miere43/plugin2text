@@ -180,6 +180,66 @@ struct TextRecordReader {
         return (GrupRecord*)record_start_offset;
     }
 
+    RecordFlags read_record_flags(RecordDef* def) {
+        RecordFlags flags = RecordFlags::None;
+
+        int def_count;
+        RecordDef* defs[2];
+        if (def) {
+            def_count = 2;
+            defs[0] = def;
+        } else {
+            def_count = 1;
+        }
+        defs[def_count - 1] = &Record_Common;
+
+        indent += 1;
+        while (true) {
+            auto indents = peek_indents();
+            if (indents == indent) {
+                if (&now[indent * 2] < end && now[indent * 2] != '+') {
+                    break;
+                }
+                expect_indent();
+                verify(expect("+ "));
+
+                auto line_end = peek_end_of_current_line();
+                auto count = line_end - now;
+                verify(count > 0);
+
+                // bypass flag checks if this is HEX number (we can have FFFFFFFF but whatever).
+                if (!(now[0] >= '0' && now[0] <= '9')) {
+                    for (int def_index = 0; def_index < def_count; ++def_index) {
+                        const auto current_def = defs[def_index];
+                        for (int i = 0; i < current_def->flags.count; ++i) {
+                            const auto& flag = current_def->flags.data[i];
+                            if (strlen(flag.name) == count && memory_equals(flag.name, now, count)) {
+                                flags |= (RecordFlags)flag.bit;
+                                goto ok;
+                            }
+                        }
+                    }
+                }
+
+                uint32_t unrecognized_flags;
+                int nread;
+                verify(1 == _snscanf_s(now, count, "%X%n", &unrecognized_flags, &nread));
+                verify(nread == count);
+
+                flags |= (RecordFlags)unrecognized_flags;
+
+                ok: {}
+                now = line_end + 1; // skip \n
+            } else {
+                verify(indents < indent);
+                break;
+            }
+        }
+        indent -= 1;
+
+        return flags;
+    }
+
     Record* read_record() {
         auto record_start_offset = buffer->now;
 
@@ -198,24 +258,8 @@ struct TextRecordReader {
 
         skip_to_next_line();
 
-        indent += 1;
-        while (true) {
-            auto indents = peek_indents();
-            if (indents == indent) {
-                if (&now[indent * 2] < end && now[indent * 2] != '+') {
-                    break;
-                }
-                expect_indent();
-                verify(expect("+ Compressed\n"));
-                record.flags |= RecordFlags::Compressed;
-            } else {
-                verify(indents < indent);
-                break;
-            }
-        }
-        indent -= 1;
-
         auto def = get_record_def(record.type);
+        record.flags = read_record_flags(def);
         if (!def) {
             def = &Record_Common;
         }
