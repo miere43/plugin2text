@@ -573,9 +573,67 @@ RECORD(TXST, "Texture Set",
         rf_zstring("TX05", "Environment Map"),
         rf_zstring("TX07", "Specularity Map"),
         rf_flags_uint16("DNAM", "Flags", 
-            { "not has specular map", 0x01 },
-            { "facegen textures", 0x02 },
-            { "has model space normal map", 0x04 },
+            { "Facegen Textures", 0x02 },
+            { "Has Model Space Normal Map", 0x04 },
+        ),
+    ),
+);
+
+RECORD(GLOB, "Global",
+    record_fields(
+        rf_enum_uint8("FNAM", "Type",
+            { "Short", 's' },
+            { "Long", 'l' },
+            { "Float", 'f' },
+        ),
+        rf_float("FLTV", "Value"),
+    ),
+);
+
+RECORD(FACT, "Faction",
+    record_fields(
+        rf_flags_uint32("DATA", "Flags",
+            { "Hidden from PC", 0x1 },
+            { "Special Combat", 0x2 },
+            { "Track Crime", 0x40 },
+            { "Ignore Murder", 0x80 },
+            { "Ignore Assault", 0x100 },
+            { "Ignore Stealing", 0x200 },
+            { "Ignore Trespass", 0x400 },
+            { "Do not report crimes against members", 0x800 },
+            { "Crime Gold, Use Defaults", 0x1000 },
+            { "Ignore Pickpocket", 0x2000 },
+            { "Vendor", 0x4000 },
+            { "Can be Owner", 0x8000 },
+            { "Ignore Werewolf", 0x10000 },
+        ),
+        rf_uint32("RNAM", "Rank ID"),
+        rf_lstring("MNAM", "Male Rank Title"),
+        rf_lstring("FNAM", "Female Rank Title"),
+    ),
+);
+
+RECORD(SOUN, "Sound",
+    record_fields(
+        rf_formid("SDSC", "Sound Descriptor"),
+    ),
+);
+
+RECORD(MGEF, "Magic Effect",
+    record_fields(
+        rf_zstring("DNAM", "Description"),
+    ),
+);
+
+RECORD(SPEL, "Spell",
+    record_fields(
+        rf_formid("ETYP", "Equipment Type"),
+        rf_zstring("DESC", "Description"),
+        rf_formid("EFID", "Magic Effect Form ID"),
+        rf_subrecord("EFIT", "Magic Effect", 12,
+            sf_float("Magnitude"),
+            sf_uint32("Area of Effect"),
+            sf_uint32("Duration"),
         ),
     ),
 );
@@ -598,6 +656,11 @@ RecordDef* get_record_def(RecordType type) {
         CASE(DIAL);
         CASE(KYWD);
         CASE(TXST);
+        CASE(GLOB);
+        CASE(FACT);
+        CASE(SOUN);
+        CASE(MGEF);
+        CASE(SPEL);
     }
     #undef CASE
     return nullptr;
