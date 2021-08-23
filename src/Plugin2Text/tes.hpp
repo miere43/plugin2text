@@ -12,12 +12,20 @@ enum class RecordType : uint32_t {
 
 enum class RecordFlags : uint32_t {
     None = 0,
-    TES4_Master = 0x1,
+    TES4_Localized = 0x80,
     Compressed = 0x40000,
 };
+
+inline RecordFlags operator&(const RecordFlags& a, const RecordFlags& b) { return (RecordFlags)((uint32_t)a | (uint32_t)b); }
 inline RecordFlags operator|(const RecordFlags& a, const RecordFlags& b) { return (RecordFlags)((uint32_t)a | (uint32_t)b); }
 inline RecordFlags& operator|=(RecordFlags& a, const RecordFlags& b) {
     return (a = a | b);
+}
+
+template<typename T>
+inline T clear_bit(const T& flags, const T& bit) {
+    static_assert(sizeof(T) == 4, "invalid size");
+    return (T)((uint32_t)flags & (~(uint32_t)bit));
 }
 
 struct FormID {

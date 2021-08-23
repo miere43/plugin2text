@@ -70,6 +70,10 @@ struct TextRecordWriter {
         write_bytes("\n", 1);
     }
 
+    void write_string(const char* str) {
+        write_bytes(str, strlen(str));
+    }
+
     template<size_t N>
     void write_literal(const char(&data)[N]) {
         write_bytes(data, N - 1);
@@ -127,6 +131,20 @@ struct TextRecordWriter {
         indent -= 1;
     }
 
+    RecordFlags write_flags(RecordFlags flags, const RecordDef* def) {
+        for (size_t i = 0; i < def->flags.count; ++i) {
+            const auto& flag = def->flags.data[i];
+            if ((uint32_t)flags & flag.bit) {
+                write_newline();
+                write_indent();
+                write_literal("+ ");
+                write_string(flag.name);
+                flags = clear_bit(flags, (RecordFlags)flag.bit);
+            }
+        }
+        return flags;
+    }
+
     void write_record(Record* record) {
         write_bytes(&record->type, 4);
         auto def = get_record_def(record->type);
@@ -149,14 +167,20 @@ struct TextRecordWriter {
         }
 
         // @TODO: write all flags
-        if (record->is_compressed()) {
+        if (record->flags != RecordFlags::None) {
+            auto flags = record->flags;
             indent += 1;
-            write_newline();
-            write_indent();
-            write_literal("+ Compressed");
+            if (def) {
+                flags = write_flags(flags, def);
+            }
+            flags = write_flags(flags, &Record_Common);
+            if (flags != RecordFlags::None) {
+                write_newline();
+                write_indent();
+                write_format("+ %X", flags);
+            }
             indent -= 1;
         }
-
 
         const uint8_t* now;
         const uint8_t* end;

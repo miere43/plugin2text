@@ -83,14 +83,42 @@ struct RecordFieldDef {
     constexpr RecordFieldDef(char const type[5], const Type* data_type, const char* comment) : type((RecordFieldType)fourcc(type)), data_type(data_type), comment(comment) { }
 };
 
+struct RecordFlagDef {
+    uint32_t bit = 0;
+    const char* name = nullptr;
+};
+
+template<typename T>
+struct StaticArray {
+    T* data = nullptr;
+    size_t count = 0;
+};
+
 struct RecordDef {
     RecordType type;
     const char* comment = nullptr;
-    size_t field_count = 0;
-    const RecordFieldDef* fields = nullptr;
+    StaticArray<RecordFieldDef> fields;
+    StaticArray<RecordFlagDef> flags;
 
-    template<size_t N>
-    constexpr RecordDef(char const type[5], const char* comment, const RecordFieldDef(&fields)[N]) : type((RecordType)fourcc(type)), comment(comment), field_count(N), fields(fields) { }
+    constexpr RecordDef(
+            char const type[5],
+            const char* comment,
+            StaticArray<RecordFieldDef> fields)
+        : type((RecordType)fourcc(type))
+        , comment(comment)
+        , fields(fields)
+    { }
+
+    constexpr RecordDef(
+            char const type[5],
+            const char* comment,
+            StaticArray<RecordFieldDef> fields,
+            StaticArray<RecordFlagDef> flags)
+        : type((RecordType)fourcc(type))
+        , comment(comment)
+        , fields(fields)
+        , flags(flags)
+    { }
 
     const RecordFieldDef* get_field_def(RecordFieldType type) const;
 };
