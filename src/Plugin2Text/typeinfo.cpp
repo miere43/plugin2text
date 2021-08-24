@@ -129,6 +129,10 @@ constexpr TypeStructField sf_formid(const char* name) {
     return { &Type_FormID, name };
 }
 
+constexpr TypeStructField sf_bool(const char* name) {
+    return { &Type_bool, name };
+}
+
 template<size_t N>
 constexpr TypeStructField sf_fixed_bytes(const char* name) {
     static Type Type_ByteArrayFixed{ TypeKind::ByteArrayFixed, name, N };
@@ -157,6 +161,7 @@ Type Type_ByteArrayCompressed{ TypeKind::ByteArrayCompressed, "Byte Array (Compr
 Type Type_float{ TypeKind::Float, "float", sizeof(float) };
 Type Type_FormID{ TypeKind::FormID, "Form ID", sizeof(int) };
 Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
+Type Type_bool{ TypeKind::Boolean, "bool", sizeof(bool) };
 TypeInteger Type_int8{ "int8", sizeof(int8_t), false };
 TypeInteger Type_int16{ "int16", sizeof(int16_t), false };
 TypeInteger Type_int32{ "int32", sizeof(int32_t), false };
@@ -722,7 +727,7 @@ RECORD(INFO, "Topic Info",
             sf_uint8("Response Index"),
             sf_fixed_bytes<3>("Unknown"),
             sf_formid("Sound"),
-            sf_uint8("Use Emotion Animation"), // @TODO: boolean
+            sf_bool("Use Emotion Animation"),
             sf_fixed_bytes<3>("Unknown"),
         ),
     ),

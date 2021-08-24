@@ -15,6 +15,7 @@ enum class TypeKind {
     FormID,
     FormIDArray,
     Enum,
+    Boolean, // 1 byte,
 };
 
 struct Type {
@@ -68,6 +69,7 @@ extern Type Type_ByteArrayCompressed;
 extern Type Type_float;
 extern Type Type_FormID;
 extern Type Type_FormIDArray;
+extern Type Type_bool;
 extern TypeInteger Type_int8;
 extern TypeInteger Type_int16;
 extern TypeInteger Type_int32;

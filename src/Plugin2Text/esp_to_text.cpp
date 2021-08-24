@@ -393,6 +393,15 @@ struct TextRecordWriter {
                 }
             } break;
 
+            case TypeKind::Boolean: {
+                verify(type->size == sizeof(bool));
+                if (*(bool*)value) {
+                    write_literal("True");
+                } else {
+                    write_literal("False");
+                }
+            } break;
+
             default: {
                 verify(false);
             } break;

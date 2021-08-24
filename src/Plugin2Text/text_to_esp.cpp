@@ -617,6 +617,19 @@ struct TextRecordReader {
                 }
             } break;
 
+            case TypeKind::Boolean: {
+                auto line_end = peek_end_of_current_line();
+                if (expect("True\n")) {
+                    bool value = true;
+                    write_struct(&value);
+                } else if (expect("False\n")) {
+                    bool value = false;
+                    write_struct(&value);
+                } else {
+                    verify(false);
+                }
+            } break;
+
             default: {
                 verify(false);
             } break;
