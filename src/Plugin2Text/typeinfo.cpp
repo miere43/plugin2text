@@ -17,35 +17,35 @@ constexpr RecordFieldDef rf_float(char const type[5], const char* name) {
 }
 
 constexpr RecordFieldDef rf_int8(char const type[5], const char* name) {
-    return { type, &Type_int8, name };
+    return { type, &Type_int8_t, name };
 }
 
 constexpr RecordFieldDef rf_int16(char const type[5], const char* name) {
-    return { type, &Type_int16, name };
+    return { type, &Type_int16_t, name };
 }
 
 constexpr RecordFieldDef rf_int32(char const type[5], const char* name) {
-    return { type, &Type_int32, name };
+    return { type, &Type_int32_t, name };
 }
 
 constexpr RecordFieldDef rf_int64(char const type[5], const char* name) {
-    return { type, &Type_int64, name };
+    return { type, &Type_int64_t, name };
 }
 
 constexpr RecordFieldDef rf_uint8(char const type[5], const char* name) {
-    return { type, &Type_uint8, name };
+    return { type, &Type_uint8_t, name };
 }
 
 constexpr RecordFieldDef rf_uint16(char const type[5], const char* name) {
-    return { type, &Type_uint16, name };
+    return { type, &Type_uint16_t, name };
 }
 
 constexpr RecordFieldDef rf_uint32(char const type[5], const char* name) {
-    return { type, &Type_uint32, name };
+    return { type, &Type_uint32_t, name };
 }
 
 constexpr RecordFieldDef rf_uint64(char const type[5], const char* name) {
-    return { type, &Type_uint64, name };
+    return { type, &Type_uint64_t, name };
 }
 
 constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
@@ -90,35 +90,35 @@ constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
 #define rf_flags_uint32(m_subrecord, m_name, ...) rf_enum(m_subrecord, m_name, 4, true, __VA_ARGS__)
 
 constexpr TypeStructField sf_int8(const char* name) {
-    return { &Type_int8, name };
+    return { &Type_int8_t, name };
 }
 
 constexpr TypeStructField sf_int16(const char* name) {
-    return { &Type_int16, name };
+    return { &Type_int16_t, name };
 }
 
 constexpr TypeStructField sf_int32(const char* name) {
-    return { &Type_int32, name };
+    return { &Type_int32_t, name };
 }
 
 constexpr TypeStructField sf_int64(const char* name) {
-    return { &Type_int64, name };
+    return { &Type_int64_t, name };
 }
 
 constexpr TypeStructField sf_uint8(const char* name) {
-    return { &Type_uint8, name };
+    return { &Type_uint8_t, name };
 }
 
 constexpr TypeStructField sf_uint16(const char* name) {
-    return { &Type_uint16, name };
+    return { &Type_uint16_t, name };
 }
 
 constexpr TypeStructField sf_uint32(const char* name) {
-    return { &Type_uint32, name };
+    return { &Type_uint32_t, name };
 }
 
 constexpr TypeStructField sf_uint64(const char* name) {
-    return { &Type_uint64, name };
+    return { &Type_uint64_t, name };
 }
 
 constexpr TypeStructField sf_float(const char* name) {
@@ -156,20 +156,22 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
 
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
 Type Type_LString{ TypeKind::LString, "LString", 0 };
+Type Type_WString{ TypeKind::WString, "WString", 0 };
 Type Type_ByteArray{ TypeKind::ByteArray, "Byte Array", 0 };
 Type Type_ByteArrayCompressed{ TypeKind::ByteArrayCompressed, "Byte Array (Compressed)", 0 };
 Type Type_float{ TypeKind::Float, "float", sizeof(float) };
 Type Type_FormID{ TypeKind::FormID, "Form ID", sizeof(int) };
 Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
 Type Type_bool{ TypeKind::Boolean, "bool", sizeof(bool) };
-TypeInteger Type_int8{ "int8", sizeof(int8_t), false };
-TypeInteger Type_int16{ "int16", sizeof(int16_t), false };
-TypeInteger Type_int32{ "int32", sizeof(int32_t), false };
-TypeInteger Type_int64{ "int64", sizeof(int64_t), false };
-TypeInteger Type_uint8{ "uint8", sizeof(uint8_t), true };
-TypeInteger Type_uint16{ "uint16", sizeof(uint16_t), true };
-TypeInteger Type_uint32{ "uint32", sizeof(uint32_t), true };
-TypeInteger Type_uint64{ "uint64", sizeof(uint64_t), true };
+Type Type_VMAD{ TypeKind::VMAD, "VMAD", 0 };
+TypeInteger Type_int8_t{ "int8", sizeof(int8_t), false };
+TypeInteger Type_int16_t{ "int16", sizeof(int16_t), false };
+TypeInteger Type_int32_t{ "int32", sizeof(int32_t), false };
+TypeInteger Type_int64_t{ "int64", sizeof(int64_t), false };
+TypeInteger Type_uint8_t{ "uint8", sizeof(uint8_t), true };
+TypeInteger Type_uint16_t{ "uint16", sizeof(uint16_t), true };
+TypeInteger Type_uint32_t{ "uint32", sizeof(uint32_t), true };
+TypeInteger Type_uint64_t{ "uint64", sizeof(uint64_t), true };
 
 TypeStructField Type_Vector3_Fields[] = {
     sf_float("X"),
@@ -196,10 +198,11 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
         __VA_ARGS__                                      \
     };                                                   \
                                                          \
-    static TypeEnum Type_##m_type{                       \
+    TypeEnum Type_##m_type{                              \
         m_name,                                          \
         m_size,                                          \
-        CONCAT(Type_, m_type)_Fields                     \
+        CONCAT(Type_, m_type)_Fields,                    \
+        false                                            \
     }
 
 #define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
@@ -226,6 +229,19 @@ TYPE_STRUCT(CELL_XCLL, "Lighting", 92,
 TYPE_STRUCT(CNTO, "Item", 8,
     sf_formid("Item"),
     sf_uint32("Count"),
+);
+
+TYPE_ENUM(PapyrusPropertyType, "Papyrus Property Type", 1,
+    { (uint32_t)PapyrusPropertyType::Object, "Object" },
+    { (uint32_t)PapyrusPropertyType::String, "String" },
+    { (uint32_t)PapyrusPropertyType::Int, "Int" },
+    { (uint32_t)PapyrusPropertyType::Float, "Float" },
+    { (uint32_t)PapyrusPropertyType::Bool, "Bool" },
+    { (uint32_t)PapyrusPropertyType::ObjectArray, "Object[]" },
+    { (uint32_t)PapyrusPropertyType::StringArray, "String[]" },
+    { (uint32_t)PapyrusPropertyType::IntArray, "Int[]" },
+    { (uint32_t)PapyrusPropertyType::FloatArray, "Float[]" },
+    { (uint32_t)PapyrusPropertyType::BoolArray, "Bool[]" },
 );
 
 #define RECORD(m_type, m_name, ...)  \
@@ -263,6 +279,7 @@ RecordDef Record_Common{
         ),
         rf_int32("COCT", "Item Count"),
         { "CNTO", &Type_CNTO, "Items" },
+        { "VMAD", &Type_VMAD, "Script" },
         rf_int32("KSIZ", "Keyword Count"),
         rf_formid_array("KWDA", "Keywords"),
         rf_zstring("FLTR", "Object Window Filter"),

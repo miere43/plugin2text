@@ -8,6 +8,8 @@ constexpr uint32_t fourcc(char const p[5]) {
 enum class RecordType : uint32_t {
     GRUP = fourcc("GRUP"),
     CELL = fourcc("CELL"),
+    INFO = fourcc("INFO"),
+    QUST = fourcc("QUST"),
 };
 
 enum class RecordFlags : uint32_t {

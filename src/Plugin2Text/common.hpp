@@ -41,3 +41,31 @@ struct VirtualMemoryBuffer {
 
 	static VirtualMemoryBuffer alloc(size_t size);
 };
+
+#pragma pack(push, 1)
+struct WString {
+	uint16_t count;
+	uint8_t data[1];
+};
+#pragma pack(pop)
+
+struct BinaryReader {
+	const uint8_t* start = nullptr;
+	const uint8_t* now = nullptr;
+	const uint8_t* end = nullptr;
+
+	void read(void* out, size_t size);
+
+	template<typename T>
+	const T* advance() {
+		return (T*)advance(sizeof(T));
+	}
+
+	template<typename T>
+	T read() {
+		return *(T*)advance(sizeof(T));
+	}
+
+	const void* advance(size_t size);
+	const WString* advance_wstring();
+};

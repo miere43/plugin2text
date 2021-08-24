@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "tes.hpp"
+#include "common.hpp"
 
 enum class TypeKind {
     Unknown,
@@ -12,10 +13,12 @@ enum class TypeKind {
     ByteArrayFixed,
     ZString,
     LString,
+    WString,
     FormID,
     FormIDArray,
     Enum,
     Boolean, // 1 byte,
+    VMAD,
 };
 
 struct Type {
@@ -62,23 +65,59 @@ struct TypeEnum : Type {
     constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N], bool flags) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields), flags(flags) { }
 };
 
+constexpr bool VMAD_use_byte_array = true; // @TODO
+
 extern Type Type_ZString;
 extern Type Type_LString;
+extern Type Type_WString;
 extern Type Type_ByteArray;
 extern Type Type_ByteArrayCompressed;
 extern Type Type_float;
 extern Type Type_FormID;
 extern Type Type_FormIDArray;
 extern Type Type_bool;
-extern TypeInteger Type_int8;
-extern TypeInteger Type_int16;
-extern TypeInteger Type_int32;
-extern TypeInteger Type_int64;
-extern TypeInteger Type_uint8;
-extern TypeInteger Type_uint16;
-extern TypeInteger Type_uint32;
-extern TypeInteger Type_uint64;
+extern Type Type_VMAD;
+extern TypeInteger Type_int8_t;
+extern TypeInteger Type_int16_t;
+extern TypeInteger Type_int32_t;
+extern TypeInteger Type_int64_t;
+extern TypeInteger Type_uint8_t;
+extern TypeInteger Type_uint16_t;
+extern TypeInteger Type_uint32_t;
+extern TypeInteger Type_uint64_t;
 extern TypeStruct Type_Vector3;
+
+enum class PapyrusPropertyType : uint8_t {
+    Object = 1,
+    String = 2,
+    Int = 3,
+    Float = 4,
+    Bool = 5,
+    ObjectArray = 11,
+    StringArray = 12,
+    IntArray = 13,
+    FloatArray = 14,
+    BoolArray = 15,
+};
+extern TypeEnum Type_PapyrusPropertyType;
+
+template<typename T>
+inline const Type* resolve_type() {
+    static_assert(false, "unknown type");
+}
+
+#define RESOLVE_TYPE(x) template<> inline const Type* resolve_type<x>() { return &Type_##x; }
+RESOLVE_TYPE(int8_t);
+RESOLVE_TYPE(int16_t);
+RESOLVE_TYPE(int32_t);
+RESOLVE_TYPE(int64_t);
+RESOLVE_TYPE(uint8_t);
+RESOLVE_TYPE(uint16_t);
+RESOLVE_TYPE(uint32_t);
+RESOLVE_TYPE(uint64_t);
+RESOLVE_TYPE(PapyrusPropertyType);
+RESOLVE_TYPE(FormID);
+RESOLVE_TYPE(WString);
 
 struct RecordFieldDef {
     RecordFieldType type;

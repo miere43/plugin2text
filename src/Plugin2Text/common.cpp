@@ -60,3 +60,22 @@ VirtualMemoryBuffer VirtualMemoryBuffer::alloc(size_t size) {
     buffer.end = buffer.start + size;
     return buffer;
 }
+
+void BinaryReader::read(void* out, size_t size) {
+    verify(now + size <= end);
+    memcpy(out, now, size);
+    now += size;
+}
+
+const void* BinaryReader::advance(size_t size) {
+    verify(now + size <= end);
+    auto result = now;
+    now += size;
+    return result;
+}
+
+const WString* BinaryReader::advance_wstring() {
+    auto str = (const WString*)advance(sizeof(uint16_t));
+    advance(str->count);
+    return str;
+}

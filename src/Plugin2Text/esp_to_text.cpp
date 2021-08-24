@@ -18,6 +18,8 @@ struct TextRecordWriter {
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
 
+    Record* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
+
     void open(const wchar_t* path) {
         verify(!output_handle);
         output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
@@ -147,6 +149,7 @@ struct TextRecordWriter {
     }
 
     void write_record(Record* record) {
+        current_record = record;
         write_bytes(&record->type, 4);
         auto def = get_record_def(record->type);
 
@@ -211,19 +214,21 @@ struct TextRecordWriter {
         indent -= 1;
     }
 
-    void write_type(const Type* type, void* value, size_t size) {
+    static void validate_ascii(const char* now, size_t count) {
+        const auto end = now + count;
+        while (now < end) {
+            char c = *now++;
+            verify(c >= 32 && c < 127); // @TODO: Escape string
+        }
+    }
+
+    void write_type(const Type* type, const void* value, size_t size) {
         switch (type->kind) {
             case TypeKind::ZString: {
                 if (size == 0) {
                     write_bytes("\"\"", 2);
                 } else {
-                    auto data_now = (uint8_t*)value;
-                    auto data_end = data_now + (size - 1);
-                    while (data_now < data_end) {
-                        char c = *data_now++;
-                        verify(c >= 32 && c < 127); // @TODO: Escape string
-                    }
-
+                    validate_ascii((char*)value, size - 1);
                     write_bytes("\"", 1);
                     write_bytes(value, size - 1);
                     write_bytes("\"", 1);
@@ -237,6 +242,18 @@ struct TextRecordWriter {
                 } else {
                     write_bytes("\"", 1);
                     write_bytes(value, size - 1);
+                    write_bytes("\"", 1);
+                }
+            } break;
+
+            case TypeKind::WString: {
+                auto wstr = (WString*)value;
+                if (wstr->count == 0) {
+                    write_literal("\"\"");
+                } else {
+                    validate_ascii((char*)wstr->data, wstr->count);
+                    write_bytes("\"", 1);
+                    write_bytes(wstr->data, wstr->count);
                     write_bytes("\"", 1);
                 }
             } break;
@@ -402,6 +419,162 @@ struct TextRecordWriter {
                 }
             } break;
 
+            case TypeKind::VMAD: {
+                if (VMAD_use_byte_array) {
+                    write_byte_array((uint8_t*)value, size);
+                    return;
+                }
+
+                BinaryReader r;
+                r.start = (uint8_t*)value;
+                r.now = r.start;
+                r.end = r.start + size;
+
+                #pragma pack(push, 1)
+                struct Header {
+                    int16_t version;
+                    int16_t object_format;
+                    uint16_t script_count;
+                };
+
+                struct PropertyObjectV1 {
+                    FormID form_id;
+                    int16_t alias;
+                    uint16_t unused;
+                };
+
+                struct PropertyObjectV2 {
+                    uint16_t unused;
+                    int16_t alias;
+                    FormID form_id;
+                };
+                #pragma pack(pop)
+
+                auto header = r.advance<Header>();
+                verify(header->version >= 2 && header->version <= 5);
+                verify(header->object_format >= 1 && header->object_format <= 2);
+
+                write_custom_field(true, "Version", header->version);
+                write_custom_field(true, "Object Format", header->object_format);
+
+                auto write_papyrus_object = [](TextRecordWriter& w, BinaryReader& r, uint16_t object_format, bool indent) {
+                    verify(object_format == 2);
+                    auto value = r.read<PropertyObjectV2>();
+                    w.write_custom_field(true, "Form ID", value.form_id);
+                    w.write_custom_field(true, "Alias", value.alias);
+                    w.write_custom_field(indent, "Unused", value.unused);
+                };
+
+                for (int i = 0; i < header->script_count; ++i) {
+                    begin_custom_struct("Script");
+                    
+                    write_custom_field(true, "Name", r.advance_wstring());
+
+                    uint16_t property_count;
+                    if (header->version >= 4) {
+                        auto status = r.read<uint8_t>();
+                        property_count = r.read<uint16_t>();
+                        write_custom_field(property_count, "Status", status);
+                    } else {
+                        property_count = r.read<uint16_t>();
+                    }
+
+                    for (int prop_index = 0; prop_index < property_count; ++prop_index) {
+                        begin_custom_struct("Property");
+
+                        write_custom_field(true, "Name", r.advance_wstring());
+
+                        auto property_type = r.read<PapyrusPropertyType>();
+                        write_custom_field(true, "Type", property_type);
+                        if (header->version >= 4) {
+                            write_custom_field(true, "Status", r.read<uint8_t>());
+                        }
+
+                        switch (property_type) {
+                            case PapyrusPropertyType::Object: {
+                                write_papyrus_object(*this, r, header->object_format, false);
+                            } break;
+
+                            default: {
+                                verify(false);
+                            } break;
+                        }
+
+                        end_custom_struct(prop_index != property_count - 1);
+                    }
+
+                    end_custom_struct(i != header->script_count - 1);
+                }
+
+                if (r.now != r.end) {
+                    write_newline();
+                    write_indent();
+
+                    // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
+                    switch (current_record->type) {
+                        case RecordType::INFO: {
+                            verify(r.read<uint8_t>() == 2); // version?
+
+                            auto flags = r.read<uint8_t>();
+                            int fragment_count = 0;
+                            if (flags == 1 || flags == 2) {
+                                fragment_count = 1;
+                            } else if (flags == 3) {
+                                fragment_count = 2;
+                            } else {
+                                verify(false);
+                            }
+                            write_custom_field(true, "Fragment Flags", flags);
+                            write_custom_field(true, "Fragment Script File Name", r.advance_wstring());
+
+                            for (int i = 0; i < fragment_count; ++i) {
+                                write_custom_field(true, "Unknown", r.read<uint8_t>());
+                                write_custom_field(true, "Script Name", r.advance_wstring());
+                                write_custom_field(i != fragment_count - 1, "Fragment Name", r.advance_wstring());
+                            }
+                        } break;
+
+                        case RecordType::QUST: {
+                            verify(r.read<uint8_t>() == 2); // version?
+
+                            auto fragment_count = (int)r.read<uint16_t>();
+                            write_custom_field(true, "File Name", r.advance_wstring());
+
+                            for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
+                                begin_custom_struct("Fragment");
+
+                                write_custom_field(true, "Index", r.read<uint16_t>());
+                                write_custom_field(true, "Unknown", r.read<uint16_t>());
+                                write_custom_field(true, "Log Entry", r.read<uint32_t>());
+                                write_custom_field(true, "Unknown", r.read<uint8_t>());
+                                write_custom_field(true, "Script Name", r.advance_wstring());
+                                write_custom_field(true, "Function Name", r.advance_wstring());
+
+                                end_custom_struct(frag_index != fragment_count - 1);
+                            };
+
+                            auto alias_count = (int)r.read<uint16_t>();
+
+                            for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
+                                begin_custom_struct("Alias");
+
+                                write_papyrus_object(*this, r, header->object_format, true);
+                                verify(r.read<uint16_t>() == header->version);
+                                verify(r.read<uint16_t>() == header->object_format);
+
+                                end_custom_struct(alias_index != alias_count - 1);
+                            }
+                        } break;
+
+                        default: {
+                            verify(false);
+                        } break;
+                    }
+                }
+
+                verify(r.now == r.end);
+            } break;
+
             default: {
                 verify(false);
             } break;
@@ -429,6 +602,46 @@ struct TextRecordWriter {
         } else {
             write_byte_array(now, field->size);
         }
+    }
+
+    void begin_custom_struct(const char* header_name) {
+        write_string(header_name);
+        write_newline();
+        ++indent;
+        write_indent();
+    }
+
+    void end_custom_struct(bool do_indent = false) {
+        --indent;
+        if (do_indent) {
+            write_newline();
+            write_indent();
+        }
+    }
+
+    void write_custom_field(bool indent_next_field, const char* field_name, const Type* type, const void* value, size_t size) {
+        // @TODO: get rid of "indent_next_field", this makes code really ugly.
+
+        write_string(field_name);
+        write_newline();
+        indent += 1;
+        write_indent();
+        write_type(type, value, size);
+        indent -= 1;
+        if (indent_next_field) {
+            write_newline();
+            write_indent();
+        }
+    }
+
+    template<typename T>
+    void write_custom_field(bool indent_next_field, const char* field_name, const T* value) {
+        write_custom_field(indent_next_field, field_name, resolve_type<T>(), value, sizeof(T));
+    }
+
+    template<typename T>
+    void write_custom_field(bool indent_next_field, const char* field_name, const T& value) {
+        write_custom_field(indent_next_field, field_name, resolve_type<T>(), &value, sizeof(T));
     }
 };
 
