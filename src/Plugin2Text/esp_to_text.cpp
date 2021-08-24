@@ -93,7 +93,6 @@ struct TextRecordWriter {
         while (now < end) {
             auto record = (Record*)now;
             write_record(record);
-            write_newline();
             now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
     }
@@ -123,11 +122,11 @@ struct TextRecordWriter {
             }
         }
 
+        write_newline();
+
         indent += 1;
         while (now < end) {
             auto subrecord = (Record*)now;
-            write_newline();
-            write_indent();
             write_record(subrecord);
             now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
@@ -150,6 +149,7 @@ struct TextRecordWriter {
 
     void write_record(Record* record) {
         current_record = record;
+        write_indent();
         write_bytes(&record->type, 4);
         auto def = get_record_def(record->type);
 
@@ -201,17 +201,13 @@ struct TextRecordWriter {
             def = &Record_Common;
         }
 
-        indent += 1;
+        write_newline();
+
         while (now < end) {
             auto field = (RecordField*)now;
-            write_newline();
-            write_indent();
-            indent += 1;
             write_field(def, field);
-            indent -= 1;
             now += sizeof(RecordField) + field->size;
         }
-        indent -= 1;
     }
 
     static void validate_ascii(const char* now, size_t count) {
@@ -223,6 +219,12 @@ struct TextRecordWriter {
     }
 
     void write_type(const Type* type, const void* value, size_t size) {
+        indent += 1;
+
+        if (type->kind != TypeKind::Struct) {
+            write_indent();
+        }
+
         switch (type->kind) {
             case TypeKind::ZString: {
                 if (size == 0) {
@@ -312,9 +314,9 @@ struct TextRecordWriter {
                         write_format("%f", *(float*)value);
                     } break;
 
-                        case sizeof(double) : {
-                            write_format("%f", *(double*)value);
-                        } break;
+                    case sizeof(double) : {
+                        write_format("%f", *(double*)value);
+                    } break;
                 }
             } break;
 
@@ -330,20 +332,12 @@ struct TextRecordWriter {
                         continue;
                     }
 
+                    write_indent();
                     write_bytes(field.name, strlen(field.name));
                     write_newline();
 
-                    indent += 1;
-                    write_indent();
-
                     write_type(field.type, (uint8_t*)value + offset, field.type->size);
                     offset += field.type->size;
-
-                    indent -= 1;
-                    if (i != struct_type->field_count - 1) {
-                        write_newline();
-                        write_indent();
-                    }
                 }
                 verify(offset == size);
             } break;
@@ -427,7 +421,7 @@ struct TextRecordWriter {
             case TypeKind::VMAD: {
                 if (VMAD_use_byte_array) {
                     write_byte_array((uint8_t*)value, size);
-                    return;
+                    break;
                 }
 
                 BinaryReader r;
@@ -593,9 +587,18 @@ struct TextRecordWriter {
                 verify(false);
             } break;
         }
+   
+        if (type->kind != TypeKind::Struct) {
+            write_newline();
+        }
+
+        indent -= 1;
     }
 
     void write_field(RecordDef* def, RecordField* field) {
+        indent += 1;
+        write_indent();
+
         write_bytes(&field->type, 4);
         auto field_def = def->get_field_def(field->type);
         if (!field_def) {
@@ -608,14 +611,12 @@ struct TextRecordWriter {
         }
 
         write_newline();
-        write_indent();
 
-        auto now = (uint8_t*)field + sizeof(RecordField);
-        if (field_def) {
-            write_type(field_def->data_type, now, field->size);
-        } else {
-            write_byte_array(now, field->size);
-        }
+        const auto now = (uint8_t*)field + sizeof(RecordField);
+        const auto data_type = field_def ? field_def->data_type : &Type_ByteArray;
+        write_type(data_type, now, field->size);
+        
+        indent -= 1;
     }
 
     void begin_custom_struct(const char* header_name) {
