@@ -1,6 +1,7 @@
 #include "typeinfo.hpp"
 #include "common.hpp"
 #include <stdlib.h>
+#include <string.h>
 
 #define CONCAT(a, b) a##b
 
@@ -133,12 +134,19 @@ constexpr TypeStructField sf_bool(const char* name) {
     return { &Type_bool, name };
 }
 
-template<typename T>
-constexpr TypeStructField sf_constant(const T& value) {
-    static T the_value = value;
-    static TypeConstant constant{ "Constant", sizeof(T), (const uint8_t*)&the_value };
-    return { &constant, "Constant" };
-}
+#define sf_constant(m_decltype, ...)                                                               \
+    ([]() -> TypeStructField {                                                                     \
+        static m_decltype the_value = { __VA_ARGS__ };                                             \
+        static TypeConstant constant{ "Constant", sizeof(the_value), (const uint8_t*)&the_value }; \
+        return { &constant, "Constant" };                                                          \
+    })()
+
+#define sf_constant_array(m_decltype, m_count, ...)                                               \
+    ([]() -> TypeStructField {                                                                    \
+        static m_decltype the_value[m_count] = { __VA_ARGS__ };                                   \
+        static TypeConstant constant{ "Constant", sizeof(the_value), (const uint8_t*)the_value }; \
+        return { &constant, "Constant" };                                                         \
+    })()
 
 template<size_t N>
 constexpr TypeStructField sf_fixed_bytes(const char* name) {
@@ -479,7 +487,7 @@ RECORD(REFR, "Reference",
         rf_subrecord("XNDP", "Door Pivot", 8,
             sf_formid("NavMesh"),
             sf_uint16("NavMesh Triangle Index"),
-            sf_uint16("Unknown"), // sf_constant<uint16_t>(0),
+            sf_constant(uint16_t, 0),
         ),
         rf_subrecord("XLKR", "Linked Reference", 8,
             sf_formid("Keyword"),
@@ -743,12 +751,12 @@ RECORD(INFO, "Topic Info",
                 { 7, "Puzzled" },
             ),
             sf_uint32("Emotion Value"),
-            sf_uint32("Unknown"), // constant 0
+            sf_constant(uint32_t, 0),
             sf_uint8("Response Index"),
             sf_fixed_bytes<3>("Unknown"),
             sf_formid("Sound"),
             sf_bool("Use Emotion Animation"),
-            sf_fixed_bytes<3>("Unknown"),
+            sf_constant_array(uint8_t, 3, 0x00, 0x00, 0x00),
         ),
     ),
 );
@@ -780,7 +788,7 @@ RECORD(KYWD, "Keyword",
             sf_uint8("Red"),
             sf_uint8("Green"),
             sf_uint8("Blue"),
-            sf_uint8("Alpha"), // this is constant 0
+            sf_constant(uint8_t, 0), // Alpha
         ),
     ),
 );
@@ -939,7 +947,7 @@ RECORD(LAND, "Landscape",
                 { 2, "Upper Left" },
                 { 3, "Upper Right" },
             ),
-            sf_fixed_bytes<3>("Unknown"),
+            sf_constant_array(uint8_t, 3, 0x00, 0xff, 0xff),
         ),
         rf_subrecord("ATXT", "Additional Texture", 8,
             sf_formid("Land Texture"),
@@ -949,7 +957,7 @@ RECORD(LAND, "Landscape",
                 { 2, "Upper Left" },
                 { 3, "Upper Right" },
             ),
-            sf_uint8("Unknown"),
+            sf_constant(uint8_t, 0),
             sf_uint16("Texture Layer"),
         ),
     ),

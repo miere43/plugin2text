@@ -170,7 +170,6 @@ struct TextRecordWriter {
             return;
         }
 
-        // @TODO: write all flags
         if (record->flags != RecordFlags::None) {
             auto flags = record->flags;
             indent += 1;
@@ -218,10 +217,14 @@ struct TextRecordWriter {
         }
     }
 
+    static bool has_custom_indent_rules(TypeKind kind) {
+        return kind == TypeKind::Struct || kind == TypeKind::Constant;
+    }
+
     void write_type(const Type* type, const void* value, size_t size) {
         indent += 1;
 
-        if (type->kind != TypeKind::Struct) {
+        if (!has_custom_indent_rules(type->kind)) {
             write_indent();
         }
 
@@ -575,9 +578,6 @@ struct TextRecordWriter {
             } break;
 
             case TypeKind::Constant: {
-                // @TODO: before using TypeKind::Constant we need to deal with indentation issue
-                verify(false);
-
                 verify(type->size == size);
                 const auto constant_type = (const TypeConstant*)type;
                 verify(memory_equals(value, constant_type->bytes, size));
@@ -588,7 +588,7 @@ struct TextRecordWriter {
             } break;
         }
    
-        if (type->kind != TypeKind::Struct) {
+        if (!has_custom_indent_rules(type->kind)) {
             write_newline();
         }
 
