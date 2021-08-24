@@ -7,6 +7,11 @@
 #define NOMINMAX
 #include <Windows.h>
 
+__declspec(noreturn) void verify_impl(const char* msg, const char* file, int line) {
+    printf("error: assertion failed: condition \"%s\" is false (%s:%d)\n", msg, file, line);
+    exit(1);
+}
+
 __declspec(noreturn) void exit_error(const wchar_t* format, ...) {
     wprintf(L"error: ");
     va_list args;

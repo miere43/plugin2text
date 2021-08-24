@@ -52,6 +52,10 @@ constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
     return { type, &Type_FormID, name };
 }
 
+constexpr RecordFieldDef rf_formid_array(char const type[5], const char* name) {
+    return { type, &Type_FormIDArray, name };
+}
+
 constexpr RecordFieldDef rf_bytes(char const type[5], const char* name) {
     return { type, &Type_ByteArray, name };
 }
@@ -125,15 +129,20 @@ constexpr TypeStructField sf_formid(const char* name) {
     return { &Type_FormID, name };
 }
 
-#define sf_enum(m_name, m_size, ...)                    \
-    ([]() -> const TypeEnum* {                          \
-        static TypeEnumField fields[]{ __VA_ARGS__ };   \
-        static TypeEnum type{ m_name, m_size, fields }; \
-        return &type;                                   \
+#define sf_enum(m_name, m_size, m_flags, ...)                    \
+    ([]() -> TypeStructField {                                   \
+        static TypeEnumField fields[]{ __VA_ARGS__ };            \
+        static TypeEnum type{ m_name, m_size, fields, m_flags }; \
+        return { &type, m_name };                                \
     })()
 
-#define sf_enum_uint16(m_name, ...) sf_enum(m_name, 2, __VA_ARGS__)
-#define sf_enum_uint32(m_name, ...) sf_enum(m_name, 4, __VA_ARGS__)
+#define sf_enum_uint8(m_name, ...) sf_enum(m_name, 1, false, __VA_ARGS__)
+#define sf_enum_uint16(m_name, ...) sf_enum(m_name, 2, false, __VA_ARGS__)
+#define sf_enum_uint32(m_name, ...) sf_enum(m_name, 4, false, __VA_ARGS__)
+
+#define sf_flags_uint8(m_name, ...) sf_enum(m_name, 1, true, __VA_ARGS__)
+#define sf_flags_uint16(m_name, ...) sf_enum(m_name, 2, true, __VA_ARGS__)
+#define sf_flags_uint32(m_name, ...) sf_enum(m_name, 4, true, __VA_ARGS__)
 
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
 Type Type_LString{ TypeKind::LString, "LString", 0 };
@@ -249,7 +258,7 @@ RecordDef Record_Common{
         rf_int32("COCT", "Item Count"),
         { "CNTO", &Type_CNTO, "Items" },
         rf_int32("KSIZ", "Keyword Count"),
-        { "KWDA", &Type_FormIDArray, "Keywords" },
+        rf_formid_array("KWDA", "Keywords"),
         rf_zstring("FLTR", "Object Window Filter"),
     ),
     record_flags(
@@ -270,7 +279,9 @@ RECORD(
             sf_int32("Next Object ID"), 
         ),
         rf_zstring("MAST", "Master File"),
+        rf_uint64("DATA", "Unused"),
         rf_zstring("CNAM", "Author"),
+        rf_uint32("INTV", "Tagified Strings"),
         //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!
     ),
     record_flags(
@@ -378,7 +389,31 @@ RECORD(QUST, "Quest",
 
 RECORD(CELL, "Cell",
     record_fields(
-      rf_uint16("DATA", "Flags"),
+        rf_flags_uint16("DATA", "Flags",
+            { 0x001, "Interior" },
+            { 0x002, "Has Water" },
+            { 0x004, "Can't Travel From Here" },
+            { 0x008, "No LOD Water" },
+            { 0x020, "Public Area" },
+            { 0x040, "Hand Changed" }, // ???
+            { 0x080, "Show Sky" },
+            { 0x100, "Use Sky Lighting" },
+        ),
+        rf_subrecord("XCLC", "Data", 12,
+            sf_int32("X"),
+            sf_int32("Y"),
+            sf_flags_uint32("Flags",
+                { 0x1, "Force Hide Land Quad 1" },
+                { 0x2, "Force Hide Land Quad 2" },
+                { 0x4, "Force Hide Land Quad 3" },
+                { 0x8, "Force Hide Land Quad 4" },
+            ),
+        ),
+        rf_formid("LTMP", "Lighting Template"),
+        rf_formid_array("XCLR", "Regions Containing Cell"),
+        rf_formid("XLCN", "Location"),
+        rf_formid("XCWT", "Water"),
+        // XCLW
     ),
     record_flags(
         { 0x400, "Persistent" },
@@ -397,6 +432,19 @@ auto Type_LocationData = rf_subrecord("DATA", "Data", 24,
 RECORD(REFR, "Reference",
     record_fields(
         rf_formid("NAME", "Base Form ID"),
+        rf_float("XSCL", "Scale"),
+        rf_flags_uint8("XAPD", "Activation Parent Flags",
+            { 0x1, "Parent Activate Only" },
+        ),
+        rf_subrecord("XAPR", "Activation Parent", 8,
+            sf_formid("Form ID"),
+            sf_float("Delay"),
+        ),
+        rf_flags_uint8("FNAM", "Marker Flags",
+            { 0x1, "Visible" },
+            { 0x2, "Can Travel To" },
+            { 0x4, "Show All" },
+        ),
         Type_LocationData,
     ),
     record_flags(
@@ -410,22 +458,57 @@ RECORD(CONT, "Container",
             sf_uint8("Flags"),
             sf_float("Unknown"), 
         ),
+        Field_MODL,
     )
 );
 
 RECORD(NPC_, "Non-Player Character",
     record_fields(
         rf_subrecord("ACBS", "Base Stats", 24,
-            sf_uint32("Flags"), // @TODO: wrong stuff
-            sf_uint16("Magicka Offset"),
-            sf_uint16("Stamina Offset"),
+            sf_flags_uint32("Flags",
+                { 0x00000001, "Female" },
+                { 0x00000002, "Essential" },
+                { 0x00000004, "Is CharGen Face Preset" },
+                { 0x00000008, "Respawn" },
+                { 0x00000010, "Auto Calc Stats" },
+                { 0x00000020, "Unique" },
+                { 0x00000040, "Doesn't Affect Stealth Meter" },
+                { 0x00000080, "PC Level Mult" },
+                { 0x00000100, "Audio Template" },
+                { 0x00000800, "Protected" },
+                { 0x00004000, "Summonable" },
+                { 0x00010000, "Doesn't Bleed" },
+                { 0x00040000, "Owned/Follow" },
+                { 0x00080000, "Opposite Gender Anims" },
+                { 0x00100000, "Simple Actor" },
+                { 0x00200000, "Looped Script" },
+                { 0x10000000, "Looped Audio" },
+                { 0x20000000, "Ghost/Non-Interactable" },
+                { 0x80000000, "Invulnerable" },
+            ),
+            sf_int16("Magicka Offset"),
+            sf_int16("Stamina Offset"),
             sf_uint16("Level"),
             sf_uint16("Calc Min Level"),
             sf_uint16("Calc Max Level"),
             sf_uint16("Speed Multiplier"),
             sf_uint16("Disposition Base"),
-            sf_uint16("Template Data Flags"),
-            sf_uint16("Health Offset"),
+            sf_flags_uint16("Template Data Flags",
+                { 0x0001, "Use Traits" },
+                { 0x0002, "Use Stats" },
+                { 0x0004, "Use Factions" },
+                { 0x0008, "Use Spell List" },
+                { 0x0010, "Use AI Data" },
+                { 0x0020, "Use AI Packages" },
+                { 0x0040, "Unknown 0x40" },
+                { 0x0080, "Use Base Data" },
+                { 0x0100, "Use Inventory" },
+                { 0x0200, "Use Script" },
+                { 0x0400, "Use Def Pack List" },
+                { 0x0800, "Use Attack Data" },
+                { 0x1000, "Use Keywords" },
+            ),
+            sf_int16("Health Offset"),
             sf_uint16("Bleedout Override"),
         ),
         rf_formid("VTCK", "Voice Type"),
@@ -438,10 +521,10 @@ RECORD(NPC_, "Non-Player Character",
         rf_float("NAM6", "Height"),
         rf_float("NAM7", "Weight"),
         rf_enum_uint32("NAM8", "Sound Level",
-            { "Loud", 0 },
-            { "Normal", 1 },
-            { "Silent", 2 },
-            { "Very Loud", 3 },
+            { 0, "Loud" },
+            { 1, "Normal" },
+            { 2, "Silent" },
+            { 3, "Very Loud" },
         ),
         rf_formid("DOFT", "Default Outfit"),
         rf_formid("DPLT", "Default Package List"),
@@ -486,11 +569,74 @@ RECORD(NPC_, "Non-Player Character",
             sf_uint32("Warn/Attack"),
             sf_uint32("Attack"),
         ),
+        rf_formid("PKID", "AI Package"),
+        rf_formid("CNAM", "Class"),
+        rf_subrecord("DNAM", "Data", 52,
+            sf_uint8("Base Skill - One-Handed"),
+            sf_uint8("Base Skill - Two-Handed"),
+            sf_uint8("Base Skill - Marksman"),
+            sf_uint8("Base Skill - Block"),
+            sf_uint8("Base Skill - Smithing"),
+            sf_uint8("Base Skill - Heavy Armor"),
+            sf_uint8("Base Skill - Light Armor"),
+            sf_uint8("Base Skill - Pickpocket"),
+            sf_uint8("Base Skill - Lockpicking"),
+            sf_uint8("Base Skill - Sneak"),
+            sf_uint8("Base Skill - Alchemy"),
+            sf_uint8("Base Skill - Speechcraft"),
+            sf_uint8("Base Skill - Alteration"),
+            sf_uint8("Base Skill - Conjuration"),
+            sf_uint8("Base Skill - Destruction"),
+            sf_uint8("Base Skill - Illusion"),
+            sf_uint8("Base Skill - Restoration"),
+            sf_uint8("Base Skill - Enchanting"),
+            sf_uint8("Mod Skill - One-Handed"),
+            sf_uint8("Mod Skill - Two-Handed"),
+            sf_uint8("Mod Skill - Marksman"),
+            sf_uint8("Mod Skill - Block"),
+            sf_uint8("Mod Skill - Smithing"),
+            sf_uint8("Mod Skill - Heavy Armor"),
+            sf_uint8("Mod Skill - Light Armor"),
+            sf_uint8("Mod Skill - Pickpocket"),
+            sf_uint8("Mod Skill - Lockpicking"),
+            sf_uint8("Mod Skill - Sneak"),
+            sf_uint8("Mod Skill - Alchemy"),
+            sf_uint8("Mod Skill - Speechcraft"),
+            sf_uint8("Mod Skill - Alteration"),
+            sf_uint8("Mod Skill - Conjuration"),
+            sf_uint8("Mod Skill - Destruction"),
+            sf_uint8("Mod Skill - Illusion"),
+            sf_uint8("Mod Skill - Restoration"),
+            sf_uint8("Mod Skill - Enchanting"),
+            sf_uint16("Calculated Health"),
+            sf_uint16("Calculated Magicka"),
+            sf_uint16("Calculated Stamina"),
+            sf_uint16("Unknown"),
+            sf_float("Far Away Model Distance"),
+            sf_uint8("Geared Up Weapons"),
+            sf_uint8("Unknown"), // TODO: use 3 byte array
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+        ),
         rf_subrecord("QNAM", "Skin Tone", 12, 
             sf_float("Red"),
             sf_float("Green"),
             sf_float("Blue"),
         ),
+        rf_subrecord("NAMA", "Face Parts", 16,
+            sf_int32("Nose"),
+            sf_int32("Unknown"),
+            sf_int32("Eyes"),
+            sf_int32("Mouth"),
+        ),
+        rf_uint16("TINI", "Tint Item"),
+        rf_subrecord("TINC", "Tint Color", 4,
+            sf_uint8("Red"),
+            sf_uint8("Green"),
+            sf_uint8("Blue"),
+            sf_uint8("Alpha"), // this is 0 or 255
+        ),
+        rf_int32("TINV", "Tint Value"),
     ),
 );
 
@@ -530,8 +676,10 @@ RECORD(INFO, "Topic Info",
         rf_formid("PNAM", "Previous Info"),
         rf_uint8("CNAM", "Favor Level"),
         rf_formid("TCLT", "Topic Links"),
+        rf_lstring("NAM1", "Response"), // @TODO: ilstring
         rf_zstring("NAM2", "Notes"),
         rf_zstring("NAM3", "Edits"),
+        rf_lstring("RNAM", "Player Response"),
     ),
 );
 
@@ -576,8 +724,8 @@ RECORD(TXST, "Texture Set",
         rf_zstring("TX05", "Environment Map"),
         rf_zstring("TX07", "Specularity Map"),
         rf_flags_uint16("DNAM", "Flags", 
-            { "Facegen Textures", 0x02 },
-            { "Has Model Space Normal Map", 0x04 },
+            { 0x02, "Facegen Textures" },
+            { 0x04, "Has Model Space Normal Map" },
         ),
     ),
 );
@@ -585,9 +733,9 @@ RECORD(TXST, "Texture Set",
 RECORD(GLOB, "Global",
     record_fields(
         rf_enum_uint8("FNAM", "Type",
-            { "Short", 's' },
-            { "Long", 'l' },
-            { "Float", 'f' },
+            { 's', "Short" },
+            { 'l', "Long" },
+            { 'f', "Float" },
         ),
         rf_float("FLTV", "Value"),
     ),
@@ -596,19 +744,19 @@ RECORD(GLOB, "Global",
 RECORD(FACT, "Faction",
     record_fields(
         rf_flags_uint32("DATA", "Flags",
-            { "Hidden from PC", 0x1 },
-            { "Special Combat", 0x2 },
-            { "Track Crime", 0x40 },
-            { "Ignore Murder", 0x80 },
-            { "Ignore Assault", 0x100 },
-            { "Ignore Stealing", 0x200 },
-            { "Ignore Trespass", 0x400 },
-            { "Do not report crimes against members", 0x800 },
-            { "Crime Gold, Use Defaults", 0x1000 },
-            { "Ignore Pickpocket", 0x2000 },
-            { "Vendor", 0x4000 },
-            { "Can be Owner", 0x8000 },
-            { "Ignore Werewolf", 0x10000 },
+            { 0x00001, "Hidden from PC" },
+            { 0x00002, "Special Combat" },
+            { 0x00040, "Track Crime" },
+            { 0x00080, "Ignore Murder" },
+            { 0x00100, "Ignore Assault" },
+            { 0x00200, "Ignore Stealing" },
+            { 0x00400, "Ignore Trespass" },
+            { 0x00800, "Do not report crimes against members" },
+            { 0x01000, "Crime Gold, Use Defaults" },
+            { 0x02000, "Ignore Pickpocket" },
+            { 0x04000, "Vendor" },
+            { 0x08000, "Can be Owner" },
+            { 0x10000, "Ignore Werewolf" },
         ),
         rf_uint32("RNAM", "Rank ID"),
         rf_lstring("MNAM", "Male Rank Title"),
@@ -671,6 +819,87 @@ RECORD(FURN, "Furniture",
     ),
 );
 
+RECORD(WRLD, "Worldspace",
+    record_fields(
+        rf_formid("CNAM", "Climate"),
+        rf_formid("NAM2", "Water"),
+        rf_formid("NAM3", "LOD Water Type"),
+        rf_float("NAM4", "LOD Water Height"),
+        rf_subrecord("DNAM", "Land Data", 8,
+            sf_float("Default Land Level"),
+            sf_float("Default Ocean Level"),
+        ),
+        rf_flags_uint8("DATA", "Flags", 
+            { 0x01, "Small World" },
+            { 0x02, "Can't Fast Travel From Here" },
+            { 0x08, "No LOD Water" },
+            { 0x10, "No Landscape" },
+            { 0x20, "No Sky" },
+            { 0x40, "Fixed Dimensions" },
+            { 0x80, "No Grass" },
+        ),
+        rf_subrecord("NAM0", "Bottom Left Coordinates", 8,
+            sf_int32("X"),
+            sf_int32("Y"),
+        ),
+        rf_subrecord("NAM9", "Top Right Coordinates", 8,
+            sf_int32("X"),
+            sf_int32("Y"),
+        ),
+        rf_formid("ZNAM", "Music"),
+        rf_zstring("TNAM", "HD LOD Diffuse"),
+        rf_zstring("UNAM", "HD LOD Normal"),
+    ),
+    record_flags(
+        { 0x80000, "Can't Wait" },
+    ),
+);
+
+RECORD(LAND, "Landscape",
+    record_fields(
+        rf_bytes("VNML", "Vertex Normals"),
+        rf_bytes("VHGT", "Vertex Height"),
+        rf_bytes("VCLR", "Vertex Color"),
+        rf_subrecord("BTXT", "Base Texture", 8,
+            sf_formid("Land Texture"),
+            sf_enum_uint8("Quadrant", 
+                { 0, "Bottom Left" },
+                { 1, "Bottom Right" },
+                { 2, "Upper Left" },
+                { 3, "Upper Right" },
+            ),
+            sf_uint8("Unknown"), // @TODO: 3 byte array
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+        ),
+        rf_subrecord("ATXT", "Additional Texture", 8,
+            sf_formid("Land Texture"),
+            sf_enum_uint8("Quadrant",
+                { 0, "Bottom Left" },
+                { 1, "Bottom Right" },
+                { 2, "Upper Left" },
+                { 3, "Upper Right" },
+            ),
+            sf_uint8("Unknown"),
+            sf_uint16("Texture Layer"),
+        ),
+    ),
+);
+
+RECORD(LCTN, "Location",
+    record_fields(
+        rf_formid("PNAM", "Parent Location"),
+        rf_formid("MNAM", "Marker"),
+        rf_float("RNAM", "World Location Radius"),
+        rf_subrecord("CNAM", "Color", 4,
+            sf_uint8("Red"),
+            sf_uint8("Green"),
+            sf_uint8("Blue"),
+            sf_uint8("Alpha"),
+        ),
+    ),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -698,6 +927,9 @@ RecordDef* get_record_def(RecordType type) {
         CASE(STAT);
         CASE(MISC);
         CASE(FURN);
+        CASE(WRLD);
+        CASE(LAND);
+        CASE(LCTN);
     }
     #undef CASE
     return nullptr;

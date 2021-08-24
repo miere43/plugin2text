@@ -47,8 +47,8 @@ struct TypeStruct : Type {
 };
 
 struct TypeEnumField {
-    const char* name = 0;
     uint32_t value = 0;
+    const char* name = 0;
 };
 
 struct TypeEnum : Type {
@@ -66,6 +66,7 @@ extern Type Type_ByteArray;
 extern Type Type_ByteArrayCompressed;
 extern Type Type_float;
 extern Type Type_FormID;
+extern Type Type_FormIDArray;
 extern TypeInteger Type_int8;
 extern TypeInteger Type_int16;
 extern TypeInteger Type_int32;

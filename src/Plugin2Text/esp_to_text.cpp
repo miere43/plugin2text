@@ -372,8 +372,6 @@ struct TextRecordWriter {
                     }
 
                     if (enum_value) {
-                        write_newline();
-                        write_indent();
                         write_format("+ %X", enum_value);
                     }
                 } else {
