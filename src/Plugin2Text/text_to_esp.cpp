@@ -133,43 +133,29 @@ struct TextRecordReader {
             if (indents == indent) {
                 expect_indent();
                 auto record = read_record();
-                switch (group.group_type) {
-                    case RecordGroupType::Top: {
-                        if (record->type == RecordType::GRUP) {
-                            if (!group.label) {
-                                auto record_as_group = (GrupRecord*)record;
-                                switch (record_as_group->group_type) {
-                                    case RecordGroupType::InteriorCellBlock: {
-                                        group.label = fourcc("CELL");
-                                    } break;
+                if (group.group_type == RecordGroupType::Top) {
+                    if (record->type == RecordType::GRUP) {
+                        if (!group.label) {
+                            auto record_as_group = (GrupRecord*)record;
+                            switch (record_as_group->group_type) {
+                                case RecordGroupType::InteriorCellBlock: {
+                                    group.label = fourcc("CELL");
+                                } break;
 
-                                    case RecordGroupType::WorldChildren: {
-                                        group.label = fourcc("WRLD");
-                                    } break;
+                                case RecordGroupType::WorldChildren: {
+                                    group.label = fourcc("WRLD");
+                                } break;
 
-                                    default: {
-                                        verify(false);
-                                    } break;
-                                }
+                                default: {
+                                    verify(false);
+                                } break;
                             }
-                        } else if (group.label == 0) {
-                            group.label = (uint32_t)record->type;
-                        } else {
-                            verify(group.label == (uint32_t)record->type);
                         }
-                    } break;
-
-                    //case RecordGroupType::TopicChildren: {
-                    //    verify(false);
-                    //} break;
-                
-                    //case RecordGroupType::CellChildren: 
-                    //case RecordGroupType::CellPersistentChildren:
-                    //case RecordGroupType::CellTemporaryChildren: {
-                    //    if (group.label == 0 && record->type == RecordType::CELL) {
-                    //        group.label = record->id.value;
-                    //    }
-                    //} break;
+                    } else if (group.label == 0) {
+                        group.label = (uint32_t)record->type;
+                    } else {
+                        verify(group.label == (uint32_t)record->type);
+                    }
                 }
             } else {
                 verify(indents < indent);
@@ -184,11 +170,7 @@ struct TextRecordReader {
                 verify(group.label);
             } break;
 
-            //case RecordGroupType::CellChildren:
-            //case RecordGroupType::CellPersistentChildren:
-            //case RecordGroupType::CellTemporaryChildren: {
-            //    verify(group.label);
-            //} break;
+            // @TODO: validate other group_type's
         }
 
         group.group_size = (uint32_t)(buffer->now - record_start_offset);
@@ -368,6 +350,7 @@ struct TextRecordReader {
     }
 
     void read_type(const Type* type) {
+        // @TODO: Cleanup: there are too many statements like "now = line_end + 1".
         switch (type->kind) {
             case TypeKind::ByteArray: {
                 const auto line_end = peek_end_of_current_line();

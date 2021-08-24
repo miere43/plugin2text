@@ -228,11 +228,6 @@ TYPE_STRUCT(CNTO, "Item", 8,
     sf_uint32("Count"),
 );
 
-//
-//static RecordFieldDef Record_CELL_Fields[]{
-    //{ "XCLL", &Type_CELL_XCLL, "Lighting" },
-//};
-
 #define RECORD(m_type, m_name, ...)  \
     static RecordDef Record_##m_type{ \
         #m_type,                      \
