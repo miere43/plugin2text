@@ -19,6 +19,7 @@ enum class TypeKind {
     Enum,
     Boolean, // 1 byte,
     VMAD,
+    Constant,
 };
 
 struct Type {
@@ -63,6 +64,12 @@ struct TypeEnum : Type {
 
     template<size_t N>
     constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N], bool flags) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields), flags(flags) { }
+};
+
+struct TypeConstant : Type {
+    const uint8_t* bytes = nullptr;
+
+    constexpr TypeConstant(const char* name, size_t size, const uint8_t* bytes) : Type(TypeKind::Constant, name, size), bytes(bytes) { }
 };
 
 constexpr bool VMAD_use_byte_array = true; // @TODO

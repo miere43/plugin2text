@@ -133,6 +133,13 @@ constexpr TypeStructField sf_bool(const char* name) {
     return { &Type_bool, name };
 }
 
+template<typename T>
+constexpr TypeStructField sf_constant(const T& value) {
+    static T the_value = value;
+    static TypeConstant constant{ "Constant", sizeof(T), (const uint8_t*)&the_value };
+    return { &constant, "Constant" };
+}
+
 template<size_t N>
 constexpr TypeStructField sf_fixed_bytes(const char* name) {
     static Type Type_ByteArrayFixed{ TypeKind::ByteArrayFixed, name, N };
@@ -471,7 +478,7 @@ RECORD(REFR, "Reference",
         rf_subrecord("XNDP", "Door Pivot", 8,
             sf_formid("NavMesh"),
             sf_uint16("NavMesh Triangle Index"),
-            sf_uint16("Unknown"), // constant 0
+            sf_uint16("Unknown"), // sf_constant<uint16_t>(0),
         ),
         rf_subrecord("XLKR", "Linked Reference", 8,
             sf_formid("Keyword"),

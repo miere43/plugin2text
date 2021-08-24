@@ -324,6 +324,11 @@ struct TextRecordWriter {
                 size_t offset = 0;
                 for (int i = 0; i < struct_type->field_count; ++i) {
                     const auto& field = struct_type->fields[i];
+                    if (field.type->kind == TypeKind::Constant) {
+                        write_type(field.type, (uint8_t*)value + offset, field.type->size);
+                        offset += field.type->size;
+                        continue;
+                    }
 
                     write_bytes(field.name, strlen(field.name));
                     write_newline();
@@ -573,6 +578,15 @@ struct TextRecordWriter {
                 }
 
                 verify(r.now == r.end);
+            } break;
+
+            case TypeKind::Constant: {
+                // @TODO: before using TypeKind::Constant we need to deal with indentation issue
+                verify(false);
+
+                verify(type->size == size);
+                const auto constant_type = (const TypeConstant*)type;
+                verify(memory_equals(value, constant_type->bytes, size));
             } break;
 
             default: {
