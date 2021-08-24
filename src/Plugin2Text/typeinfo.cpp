@@ -445,6 +445,28 @@ RECORD(REFR, "Reference",
             { 0x2, "Can Travel To" },
             { 0x4, "Show All" },
         ),
+        rf_subrecord("XNDP", "Door Pivot", 8,
+            sf_formid("NavMesh"),
+            sf_uint16("NavMesh Triangle Index"),
+            sf_uint16("Unknown"), // constant 0
+        ),
+        rf_subrecord("XLKR", "Linked Reference", 8,
+            sf_formid("Keyword"),
+            sf_formid("Reference"),
+        ),
+        rf_subrecord("XTEL", "Door Teleport", 32,
+            sf_formid("Destination Door"),
+            sf_float("Pos X"), // @TODO: Vector3 type
+            sf_float("Pos Y"),
+            sf_float("Pos Z"),
+            sf_float("Rot X"),
+            sf_float("Rot Y"),
+            sf_float("Rot Z"),
+            sf_flags_uint32("Flags",
+                { 0x1, "No Alarm" },
+            ),
+        ),
+        rf_formid("XLRL", "Location"),
         Type_LocationData,
     ),
     record_flags(
@@ -643,7 +665,7 @@ RECORD(NPC_, "Non-Player Character",
 RECORD(NAVI, "Navigation",
     record_fields(
         rf_uint32("NVER", "Version"),
-        rf_bytes("NVMI", "Navmesh Data"),
+        rf_bytes("NVMI", "NavMesh Data"),
         rf_compressed("NVPP", "Preferred Pathing Data"),
     ),
 );
@@ -680,6 +702,29 @@ RECORD(INFO, "Topic Info",
         rf_zstring("NAM2", "Notes"),
         rf_zstring("NAM3", "Edits"),
         rf_lstring("RNAM", "Player Response"),
+        rf_subrecord("TRDT", "Response", 24,
+            sf_enum_uint32("Emotion", 
+                { 0, "Neutral" },
+                { 1, "Anger" },
+                { 2, "Disgust" },
+                { 3, "Fear" },
+                { 4, "Sad" },
+                { 5, "Happy" },
+                { 6, "Surprise" },
+                { 7, "Puzzled" },
+            ),
+            sf_uint32("Emotion Value"),
+            sf_uint32("Unknown"), // constant 0
+            sf_uint8("Response Index"),
+            sf_uint8("Unknown"), // @TODO: 3 byte array
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+            sf_formid("Sound"),
+            sf_uint8("Use Emotion Animation"), // @TODO: boolean
+            sf_uint8("Unknown"), // @TODO: 3 byte array
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+        ),
     ),
 );
 
@@ -691,7 +736,7 @@ RECORD(ACHR, "Actor",
     ),
     record_flags(
         { 0x200, "Starts Dead" },
-    )
+    ),
 );
 
 RECORD(DIAL, "Dialogue Topic",
@@ -700,7 +745,8 @@ RECORD(DIAL, "Dialogue Topic",
         rf_formid("BNAM", "Owning Branch"),
         rf_formid("QNAM", "Owning Quest"),
         rf_uint32("TIFC", "Info Count"),
-    )
+        // @TODO: SNAM = char[4]
+    ),
 );
 
 RECORD(KYWD, "Keyword",
@@ -900,6 +946,12 @@ RECORD(LCTN, "Location",
     ),
 );
 
+RECORD(NAVM, "NavMesh",
+    record_fields(
+        rf_bytes("NVNM", "Geometry"),
+    ),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -930,6 +982,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(WRLD);
         CASE(LAND);
         CASE(LCTN);
+        CASE(NAVM);
     }
     #undef CASE
     return nullptr;
