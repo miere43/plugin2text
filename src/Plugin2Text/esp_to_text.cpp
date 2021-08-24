@@ -263,6 +263,11 @@ struct TextRecordWriter {
                 scratch_buffer.now = buffer;
             } break;
 
+            case TypeKind::ByteArrayFixed: {
+                verify(type->size == size);
+                write_byte_array((uint8_t*)value, size);
+            } break;
+
             case TypeKind::Integer: {
                 verify(type->size == size);
                 auto integer_type = (const TypeInteger*)type;

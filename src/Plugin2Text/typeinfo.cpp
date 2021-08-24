@@ -129,6 +129,12 @@ constexpr TypeStructField sf_formid(const char* name) {
     return { &Type_FormID, name };
 }
 
+template<size_t N>
+constexpr TypeStructField sf_fixed_bytes(const char* name) {
+    static Type Type_ByteArrayFixed{ TypeKind::ByteArrayFixed, name, N };
+    return { &Type_ByteArrayFixed, name };
+}
+
 #define sf_enum(m_name, m_size, m_flags, ...)                    \
     ([]() -> TypeStructField {                                   \
         static TypeEnumField fields[]{ __VA_ARGS__ };            \
@@ -636,9 +642,7 @@ RECORD(NPC_, "Non-Player Character",
             sf_uint16("Unknown"),
             sf_float("Far Away Model Distance"),
             sf_uint8("Geared Up Weapons"),
-            sf_uint8("Unknown"), // TODO: use 3 byte array
-            sf_uint8("Unknown"),
-            sf_uint8("Unknown"),
+            sf_fixed_bytes<3>("Unknown"),
         ),
         rf_subrecord("QNAM", "Skin Tone", 12, 
             sf_float("Red"),
@@ -716,14 +720,10 @@ RECORD(INFO, "Topic Info",
             sf_uint32("Emotion Value"),
             sf_uint32("Unknown"), // constant 0
             sf_uint8("Response Index"),
-            sf_uint8("Unknown"), // @TODO: 3 byte array
-            sf_uint8("Unknown"),
-            sf_uint8("Unknown"),
+            sf_fixed_bytes<3>("Unknown"),
             sf_formid("Sound"),
             sf_uint8("Use Emotion Animation"), // @TODO: boolean
-            sf_uint8("Unknown"), // @TODO: 3 byte array
-            sf_uint8("Unknown"),
-            sf_uint8("Unknown"),
+            sf_fixed_bytes<3>("Unknown"),
         ),
     ),
 );
@@ -914,9 +914,7 @@ RECORD(LAND, "Landscape",
                 { 2, "Upper Left" },
                 { 3, "Upper Right" },
             ),
-            sf_uint8("Unknown"), // @TODO: 3 byte array
-            sf_uint8("Unknown"),
-            sf_uint8("Unknown"),
+            sf_fixed_bytes<3>("Unknown"),
         ),
         rf_subrecord("ATXT", "Additional Texture", 8,
             sf_formid("Land Texture"),

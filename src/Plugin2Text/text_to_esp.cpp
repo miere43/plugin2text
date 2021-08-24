@@ -354,23 +354,27 @@ struct TextRecordReader {
         now = line_end + 1; // +1 for '\n'.
     }
 
+    void read_byte_array(size_t count) {
+        const auto buffer = new uint8_t[count]; // @TODO: use scratch
+
+        for (int i = 0; i < count; ++i) {
+            uint8_t a = parse_hex_char(now[(i * 2) + 0]);
+            uint8_t b = parse_hex_char(now[(i * 2) + 1]);
+            buffer[i] = (a << 4) | b;
+        }
+
+        write_bytes(buffer, count);
+        delete[] buffer;
+    }
+
     void read_type(const Type* type) {
         switch (type->kind) {
             case TypeKind::ByteArray: {
                 const auto line_end = peek_end_of_current_line();
                 const auto count = (line_end - now) / 2;
                 verify(((line_end - now) % 2) == 0);
-            
-                const auto buffer = new uint8_t[count]; // @TODO: use scratch
-                
-                for (int i = 0; i < count; ++i) {
-                    uint8_t a = parse_hex_char(now[(i * 2) + 0]);
-                    uint8_t b = parse_hex_char(now[(i * 2) + 1]);
-                    buffer[i] = (a << 4) | b;
-                }
-                
-                write_bytes(buffer, count);
-                delete[] buffer;
+
+                read_byte_array(count);
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
@@ -397,6 +401,17 @@ struct TextRecordReader {
                 write_bytes(decompressed_buffer, result_size);
 
                 compression_buffer.now = base64_buffer;
+                now = line_end + 1; // +1 for '\n'.
+            } break;
+
+            case TypeKind::ByteArrayFixed: {
+                const auto line_end = peek_end_of_current_line();
+                const auto count = (line_end - now) / 2;
+                verify(((line_end - now) % 2) == 0);
+                verify(count == type->size);
+
+                read_byte_array(count);
+
                 now = line_end + 1; // +1 for '\n'.
             } break;
 

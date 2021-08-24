@@ -9,6 +9,7 @@ enum class TypeKind {
     Integer,
     ByteArray,
     ByteArrayCompressed,
+    ByteArrayFixed,
     ZString,
     LString,
     FormID,
