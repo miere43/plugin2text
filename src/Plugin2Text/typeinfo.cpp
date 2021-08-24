@@ -380,6 +380,7 @@ RECORD(WEAP, "Weapon",
             sf_uint32("Unknown"),
         ),
         rf_int32("VNAM", "Detection Sound Level"),
+        Field_MODL,
     )
 );
 

@@ -12,11 +12,11 @@ TES4 [00000000] - File Header
     "DEFAULT"
   MAST - Master File
     "Skyrim.esm"
-  DATA
-    0000000000000000
+  DATA - Unused
+    0
   MAST - Master File
     "Update.esm"
-  DATA
-    0000000000000000
-  INTV
-    01000000
+  DATA - Unused
+    0
+  INTV - Tagified Strings
+    1
