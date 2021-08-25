@@ -1,0 +1,160 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.700000
+    Number Of Records
+      22
+    Next Object ID
+      3437
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  DATA - Unused
+    0
+  MAST - Master File
+    "Update.esm"
+  DATA - Unused
+    0
+  INTV - Tagified Strings
+    1
+GRUP
+  25 Aug 2021
+  GRUP - Interior Block 3
+    25 Aug 2021
+    GRUP - Interior Sub-Block 8
+      25 Aug 2021
+      CELL [0005EAC7] - Cell
+        Unknown = 6
+        + Compressed
+        EDID - Editor ID
+          "aaaMarkers"
+        FULL - Name
+          "Marker Storage Unit"
+        DATA - Flags
+          + Interior
+          + Public Area
+        XCLL
+          8080800000000000000000000000000000000000000000000000000000000000000000000000803f8d80860073807a0080868000807a80003d3d3a00c3c3c600000000000000803f000000000000803f00000000000000009f000000
+        LTMP - Lighting Template
+          [00000000]
+        XCLW
+          00000000
+      GRUP - Cell [0005EAC7]
+        25 Aug 2021
+  GRUP - Interior Block 5
+    25 Aug 2021
+    GRUP - Interior Sub-Block 2
+      25 Aug 2021
+      CELL [02000D61] - Cell
+        25 Aug 2021
+        + Compressed
+        EDID - Editor ID
+          "aaaMarkersDUPLICATE001"
+        FULL - Name
+          "Marker Storage Unit"
+        DATA - Flags
+          + Interior
+          + Public Area
+        XCLL
+          8080800000000000000000000000000000000000000000000000000000000000000000000000803f8d80860073807a0080868000807a80003d3d3a00c3c3c600000000000000803f000000000000803f00000000000000009f000000
+        LTMP - Lighting Template
+          [00000000]
+        XCLW
+          00000000
+      GRUP - Cell [02000D61]
+        25 Aug 2021
+        GRUP - Persistent [02000D61]
+          25 Aug 2021
+          REFR [02000D64] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "MG03_FellglowEnableMarker001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D6A] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "dunTGTQ04UtteringHillsEnabler001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D69] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "TG06_MarkarthWizardsEnableMarker001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D65] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "MS06WolfSkullCaveStateMarker001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D68] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "DefaultDragonEnableMarker001"
+            NAME - Base Form ID
+              [00000034]
+          REFR [02000D6C] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            EDID - Editor ID
+              "dunHunterQSTinitiallyEnableds001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D63] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "E3demoMarker001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D66] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "dunDeadMensRespiteCompletedMarker001"
+            NAME - Base Form ID
+              [0000003B]
+          REFR [02000D6B] - Reference
+            25 Aug 2021
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "TG02GoldenglowGuardsEnabler001"
+            NAME - Base Form ID
+              [0000003B]
+        GRUP - Temporary [02000D61]
+          25 Aug 2021
+          ACHR [02000D67] - Actor
+            25 Aug 2021
+            + Deleted
+            NAME - Base NPC
+              [000F811C]
+          NAVM [02000D62] - NavMesh
+            25 Aug 2021
+            + Deleted
