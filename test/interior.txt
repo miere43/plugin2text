@@ -21,11 +21,8 @@ TES4 [00000000] - File Header
   INTV - Tagified Strings
     1
 GRUP
-  25 Aug 2021
   GRUP - Interior Block 3
-    25 Aug 2021
     GRUP - Interior Sub-Block 8
-      25 Aug 2021
       CELL [0005EAC7] - Cell
         Unknown = 6
         + Compressed
@@ -43,11 +40,8 @@ GRUP
         XCLW
           00000000
       GRUP - Cell [0005EAC7]
-        25 Aug 2021
   GRUP - Interior Block 5
-    25 Aug 2021
     GRUP - Interior Sub-Block 2
-      25 Aug 2021
       CELL [02000D61] - Cell
         25 Aug 2021
         + Compressed
@@ -65,9 +59,7 @@ GRUP
         XCLW
           00000000
       GRUP - Cell [02000D61]
-        25 Aug 2021
         GRUP - Persistent [02000D61]
-          25 Aug 2021
           REFR [02000D64] - Reference
             25 Aug 2021
             + Persistent
@@ -149,7 +141,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
         GRUP - Temporary [02000D61]
-          25 Aug 2021
           ACHR [02000D67] - Actor
             25 Aug 2021
             + Deleted

@@ -1,0 +1,555 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.700000
+    Number Of Records
+      2
+    Next Object ID
+      3426
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  DATA - Unused
+    0
+  MAST - Master File
+    "Update.esm"
+  DATA - Unused
+    0
+  INTV - Tagified Strings
+    1
+GRUP
+  NPC_ [02000D61] - Non-Player Character
+    25 Aug 2021
+    + Compressed
+    EDID - Editor ID
+      "CiceroDUPLICATE001"
+    OBND - Object Bounds
+      X1
+        0
+      Y1
+        0
+      Z1
+        0
+      X2
+        0
+      Y2
+        0
+      Z2
+        0
+    ACBS - Base Stats
+      Flags
+        + Essential
+        + Auto Calc Stats
+        + Unique
+      Magicka Offset
+        0
+      Stamina Offset
+        0
+      Level
+        40
+      Calc Min Level
+        0
+      Calc Max Level
+        0
+      Speed Multiplier
+        100
+      Disposition Base
+        35
+      Template Data Flags
+        
+      Health Offset
+        0
+      Bleedout Override
+        0
+    SNAM
+      b3bd010000000000
+    SNAM
+      f75b0f0000000000
+    SNAM
+      9343090000000000
+    VTCK - Voice Type
+      [0001BDAF]
+    RNAM - Race
+      [00013744]
+    COCT - Item Count
+      2
+    CNTO - Items
+      Item
+        [0000000F]
+      Count
+        500
+    CNTO - Items
+      Item
+        [000139AE]
+      Count
+        1
+    AIDT - AI Data
+      Aggression
+        1
+      Confidence
+        4
+      Energy
+        50
+      Morality
+        3
+      Mood
+        0
+      Assistance
+        1
+      Flags
+        0
+      Unknown
+        0
+      Warn
+        0
+      Warn/Attack
+        0
+      Attack
+        0
+    PKID - AI Package
+      [000FF121]
+    CNAM - Class
+      [0001317F]
+    FULL - Name
+      "Cicero"
+    DATA
+      
+    DNAM - Data
+      Base Skill - One-Handed
+        100
+      Base Skill - Two-Handed
+        15
+      Base Skill - Marksman
+        73
+      Base Skill - Block
+        20
+      Base Skill - Smithing
+        15
+      Base Skill - Heavy Armor
+        20
+      Base Skill - Light Armor
+        73
+      Base Skill - Pickpocket
+        15
+      Base Skill - Lockpicking
+        15
+      Base Skill - Sneak
+        100
+      Base Skill - Alchemy
+        15
+      Base Skill - Speechcraft
+        15
+      Base Skill - Alteration
+        44
+      Base Skill - Conjuration
+        15
+      Base Skill - Destruction
+        20
+      Base Skill - Illusion
+        15
+      Base Skill - Restoration
+        25
+      Base Skill - Enchanting
+        20
+      Mod Skill - One-Handed
+        0
+      Mod Skill - Two-Handed
+        0
+      Mod Skill - Marksman
+        0
+      Mod Skill - Block
+        0
+      Mod Skill - Smithing
+        0
+      Mod Skill - Heavy Armor
+        0
+      Mod Skill - Light Armor
+        0
+      Mod Skill - Pickpocket
+        0
+      Mod Skill - Lockpicking
+        0
+      Mod Skill - Sneak
+        0
+      Mod Skill - Alchemy
+        0
+      Mod Skill - Speechcraft
+        0
+      Mod Skill - Alteration
+        0
+      Mod Skill - Conjuration
+        0
+      Mod Skill - Destruction
+        0
+      Mod Skill - Illusion
+        0
+      Mod Skill - Restoration
+        0
+      Mod Skill - Enchanting
+        0
+      Calculated Health
+        375
+      Calculated Magicka
+        115
+      Calculated Stamina
+        245
+      Unknown
+        16964
+      Far Away Model Distance
+        0.000000
+      Geared Up Weapons
+        1
+      Unknown
+        c51400
+    PNAM - Head Part
+      [0008555F]
+    PNAM - Head Part
+      [000C710A]
+    PNAM - Head Part
+      [000F5009]
+    PNAM - Head Part
+      [00051507]
+    HCLF - Hair Color
+      [000A0431]
+    ZNAM - Combat Style
+      [00086F4F]
+    NAM5
+      ff00
+    NAM6 - Height
+      1.000000
+    NAM7 - Weight
+      35.000000
+    NAM8 - Sound Level
+      Normal
+    DOFT - Default Outfit
+      [00064931]
+    CRIF
+      b3bd0100
+    QNAM - Skin Tone
+      Red
+        0.776471
+      Green
+        0.690196
+      Blue
+        0.658824
+    NAM9 - Face Morph
+      Nose Long/Short
+        1.000000
+      Nose Up/Down
+        0.400000
+      Jaw Up/Down
+        -0.300000
+      Jaw Narrow/Wide
+        -0.500000
+      Jaw Forward/Back
+        -1.000000
+      Cheeks Up/Down
+        1.000000
+      Cheeks Forward/Back
+        1.000000
+      Eyes Up/Down
+        -0.300000
+      Eyes In/Out
+        -0.300000
+      Brows Up/Down
+        -0.300000
+      Brows In/Out
+        -1.000000
+      Brows Forward/Back
+        -1.000000
+      Lips Up/Down
+        0.900000
+      Lips In/Out
+        -1.000000
+      Chin Thin/Wide
+        1.000000
+      Chin Up/Down
+        -1.000000
+      Chin Underbite/Overbite
+        -0.500000
+      Eyes Forward/Back
+        -0.900000
+      Unknown
+        2139095039
+    NAMA - Face Parts
+      Nose
+        2
+      Unknown
+        -1
+      Eyes
+        10
+      Mouth
+        15
+    TINI - Tint Item
+      1
+    TINC - Tint Color
+      Red
+        198
+      Green
+        176
+      Blue
+        168
+      Alpha
+        0
+    TINV - Tint Value
+      100
+    TIAS
+      ffff
+    TINI - Tint Item
+      2
+    TINC - Tint Color
+      Red
+        169
+      Green
+        84
+      Blue
+        82
+      Alpha
+        0
+    TINV - Tint Value
+      38
+    TIAS
+      ffff
+    TINI - Tint Item
+      3
+    TINC - Tint Color
+      Red
+        67
+      Green
+        4
+      Blue
+        1
+      Alpha
+        0
+    TINV - Tint Value
+      42
+    TIAS
+      ffff
+    TINI - Tint Item
+      5
+    TINC - Tint Color
+      Red
+        80
+      Green
+        9
+      Blue
+        1
+      Alpha
+        0
+    TINV - Tint Value
+      50
+    TIAS
+      ffff
+    TINI - Tint Item
+      7
+    TINC - Tint Color
+      Red
+        169
+      Green
+        84
+      Blue
+        82
+      Alpha
+        0
+    TINV - Tint Value
+      38
+    TIAS
+      ffff
+    TINI - Tint Item
+      8
+    TINC - Tint Color
+      Red
+        169
+      Green
+        84
+      Blue
+        82
+      Alpha
+        0
+    TINV - Tint Value
+      19
+    TIAS
+      ffff
+    TINI - Tint Item
+      9
+    TINC - Tint Color
+      Red
+        169
+      Green
+        84
+      Blue
+        82
+      Alpha
+        0
+    TINV - Tint Value
+      38
+    TIAS
+      ffff
+    TINI - Tint Item
+      14
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      15
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      16
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      17
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      18
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      19
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      20
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      21
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      22
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      23
+    TINC - Tint Color
+      Red
+        255
+      Green
+        255
+      Blue
+        255
+      Alpha
+        0
+    TINV - Tint Value
+      0
+    TIAS
+      ffff
+    TINI - Tint Item
+      4
+    TINC - Tint Color
+      Red
+        0
+      Green
+        0
+      Blue
+        0
+      Alpha
+        0
+    TINV - Tint Value
+      58
+    TIAS
+      ffff

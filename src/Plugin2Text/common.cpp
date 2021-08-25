@@ -9,6 +9,8 @@
 
 #ifdef _DEBUG
 #pragma comment(lib, "zlibstaticd.lib")
+#else
+#pragma comment(lib, "zlibstatic.lib")
 #endif
 
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line) {

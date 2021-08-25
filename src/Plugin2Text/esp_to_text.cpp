@@ -120,9 +120,13 @@ struct TextRecordWriter {
             }
         }
 
-        write_record_timestamp(record->timestamp);
+        constexpr bool ExportTimestamp = false;
+        if (ExportTimestamp) {
+            write_record_timestamp(record->timestamp);
+        }
         verify(!record->current_user_id);
         verify(!record->last_user_id);
+        verify(!record->unknown);
         write_newline();
 
         indent += 1;
