@@ -10,7 +10,7 @@
 static void print_usage(const char* hint) {
     printf("%s", hint);
     printf(
-        "Usage: plugin2text.exe <source file> <destination file>\n"
+        "Usage: plugin2text.exe <source file> [destination file]\n"
         "\n"
         "       <source file>       file to convert (*.esp, *.esm, *.esl, *.txt)\n"
         "       [destination file]  output path\n"
@@ -58,7 +58,7 @@ int main() {
     verify(argv);
 
     if (argc == 1) {
-        print_usage("<source file> and <destination file> arguments are missing.\n\n");
+        print_usage("<source file> arguments are missing.\n\n");
         return 1;
     }
 
