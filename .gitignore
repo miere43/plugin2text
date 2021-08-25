@@ -1,3 +1,4 @@
 .vs/
 *.vcxproj.user
 x64/
+src/zlib-1.2.11/out

@@ -7,6 +7,10 @@
 #define NOMINMAX
 #include <Windows.h>
 
+#ifdef _DEBUG
+#pragma comment(lib, "zlibstaticd.lib")
+#endif
+
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line) {
     printf("error: assertion failed: condition \"%s\" is false (%s:%d)\n", msg, file, line);
     exit(1);

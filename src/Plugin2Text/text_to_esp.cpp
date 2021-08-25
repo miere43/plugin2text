@@ -7,9 +7,8 @@
 #include "typeinfo.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
-#include "miniz.h"
 #include "base64.hpp"
+#include <zlib.h>
 
 struct TextRecordReader {
     // Current buffer. If writing compressed data, then points to "compression_buffer", otherwise to "esp_buffer".
@@ -331,12 +330,12 @@ struct TextRecordReader {
         indent -= 1;
 
         if (use_compression_buffer) {
-            auto uncompressed_data_size = static_cast<mz_ulong>(compression_buffer.now - compression_buffer.start);
+            auto uncompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
             verify(uncompressed_data_size > 0);
 
-            auto compressed_size = static_cast<mz_ulong>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-            auto result = mz_compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size);
-            verify(result == MZ_OK);
+            auto compressed_size = static_cast<uLongf>(esp_buffer.end - esp_buffer.now); // remaining ESP size
+            auto result = ::compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size);
+            verify(result == Z_OK);
 
             *(uint32_t*)&record_start_offset[sizeof(record)] = uncompressed_data_size;
 
@@ -422,13 +421,13 @@ struct TextRecordReader {
                 verify(expect(" "));
 
                 auto base64_buffer = compression_buffer.now;
-                mz_ulong base64_size = (mz_ulong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
+                auto base64_size = (uLong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
                 compression_buffer.advance(base64_size);
                
-                auto result_size = (mz_ulong)decompressed_size;
+                auto result_size = (uLongf)decompressed_size;
                 const auto decompressed_buffer = compression_buffer.advance(result_size);
-                const auto result = mz_uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
-                verify(result == MZ_OK);
+                const auto result = ::uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
+                verify(result == Z_OK);
 
                 write_bytes(decompressed_buffer, result_size);
 

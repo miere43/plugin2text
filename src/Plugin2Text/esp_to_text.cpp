@@ -7,9 +7,8 @@
 #include "common.hpp"
 #include "typeinfo.hpp"
 #include <stdio.h>
-#define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
-#include "miniz.h"
 #include "base64.hpp"
+#include <zlib.h>
 
 struct TextRecordWriter {
     VirtualMemoryBuffer scratch_buffer;
@@ -303,9 +302,9 @@ struct TextRecordWriter {
             case TypeKind::ByteArrayCompressed: {
                 auto buffer = scratch_buffer.advance(size);
 
-                auto compressed_size = static_cast<mz_ulong>(scratch_buffer.remaining_size());
-                auto result = mz_compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<mz_ulong>(size));
-                verify(result == MZ_OK);
+                auto compressed_size = static_cast<uLongf>(scratch_buffer.remaining_size());
+                auto result = ::compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<uLong>(size));
+                verify(result == Z_OK);
 
                 scratch_buffer.now += compressed_size;
 

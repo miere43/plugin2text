@@ -22,7 +22,6 @@
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="common.cpp" />
     <ClCompile Include="esp_to_text.cpp" />
-    <ClCompile Include="miniz.c" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="tes.cpp" />
     <ClCompile Include="text_to_esp.cpp" />
@@ -32,7 +31,6 @@
   <ItemGroup>
     <ClInclude Include="base64.hpp" />
     <ClInclude Include="common.hpp" />
-    <ClInclude Include="miniz.h" />
     <ClInclude Include="os.hpp" />
     <ClInclude Include="tes.hpp" />
     <ClInclude Include="esp_to_text.hpp" />
@@ -96,12 +94,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\dev\plugin2text\src\zlib-1.2.11\out\install\x64-Debug\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>..\zlib-1.2.11\out\install\x64-Debug\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\zlib-1.2.11\out\install\x64-Debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
