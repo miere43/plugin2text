@@ -1,3 +1,1 @@
-src/Plugin2Text/miniz.h linguist-vendored
-src/Plugin2Text/miniz.c linguist-vendored
-src/zlib-1.2.11 linguist-vendored
+src/zlib-1.2.11/**/* linguist-vendored
