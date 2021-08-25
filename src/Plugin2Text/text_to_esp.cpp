@@ -256,6 +256,24 @@ struct TextRecordReader {
         record.id = read_formid();
 
         skip_to_next_line();
+        {
+            auto current_indent = peek_indents();
+            if (current_indent == indent + 1) {
+                auto line_end = peek_end_of_current_line();
+                auto curr = &now[current_indent * 2];
+                if (curr + 1 < line_end && curr[0] >= '1' && curr[0] <= '9') {
+                    int d = 0, y = 0;
+                    char month_name[4];
+                    verify(3 == _snscanf_s(curr, line_end - curr, "%d %3s 20%d", &d, month_name, (int)_countof(month_name), &y));
+                    now = line_end + 1; // skip \n
+                    int m = short_string_to_month(month_name);
+                    record.timestamp =
+                        ((y << 9) & 0b1111111'0000'00000) |
+                        ((m << 5) & 0b0000000'1111'00000) |
+                        ((d << 0) & 0b0000000'0000'11111);
+                }
+            }
+        }
 
         auto def = get_record_def(record.type);
         record.flags = read_record_flags(def);
@@ -483,16 +501,20 @@ struct TextRecordReader {
                 const auto struct_type = (const TypeStruct*)type;
                 for (int i = 0; i < struct_type->field_count; ++i) {
                     const auto& field = struct_type->fields[i];
+                    if (field.type->kind == TypeKind::Constant) {
+                        const auto constant_type = (const TypeConstant*)field.type;
+                        write_bytes(constant_type->bytes, constant_type->size);
+                        continue;
+                    }
+                    if (i != 0) {
+                        expect_indent(); // @TODO: fix indent parsing
+                    }
                     verify(expect(field.name));
                     verify(expect("\n"));
                     indent += 1;
                     expect_indent();
                     read_type(field.type);
                     indent -= 1;
-
-                    if (i != struct_type->field_count - 1) {
-                        expect_indent();
-                    }
                 }
             } break;
 

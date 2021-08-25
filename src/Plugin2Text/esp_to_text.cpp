@@ -151,23 +151,33 @@ struct TextRecordWriter {
         current_record = record;
         write_indent();
         write_bytes(&record->type, 4);
-        auto def = get_record_def(record->type);
 
-        if (record->type != RecordType::GRUP) {
-            write_format(" [%08X]", record->id.value);
-            if (record->version != 44) {
-                write_format(",v%d", record->version);
-            }
+        if (record->type == RecordType::GRUP) {
+            write_grup_record((GrupRecord*)record);
+            return;
         }
 
+        write_format(" [%08X]", record->id.value);
+        if (record->version != 44) {
+            write_format(",v%d", record->version);
+        }
+
+        auto def = get_record_def(record->type);
         if (def && def->comment) {
             write_bytes(" - ", 3);
             write_bytes(def->comment, strlen(def->comment));
         }
 
-        if (record->type == RecordType::GRUP) {
-            write_grup_record((GrupRecord*)record);
-            return;
+        if (record->timestamp) {
+            write_newline();
+            indent += 1;
+            write_indent();
+            indent -= 1;
+            int y = (record->timestamp & 0b1111111'0000'00000) >> 9;
+            int m = (record->timestamp & 0b0000000'1111'00000) >> 5;
+            int d = (record->timestamp & 0b0000000'0000'11111);
+            verify(m >= 1 && m <= 12);
+            write_format("%d %s 20%d", d, month_to_short_string(m), y);
         }
 
         if (record->flags != RecordFlags::None) {

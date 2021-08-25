@@ -93,3 +93,6 @@ struct RecordField {
 };
 #pragma pack(pop)
 static_assert(sizeof(RecordField) == 6, "sizeof(RecordField) == 6");
+
+const char* month_to_short_string(int month);
+int short_string_to_month(const char* str);
