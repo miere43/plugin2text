@@ -120,13 +120,14 @@ struct TextRecordWriter {
             }
         }
 
-        constexpr bool ExportTimestamp = false;
+        constexpr bool ExportTimestamp = true;
         if (ExportTimestamp) {
             write_record_timestamp(record->timestamp);
         }
         verify(!record->current_user_id);
         verify(!record->last_user_id);
-        verify(!record->unknown);
+        write_record_unknown(record->unknown);
+
         write_newline();
 
         indent += 1;
@@ -166,6 +167,16 @@ struct TextRecordWriter {
         }
     }
 
+    void write_record_unknown(uint32_t unknown) {
+        if (unknown) {
+            write_newline();
+            indent += 1;
+            write_indent();
+            indent -= 1;
+            write_format("Unknown = %X", unknown);
+        }
+    }
+
     void write_record(Record* record) {
         current_record = record;
         write_indent();
@@ -198,13 +209,7 @@ struct TextRecordWriter {
             verify(false);
         }
 
-        if (record->unknown) {
-            write_newline();
-            indent += 1;
-            write_indent();
-            indent -= 1;
-            write_format("Unknown = %X", record->unknown);
-        }
+        write_record_unknown(record->unknown);
 
         if (record->flags != RecordFlags::None) {
             auto flags = record->flags;

@@ -99,6 +99,27 @@ struct TextRecordReader {
         return 0;
     }
 
+    uint32_t read_record_unknown() {
+        // @TODO: ugly
+        auto current_indent = peek_indents();
+        if (current_indent == indent + 1) {
+            auto line_end = peek_end_of_current_line();
+            auto curr = &now[current_indent * 2];
+
+            constexpr const char* Unknown = "Unknown = ";
+            constexpr size_t UnknownCount = sizeof("Unknown = ") - 1;
+
+            if (curr + UnknownCount <= line_end && memory_equals("Unknown = ", curr, UnknownCount)) {
+                uint32_t value;
+                curr += UnknownCount;
+                verify(1 == _snscanf_s(curr, line_end - curr, "%X", &value));
+                now = line_end + 1; // skip \n
+                return value;
+            }
+        }
+        return 0;
+    }
+
     GrupRecord* read_grup_record() {
         auto record_start_offset = buffer->now;
 
@@ -148,6 +169,7 @@ struct TextRecordReader {
         skip_to_next_line();
 
         group.timestamp = read_record_timestamp();
+        group.unknown = read_record_unknown();
 
         indent += 1;
         while (true) {
@@ -280,27 +302,10 @@ struct TextRecordReader {
         skip_to_next_line();
 
         record.timestamp = read_record_timestamp();
-
-        // Unknown
-        // @TODO: ugly
         {
-            auto current_indent = peek_indents();
-            if (current_indent == indent + 1) {
-                auto line_end = peek_end_of_current_line();
-                auto curr = &now[current_indent * 2];
-
-                constexpr const char* Unknown = "Unknown = ";
-                constexpr size_t UnknownCount = sizeof("Unknown = ") - 1;
-
-                if (curr + UnknownCount <= line_end && memory_equals("Unknown = ", curr, UnknownCount)) {
-                    uint32_t value;
-                    curr += UnknownCount;
-                    verify(1 == _snscanf_s(curr, line_end - curr, "%X", &value));
-                    verify(value <= 0xffff);
-                    record.unknown = value;
-                    now = line_end + 1; // skip \n
-                }
-            }
+            auto unknown = read_record_unknown();
+            verify(unknown <= 0xffff);
+            record.unknown = static_cast<uint16_t>(unknown);
         }
 
         auto def = get_record_def(record.type);
