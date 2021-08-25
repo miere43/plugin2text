@@ -34,13 +34,26 @@ struct FormID {
     uint32_t value = 0;
 };
 
+struct RecordBase {
+    RecordType type = (RecordType)0;
+    uint32_t pad0 = 0;
+    uint32_t pad1 = 0;
+    uint32_t pad2 = 0;
+    uint16_t timestamp = 0;
+    uint8_t last_user_id = 0;
+    uint8_t current_user_id = 0;
+    uint32_t pad3 = 0;
+};
+static_assert(sizeof(RecordBase) == 24, "sizeof(RecordBase) == 24");
+
 struct Record {
     RecordType type = (RecordType)0;
     uint32_t data_size = 0;
     RecordFlags flags = RecordFlags::None;
     FormID id;
     uint16_t timestamp = 0;
-    uint16_t version_control_info = 0;
+    uint8_t last_user_id = 0;
+    uint8_t current_user_id = 0;
     uint16_t version = 0;
     uint16_t unknown = 0;
 
@@ -76,7 +89,8 @@ struct GrupRecord {
     };
     RecordGroupType group_type = (RecordGroupType)0;
     uint16_t timestamp = 0;
-    uint16_t version_control_info = 0;
+    uint8_t last_user_id = 0;
+    uint8_t current_user_id = 0;
     uint32_t unknown = 0;
 
     inline GrupRecord() : label(0) { }

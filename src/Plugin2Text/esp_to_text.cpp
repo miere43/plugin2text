@@ -101,7 +101,6 @@ struct TextRecordWriter {
         const uint8_t* now = (uint8_t*)record + sizeof(GrupRecord);
         const uint8_t* end = now + record->group_size - sizeof(GrupRecord);
 
-        //write_format(" %04X", record->timestamp);
         if (record->group_type != RecordGroupType::Top) {
             write_format(" - %s", record_group_type_to_string(record->group_type));
             
@@ -122,6 +121,7 @@ struct TextRecordWriter {
             }
         }
 
+        write_record_timestamp(record->timestamp);
         write_newline();
 
         indent += 1;
@@ -147,6 +147,20 @@ struct TextRecordWriter {
         return flags;
     }
 
+    void write_record_timestamp(uint16_t timestamp) {
+        if (timestamp) {
+            write_newline();
+            indent += 1;
+            write_indent();
+            indent -= 1;
+            int y = (timestamp & 0b1111111'0000'00000) >> 9;
+            int m = (timestamp & 0b0000000'1111'00000) >> 5;
+            int d = (timestamp & 0b0000000'0000'11111);
+            verify(m >= 1 && m <= 12);
+            write_format("%d %s 20%d", d, month_to_short_string(m), y);
+        }
+    }
+
     void write_record(Record* record) {
         current_record = record;
         write_indent();
@@ -159,7 +173,8 @@ struct TextRecordWriter {
 
         write_format(" [%08X]", record->id.value);
         if (record->version != 44) {
-            write_format(",v%d", record->version);
+            verify(false);
+            //write_format(",v%d", record->version);
         }
 
         auto def = get_record_def(record->type);
@@ -168,16 +183,22 @@ struct TextRecordWriter {
             write_bytes(def->comment, strlen(def->comment));
         }
 
-        if (record->timestamp) {
+        write_record_timestamp(record->timestamp);
+
+        if (record->current_user_id) {
+            verify(false);
+        }
+
+        if (record->last_user_id) {
+            verify(false);
+        }
+
+        if (record->unknown) {
             write_newline();
             indent += 1;
             write_indent();
             indent -= 1;
-            int y = (record->timestamp & 0b1111111'0000'00000) >> 9;
-            int m = (record->timestamp & 0b0000000'1111'00000) >> 5;
-            int d = (record->timestamp & 0b0000000'0000'11111);
-            verify(m >= 1 && m <= 12);
-            write_format("%d %s 20%d", d, month_to_short_string(m), y);
+            write_format("Unknown = %X", record->unknown);
         }
 
         if (record->flags != RecordFlags::None) {
