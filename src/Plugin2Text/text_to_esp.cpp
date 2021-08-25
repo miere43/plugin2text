@@ -148,7 +148,7 @@ struct TextRecordReader {
 
         skip_to_next_line();
 
-        read_record_timestamp();
+        group.timestamp = read_record_timestamp();
 
         indent += 1;
         while (true) {
@@ -280,7 +280,7 @@ struct TextRecordReader {
 
         skip_to_next_line();
 
-        read_record_timestamp();
+        record.timestamp = read_record_timestamp();
 
         // Unknown
         // @TODO: ugly

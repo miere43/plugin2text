@@ -122,6 +122,8 @@ struct TextRecordWriter {
         }
 
         write_record_timestamp(record->timestamp);
+        verify(!record->current_user_id);
+        verify(!record->last_user_id);
         write_newline();
 
         indent += 1;
