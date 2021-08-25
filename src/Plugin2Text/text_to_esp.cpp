@@ -330,11 +330,13 @@ struct TextRecordReader {
         indent -= 1;
 
         if (use_compression_buffer) {
+            constexpr int SkyrimZLibCompressionLevel = 7;
+
             auto uncompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
             verify(uncompressed_data_size > 0);
 
             auto compressed_size = static_cast<uLongf>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-            auto result = ::compress(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size);
+            auto result = ::compress2(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size, SkyrimZLibCompressionLevel);
             verify(result == Z_OK);
 
             *(uint32_t*)&record_start_offset[sizeof(record)] = uncompressed_data_size;
