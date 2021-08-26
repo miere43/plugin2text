@@ -18,7 +18,7 @@ struct TextRecordWriter {
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
 
-    const EspRecordBase* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
+    const RecordBase* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
 
     void open(const wchar_t* path) {
         verify(!output_handle);
@@ -88,13 +88,13 @@ struct TextRecordWriter {
         verify(written == size);
     }
 
-    void write_records(const Array<EspRecordBase*> records) {
+    void write_records(const Array<RecordBase*> records) {
         for (const auto record : records) {
             write_record(record);
         }
     }
 
-    void write_grup_record(const EspGrupRecord* record) {
+    void write_grup_record(const GrupRecord* record) {
         if (record->group_type != RecordGroupType::Top) {
             write_format(" - %s", record_group_type_to_string(record->group_type));
             
@@ -171,17 +171,17 @@ struct TextRecordWriter {
         }
     }
 
-    void write_record(const EspRecordBase* record_base) {
+    void write_record(const RecordBase* record_base) {
         current_record = record_base;
         write_indent();
         write_bytes(&record_base->type, 4);
 
         if (record_base->type == RecordType::GRUP) {
-            write_grup_record((const EspGrupRecord*)record_base);
+            write_grup_record((const GrupRecord*)record_base);
             return;
         }
 
-        auto record = (const EspRecord*)record_base;
+        auto record = (const Record*)record_base;
         write_format(" [%08X]", record->id.value);
         if (record->version != 44) {
             verify(false);
@@ -618,7 +618,7 @@ struct TextRecordWriter {
         indent -= 1;
     }
 
-    void write_field(const RecordDef* def, const EspRecordField* field) {
+    void write_field(const RecordDef* def, const RecordField* field) {
         indent += 1;
         write_indent();
 

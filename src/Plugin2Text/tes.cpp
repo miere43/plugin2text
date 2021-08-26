@@ -4,14 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-bool Record::is_compressed() const {
+bool RawRecord::is_compressed() const {
     return (uint32_t)flags & (uint32_t)RecordFlags::Compressed;
 }
 
-uint8_t* Record::uncompress(uint32_t* out_uncompressed_data_size) const {
+uint8_t* RawRecord::uncompress(uint32_t* out_uncompressed_data_size) const {
     verify(is_compressed());
-    uLongf uncompressed_data_size = *(uint32_t*)((uint8_t*)this + sizeof(Record));
-    uint8_t* compressed_data = (uint8_t*)this + sizeof(Record) + sizeof(uint32_t);
+    uLongf uncompressed_data_size = *(uint32_t*)((uint8_t*)this + sizeof(RawRecord));
+    uint8_t* compressed_data = (uint8_t*)this + sizeof(RawRecord) + sizeof(uint32_t);
 
     auto uncompressed_data = new uint8_t[uncompressed_data_size];
     auto result = ::uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, data_size - sizeof(uint32_t));

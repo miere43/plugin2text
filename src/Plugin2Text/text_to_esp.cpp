@@ -120,13 +120,13 @@ struct TextRecordReader {
         return 0;
     }
 
-    GrupRecord* read_grup_record() {
+    RawGrupRecord* read_grup_record() {
         auto record_start_offset = buffer->now;
 
-        GrupRecord group;
+        RawGrupRecord group;
         group.type = RecordType::GRUP;
     
-        buffer->now += sizeof(GrupRecord);
+        buffer->now += sizeof(RawGrupRecord);
 
         if (expect(" - ")) {
             auto line_end = peek_end_of_current_line();
@@ -180,7 +180,7 @@ struct TextRecordReader {
                 if (group.group_type == RecordGroupType::Top) {
                     if (record->type == RecordType::GRUP) {
                         if (!group.label) {
-                            auto record_as_group = (GrupRecord*)record;
+                            auto record_as_group = (RawGrupRecord*)record;
                             switch (record_as_group->group_type) {
                                 case RecordGroupType::InteriorCellBlock: {
                                     group.label = fourcc("CELL");
@@ -220,7 +220,7 @@ struct TextRecordReader {
         group.group_size = (uint32_t)(buffer->now - record_start_offset);
         write_struct_at(record_start_offset, &group);
 
-        return (GrupRecord*)record_start_offset;
+        return (RawGrupRecord*)record_start_offset;
     }
 
     RecordFlags read_record_flags(RecordDef* def) {
@@ -283,14 +283,14 @@ struct TextRecordReader {
         return flags;
     }
 
-    Record* read_record() {
+    RawRecord* read_record() {
         auto record_start_offset = buffer->now;
 
-        Record record;
+        RawRecord record;
         record.type = read_record_type();
 
         if (record.type == RecordType::GRUP) {
-            return (Record*)read_grup_record();
+            return (RawRecord*)read_grup_record();
         }
 
         record.version = 44; // @TODO
@@ -357,7 +357,7 @@ struct TextRecordReader {
         }
         write_struct_at(record_start_offset, &record);
 
-        return (Record*)record_start_offset;
+        return (RawRecord*)record_start_offset;
     }
 
     static uint8_t parse_hex_char(char c) {
@@ -686,10 +686,10 @@ struct TextRecordReader {
         }
     }
 
-    void read_field(const RecordDef* def, Record* record) {
+    void read_field(const RecordDef* def, RawRecord* record) {
         auto field_start_offset = buffer->now;
 
-        RecordField field;
+        RawRecordField field;
         field.type = read_record_field_type();
 
         buffer->now += sizeof(field);

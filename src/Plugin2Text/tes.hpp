@@ -34,7 +34,7 @@ struct FormID {
     uint32_t value = 0;
 };
 
-struct Record {
+struct RawRecord {
     RecordType type = (RecordType)0;
     uint32_t data_size = 0;
     RecordFlags flags = RecordFlags::None;
@@ -48,7 +48,7 @@ struct Record {
     bool is_compressed() const;
     uint8_t* uncompress(uint32_t* out_uncompressed_data_size) const;
 };
-static_assert(sizeof(Record) == 24, "sizeof(Record) == 24");
+static_assert(sizeof(RawRecord) == 24, "sizeof(Record) == 24");
 
 enum class RecordGroupType : uint32_t {
     Top = 0,
@@ -65,7 +65,7 @@ enum class RecordGroupType : uint32_t {
 
 const char* record_group_type_to_string(RecordGroupType type);
 
-struct GrupRecord {
+struct RawGrupRecord {
     RecordType type = (RecordType)0;
     uint32_t group_size = 0;
     union {
@@ -81,20 +81,20 @@ struct GrupRecord {
     uint8_t current_user_id = 0;
     uint32_t unknown = 0;
 
-    inline GrupRecord() : label(0) { }
+    inline RawGrupRecord() : label(0) { }
 };
-static_assert(sizeof(GrupRecord) == 24, "sizeof(GrupRecord) == 24");
+static_assert(sizeof(RawGrupRecord) == 24, "sizeof(GrupRecord) == 24");
 
 enum class RecordFieldType : uint32_t {
 };
 
 #pragma pack(push, 1)
-struct RecordField {
+struct RawRecordField {
     RecordFieldType type = (RecordFieldType)0;
     uint16_t size = 0;
 };
 #pragma pack(pop)
-static_assert(sizeof(RecordField) == 6, "sizeof(RecordField) == 6");
+static_assert(sizeof(RawRecordField) == 6, "sizeof(RecordField) == 6");
 
 const char* month_to_short_string(int month);
 int short_string_to_month(const char* str);

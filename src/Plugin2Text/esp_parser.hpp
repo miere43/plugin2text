@@ -2,26 +2,26 @@
 #include "common.hpp"
 #include "tes.hpp"
 
-struct EspRecordField {
+struct RecordField {
     RecordFieldType type = (RecordFieldType)0;
     StaticArray<uint8_t> data;
 };
 
-struct EspRecordBase {
+struct RecordBase {
     RecordType type;
     RecordFlags flags;
 };
 
-struct EspRecord : EspRecordBase {
+struct Record : RecordBase {
     FormID id;
-    Array<EspRecordField*> fields;
+    Array<RecordField*> fields;
     uint16_t version;
     uint16_t unknown;
 };
 
-struct EspGrupRecord : EspRecordBase {
+struct GrupRecord : RecordBase {
     RecordGroupType group_type;
-    Array<EspRecordBase*> records;
+    Array<RecordBase*> records;
     union {
         struct {
             int16_t grid_y;
@@ -33,7 +33,7 @@ struct EspGrupRecord : EspRecordBase {
 };
 
 struct EspObjectModel {
-    Array<EspRecordBase*> records;
+    Array<RecordBase*> records;
 };
 
 struct EspParser {
@@ -43,7 +43,7 @@ struct EspParser {
 
     void parse(const wchar_t* esp_path);
 private:
-    EspRecordField* process_field(EspRecord* record, const RecordField* field);
-    EspRecordBase* process_record(const Record* record);
+    RecordField* process_field(Record* record, const RawRecordField* field);
+    RecordBase* process_record(const RawRecord* record);
     void process_records(const uint8_t* start, const uint8_t* end);
 };
