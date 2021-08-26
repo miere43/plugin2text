@@ -11,6 +11,7 @@ enum class TypeKind {
     ByteArray,
     ByteArrayCompressed,
     ByteArrayFixed,
+    ByteArrayRLE,
     ZString,
     LString,
     WString,
@@ -93,6 +94,7 @@ extern Type Type_LString;
 extern Type Type_WString;
 extern Type Type_ByteArray;
 extern Type Type_ByteArrayCompressed;
+extern Type Type_ByteArrayRLE;
 extern Type Type_float;
 extern Type Type_FormID;
 extern Type Type_FormIDArray;

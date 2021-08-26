@@ -65,6 +65,10 @@ constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
     return { type, &Type_ByteArrayCompressed, name };
 }
 
+constexpr RecordFieldDef rf_bytes_rle(char const type[5], const char* name) {
+    return { type, &Type_ByteArrayRLE, name };
+}
+
 #define rf_subrecord_shared(m_record, m_subrecord, m_name) \
     { #m_subrecord, &CONCAT(Type_, m_record)_##m_subrecord, m_name }
 
@@ -195,6 +199,7 @@ Type Type_LString{ TypeKind::LString, "LString", 0 };
 Type Type_WString{ TypeKind::WString, "WString", 0 };
 Type Type_ByteArray{ TypeKind::ByteArray, "Byte Array", 0 };
 Type Type_ByteArrayCompressed{ TypeKind::ByteArrayCompressed, "Byte Array (Compressed)", 0 };
+Type Type_ByteArrayRLE{ TypeKind::ByteArrayRLE, "Byte Array (RLE)", 0 };
 Type Type_float{ TypeKind::Float, "float", sizeof(float) };
 Type Type_FormID{ TypeKind::FormID, "Form ID", sizeof(int) };
 Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
@@ -509,6 +514,8 @@ RECORD(CELL, "Cell",
         rf_formid_array("XCLR", "Regions Containing Cell"),
         rf_formid("XLCN", "Location"),
         rf_formid("XCWT", "Water"),
+        rf_compressed("TVDT", "TVDT"),
+        rf_compressed("MHDT", "MHDT"),
         // XCLW
     ),
     record_flags(
@@ -995,7 +1002,7 @@ RECORD(LAND, "Landscape",
     record_fields(
         rf_bytes("VNML", "Vertex Normals"),
         rf_bytes("VHGT", "Vertex Height"),
-        rf_bytes("VCLR", "Vertex Color"),
+        rf_compressed("VCLR", "Vertex Color"),
         rf_subrecord("BTXT", "Base Texture", 8,
             sf_formid("Land Texture"),
             sf_enum_uint8("Quadrant", 
