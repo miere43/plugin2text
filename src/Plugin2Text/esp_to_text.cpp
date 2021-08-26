@@ -120,7 +120,7 @@ struct TextRecordWriter {
             }
         }
 
-        constexpr bool ExportTimestamp = true;
+        constexpr bool ExportTimestamp = false;
         if (ExportTimestamp) {
             write_record_timestamp(record->timestamp);
         }
