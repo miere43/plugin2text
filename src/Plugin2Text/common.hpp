@@ -37,6 +37,12 @@ struct VirtualMemoryBuffer {
     uint8_t* end = nullptr;
 
     uint8_t* advance(size_t size);
+
+    template<typename T>
+    T* advance() {
+        return (T*)advance(sizeof(T));
+    }
+
     size_t remaining_size() const;
 
     static VirtualMemoryBuffer alloc(size_t size);
@@ -68,4 +74,38 @@ struct BinaryReader {
 
     const void* advance(size_t size);
     const WString* advance_wstring();
+};
+
+template<typename T>
+struct Array {
+    T* data = nullptr;
+    int count = 0;
+    int capacity = 0;
+
+    T& operator[](size_t index) {
+        verify((int)index < count);
+        return data[index];
+    }
+
+    const T& operator[](size_t index) const {
+        verify((int)index < count);
+        return data[index];
+    }
+
+    T* begin() { return data ? &data[0] : nullptr; }
+    T* end() { return data ? &data[count] : nullptr; }
+    const T* begin() const { return data ? &data[0] : nullptr; }
+    const T* end() const { return data ? &data[count] : nullptr; }
+
+    void push(const T& value);
+    void free();
+    int index_of(const T& value);
+    void remove_at(int index);
+    Array<T> clone() const;
+};
+
+template<typename T>
+struct StaticArray {
+    T* data = nullptr;
+    size_t count = 0;
 };

@@ -139,12 +139,6 @@ struct RecordFlagDef {
     const char* name = nullptr;
 };
 
-template<typename T>
-struct StaticArray {
-    T* data = nullptr;
-    size_t count = 0;
-};
-
 struct RecordDef {
     RecordType type;
     const char* comment = nullptr;
