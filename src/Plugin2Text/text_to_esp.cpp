@@ -458,17 +458,15 @@ struct TextRecordReader {
                 const auto count = (line_end - now) / 2;
                 verify(((line_end - now) % 2) == 0);
 
-                const auto buffer = new uint8_t[400000];
+                const auto buffer = compression_buffer.now;
                 auto buffer_now = buffer;
 
                 for (int i = 0; i < count; ++i) {
                     char c0 = now[(i * 2) + 0];
                     char c1 = now[(i * 2) + 1];
                     if (c0 == '?') {
-                        constexpr char ZeroStart = '!';
-                        constexpr size_t MaxZeros = '~' - ZeroStart;
-                        uint8_t zeros = c1 - ZeroStart;
-                        verify(zeros < MaxZeros); // maybe wrong
+                        size_t zeros = 1ULL + ((size_t)c1 - (size_t)ByteArrayRLE_ZeroStart);
+                        verify(zeros <= ByteArrayRLE_MaxZeros); // maybe wrong
                         memset(buffer_now, 0x00, zeros);
                         buffer_now += zeros;
                         continue;
@@ -479,8 +477,7 @@ struct TextRecordReader {
                     *buffer_now++ = (a << 4) | b;
                 }
 
-                write_bytes(buffer, count);
-                //compression_buffer.now = buffer;
+                write_bytes(buffer, buffer_now - buffer);
 
                 now = line_end + 1; // +1 for '\n'.
             } break;

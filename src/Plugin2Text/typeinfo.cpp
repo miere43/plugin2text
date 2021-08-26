@@ -1071,7 +1071,7 @@ RECORD(LCTN, "Location",
 
 RECORD(NAVM, "NavMesh",
     record_fields(
-        rf_bytes("NVNM", "Geometry"),
+        rf_bytes_rle("NVNM", "Geometry"),
     ),
 );
 

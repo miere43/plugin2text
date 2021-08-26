@@ -339,14 +339,12 @@ struct TextRecordWriter {
                     if (c == 0 && i + 1 < size) {
                         size_t zeros = 1 + count_bytes(&data[i + 1], size - 1, 0x00);
                         if (zeros > 1) {
-                            constexpr char ZeroStart = '!';
-                            constexpr size_t MaxZeros = '~' - ZeroStart;
-                            if (zeros > MaxZeros) {
-                                zeros = MaxZeros;
+                            if (zeros > ByteArrayRLE_MaxZeros) {
+                                zeros = ByteArrayRLE_MaxZeros;
                             }
                          
                             buffer[bytes_written + 0] = '?';
-                            buffer[bytes_written + 1] = ZeroStart + zeros;
+                            buffer[bytes_written + 1] = ByteArrayRLE_ZeroStart + (zeros - 1);
                             bytes_written += 2;
                             i += zeros - 1;
                             continue;

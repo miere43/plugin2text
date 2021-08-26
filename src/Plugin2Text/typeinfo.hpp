@@ -187,3 +187,6 @@ struct RecordDef {
 extern RecordDef Record_Common;
 
 RecordDef* get_record_def(RecordType type);
+
+constexpr char ByteArrayRLE_ZeroStart = '!';
+constexpr size_t ByteArrayRLE_MaxZeros = '~' - ByteArrayRLE_ZeroStart;
