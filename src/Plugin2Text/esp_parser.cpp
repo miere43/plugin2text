@@ -1,6 +1,7 @@
 #include "esp_parser.hpp"
 #include "os.hpp"
 #include "array.hpp"
+#include <stdlib.h>
 
 void EspParser::parse(const wchar_t* esp_path) {
     buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 128);
@@ -44,6 +45,21 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
             const auto subrecord = (const RawRecord*)now;
             result->records.push(process_record(subrecord));
             now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(RawRecord));
+        }
+
+        switch (result->group_type) {
+            case RecordGroupType::CellPersistentChildren:
+            case RecordGroupType::CellTemporaryChildren: {
+                qsort(result->records.data, result->records.count, sizeof(result->records[0]), [](void const* aa, void const* bb) -> int {
+                    const Record* a = *(const Record**)aa;
+                    const Record* b = *(const Record**)bb;
+
+                    verify(a->type != RecordType::GRUP);
+                    verify(b->type != RecordType::GRUP);
+
+                    return a->id.value > b->id.value;
+                });
+            } break;
         }
     } else {
         auto result = (Record*)result_base;
