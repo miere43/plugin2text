@@ -10,14 +10,13 @@ struct EspRecordField {
 struct EspRecord {
     RecordType type;
     RecordFlags flags;
-    uint16_t version;
-    uint32_t unknown;
 
     union {
         // valid if type == GRUP
         struct {
             Array<EspRecord*> records;
             RecordGroupType type;
+            uint32_t unknown;
             union {
                 struct {
                     int16_t grid_y;
@@ -32,6 +31,7 @@ struct EspRecord {
             Array<EspRecordField*> fields;
             FormID id;
             uint16_t version;
+            uint16_t unknown;
         } record;
     };
 

@@ -3,31 +3,32 @@
 #include "array.hpp"
 
 void EspParser::parse(const wchar_t* esp_path) {
+    buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 128);
+
     uint32_t size = 0;
     uint8_t* plugin = (uint8_t*)read_file(esp_path, &size);
 
-    buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 128);
+    process_records(plugin, plugin + size);
 }
 
 EspRecord* EspParser::process_record(const Record* record) {
     auto result = buffer.advance<EspRecord>();
     memset(result, 0, sizeof(result));
 
-    verify(record->version == 44);
     verify(!record->current_user_id);
     verify(!record->last_user_id);
 
     result->type = record->type;
     result->flags = record->flags;
-    result->unknown = record->unknown;
 
     if (record->type == RecordType::GRUP) {
         const auto grup_record = (const GrupRecord*)record;
         
         result->group.label = grup_record->label;
         result->group.type = grup_record->group_type;
+        result->group.unknown = grup_record->unknown;
         result->group.records = Array<EspRecord*>();
-        
+
         const uint8_t* now = (uint8_t*)grup_record + sizeof(GrupRecord);
         const uint8_t* end = now + grup_record->group_size - sizeof(GrupRecord);
 
@@ -39,6 +40,8 @@ EspRecord* EspParser::process_record(const Record* record) {
     } else {
         result->record.id = record->id;
         result->record.version = record->version;
+        result->record.unknown = record->unknown;
+        verify(record->version == 44);
         result->record.fields = Array<EspRecordField*>();
 
         const uint8_t* now;
@@ -70,7 +73,7 @@ EspRecordField* EspParser::process_field(EspRecord* record, const RecordField* f
 
     result->type = field->type;
     result->data.count = field->size;
-    result->data.data = (uint8_t*)field + sizeof(field);
+    result->data.data = (uint8_t*)field + sizeof(*field);
 
     return result;
 }

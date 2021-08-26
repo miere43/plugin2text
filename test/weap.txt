@@ -22,7 +22,6 @@ TES4 [00000000] - File Header
     1
 GRUP
   WEAP [02000D61] - Weapon
-    22 Aug 2021
     EDID - Editor ID
       "SteelSwordDUPLICATE001"
     OBND - Object Bounds

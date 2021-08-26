@@ -43,7 +43,6 @@ GRUP
   GRUP - Interior Block 5
     GRUP - Interior Sub-Block 2
       CELL [02000D61] - Cell
-        25 Aug 2021
         + Compressed
         EDID - Editor ID
           "aaaMarkersDUPLICATE001"
@@ -61,7 +60,6 @@ GRUP
       GRUP - Cell [02000D61]
         GRUP - Persistent [02000D61]
           REFR [02000D64] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -70,7 +68,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D6A] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -79,7 +76,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D69] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -88,7 +84,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D65] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -97,7 +92,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D68] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -106,7 +100,6 @@ GRUP
             NAME - Base Form ID
               [00000034]
           REFR [02000D6C] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             EDID - Editor ID
@@ -114,7 +107,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D63] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -123,7 +115,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D66] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -132,7 +123,6 @@ GRUP
             NAME - Base Form ID
               [0000003B]
           REFR [02000D6B] - Reference
-            25 Aug 2021
             + Persistent
             + Deleted
             + 800
@@ -142,10 +132,8 @@ GRUP
               [0000003B]
         GRUP - Temporary [02000D61]
           ACHR [02000D67] - Actor
-            25 Aug 2021
             + Deleted
             NAME - Base NPC
               [000F811C]
           NAVM [02000D62] - NavMesh
-            25 Aug 2021
             + Deleted

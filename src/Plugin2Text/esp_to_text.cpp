@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "base64.hpp"
 #include <zlib.h>
+#include "esp_parser.hpp"
 
 struct TextRecordWriter {
     VirtualMemoryBuffer scratch_buffer;
@@ -17,7 +18,7 @@ struct TextRecordWriter {
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
 
-    Record* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
+    const EspRecord* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
 
     void open(const wchar_t* path) {
         verify(!output_handle);
@@ -87,54 +88,47 @@ struct TextRecordWriter {
         verify(written == size);
     }
 
-    void write_records(const uint8_t* start, const uint8_t* end) {
-        const uint8_t* now = start;
-        while (now < end) {
-            auto record = (Record*)now;
+    void write_records(const Array<EspRecord*> records) {
+        for (const auto record : records) {
             write_record(record);
-            now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
     }
 
-    void write_grup_record(GrupRecord* record) {
-        const uint8_t* now = (uint8_t*)record + sizeof(GrupRecord);
-        const uint8_t* end = now + record->group_size - sizeof(GrupRecord);
-
-        if (record->group_type != RecordGroupType::Top) {
-            write_format(" - %s", record_group_type_to_string(record->group_type));
+    void write_grup_record(const EspRecord* record) {
+        if (record->group.type != RecordGroupType::Top) {
+            write_format(" - %s", record_group_type_to_string(record->group.type));
             
-            switch (record->group_type) {
+            switch (record->group.type) {
                 case RecordGroupType::ExteriorCellBlock:
                 case RecordGroupType::ExteriorCellSubBlock: {
-                    write_format(" (%d; %d)", record->grid_x, record->grid_y);
+                    write_format(" (%d; %d)", record->group.grid_x, record->group.grid_y);
                 } break;
 
                 case RecordGroupType::InteriorCellBlock:
                 case RecordGroupType::InteriorCellSubBlock: {
-                    write_format(" %d", (int)record->label);
+                    write_format(" %d", (int)record->group.label);
                 } break;
 
                 default: {
-                    write_format(" [%08X]", record->label);
+                    write_format(" [%08X]", record->group.label);
                 } break;
             }
         }
 
-        constexpr bool ExportTimestamp = false;
-        if (ExportTimestamp) {
-            write_record_timestamp(record->timestamp);
-        }
-        verify(!record->current_user_id);
-        verify(!record->last_user_id);
-        write_record_unknown(record->unknown);
+        //constexpr bool ExportTimestamp = false;
+        //if (ExportTimestamp) {
+        //    write_record_timestamp(record->timestamp);
+        //}
+        //verify(!record->current_user_id);
+        //verify(!record->last_user_id);
+
+        write_record_unknown(record->group.unknown);
 
         write_newline();
 
         indent += 1;
-        while (now < end) {
-            auto subrecord = (Record*)now;
-            write_record(subrecord);
-            now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(Record));
+        for (const auto record : record->group.records) {
+            write_record(record);
         }
         indent -= 1;
     }
@@ -177,18 +171,18 @@ struct TextRecordWriter {
         }
     }
 
-    void write_record(Record* record) {
+    void write_record(const EspRecord* record) {
         current_record = record;
         write_indent();
         write_bytes(&record->type, 4);
 
         if (record->type == RecordType::GRUP) {
-            write_grup_record((GrupRecord*)record);
+            write_grup_record(record);
             return;
         }
 
-        write_format(" [%08X]", record->id.value);
-        if (record->version != 44) {
+        write_format(" [%08X]", record->record.id.value);
+        if (record->record.version != 44) {
             verify(false);
             //write_format(",v%d", record->version);
         }
@@ -199,17 +193,17 @@ struct TextRecordWriter {
             write_bytes(def->comment, strlen(def->comment));
         }
 
-        write_record_timestamp(record->timestamp);
+        //write_record_timestamp(record->timestamp);
 
-        if (record->current_user_id) {
-            verify(false);
-        }
+        //if (record->current_user_id) {
+        //    verify(false);
+        //}
 
-        if (record->last_user_id) {
-            verify(false);
-        }
+        //if (record->last_user_id) {
+        //    verify(false);
+        //}
 
-        write_record_unknown(record->unknown);
+        write_record_unknown(record->record.unknown);
 
         if (record->flags != RecordFlags::None) {
             auto flags = record->flags;
@@ -226,27 +220,14 @@ struct TextRecordWriter {
             indent -= 1;
         }
 
-        const uint8_t* now;
-        const uint8_t* end;
-        if (record->is_compressed()) {
-            uint32_t size = 0;
-            now = record->uncompress(&size);
-            end = now + size;
-        } else {
-            now = (uint8_t*)record + sizeof(Record);
-            end = now + record->data_size;
-        }
-
         if (!def) {
             def = &Record_Common;
         }
 
         write_newline();
 
-        while (now < end) {
-            auto field = (RecordField*)now;
+        for (const auto field : record->record.fields) {
             write_field(def, field);
-            now += sizeof(RecordField) + field->size;
         }
     }
 
@@ -636,7 +617,7 @@ struct TextRecordWriter {
         indent -= 1;
     }
 
-    void write_field(RecordDef* def, RecordField* field) {
+    void write_field(const RecordDef* def, const EspRecordField* field) {
         indent += 1;
         write_indent();
 
@@ -653,9 +634,8 @@ struct TextRecordWriter {
 
         write_newline();
 
-        const auto now = (uint8_t*)field + sizeof(RecordField);
         const auto data_type = field_def ? field_def->data_type : &Type_ByteArray;
-        write_type(data_type, now, field->size);
+        write_type(data_type, field->data.data, field->data.count);
         
         indent -= 1;
     }
@@ -701,13 +681,12 @@ struct TextRecordWriter {
     }
 };
 
-void esp_to_text(const wchar_t* esp_path, const wchar_t* text_path) {
+void esp_to_text(const EspObjectModel& model, const wchar_t* text_path) {
     TextRecordWriter writer;
     writer.open(text_path);
 
     uint32_t size = 0;
-    uint8_t* plugin = (uint8_t*)read_file(esp_path, &size);
-    writer.write_records(plugin, plugin + size);
+    writer.write_records(model.records);
 
     writer.close();
 }
