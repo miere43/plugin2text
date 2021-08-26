@@ -7,39 +7,33 @@ struct EspRecordField {
     StaticArray<uint8_t> data;
 };
 
-struct EspRecord {
+struct EspRecordBase {
     RecordType type;
     RecordFlags flags;
+};
 
+struct EspRecord : EspRecordBase {
+    FormID id;
+    Array<EspRecordField*> fields;
+    uint16_t version;
+    uint16_t unknown;
+};
+
+struct EspGrupRecord : EspRecordBase {
+    RecordGroupType group_type;
+    Array<EspRecordBase*> records;
     union {
-        // valid if type == GRUP
         struct {
-            Array<EspRecord*> records;
-            RecordGroupType type;
-            uint32_t unknown;
-            union {
-                struct {
-                    int16_t grid_y;
-                    int16_t grid_x;
-                };
-                uint32_t label;
-            };
-        } group;
-
-        // valid otherwise
-        struct {
-            Array<EspRecordField*> fields;
-            FormID id;
-            uint16_t version;
-            uint16_t unknown;
-        } record;
+            int16_t grid_y;
+            int16_t grid_x;
+        };
+        uint32_t label;
     };
-
-    inline EspRecord() {}
+    uint32_t unknown;
 };
 
 struct EspObjectModel {
-    Array<EspRecord*> records;
+    Array<EspRecordBase*> records;
 };
 
 struct EspParser {
@@ -50,6 +44,6 @@ struct EspParser {
     void parse(const wchar_t* esp_path);
 private:
     EspRecordField* process_field(EspRecord* record, const RecordField* field);
-    EspRecord* process_record(const Record* record);
+    EspRecordBase* process_record(const Record* record);
     void process_records(const uint8_t* start, const uint8_t* end);
 };

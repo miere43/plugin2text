@@ -11,38 +11,48 @@ void EspParser::parse(const wchar_t* esp_path) {
     process_records(plugin, plugin + size);
 }
 
-EspRecord* EspParser::process_record(const Record* record) {
-    auto result = buffer.advance<EspRecord>();
-    memset(result, 0, sizeof(result));
+EspRecordBase* EspParser::process_record(const Record* record) {
+    EspRecordBase* result_base;
+    if (record->type == RecordType::GRUP) {
+        auto result = buffer.advance<EspGrupRecord>();
+        *result = EspGrupRecord();
+        result_base = result;
+    } else {
+        auto result = buffer.advance<EspRecord>();
+        *result = EspRecord();
+        result_base = result;
+    }
 
     verify(!record->current_user_id);
     verify(!record->last_user_id);
 
-    result->type = record->type;
-    result->flags = record->flags;
+    result_base->type = record->type;
+    result_base->flags = record->flags;
 
     if (record->type == RecordType::GRUP) {
         const auto grup_record = (const GrupRecord*)record;
-        
-        result->group.label = grup_record->label;
-        result->group.type = grup_record->group_type;
-        result->group.unknown = grup_record->unknown;
-        result->group.records = Array<EspRecord*>();
+        auto result = (EspGrupRecord*)result_base;
+
+        result->label = grup_record->label;
+        result->group_type = grup_record->group_type;
+        result->unknown = grup_record->unknown;
 
         const uint8_t* now = (uint8_t*)grup_record + sizeof(GrupRecord);
         const uint8_t* end = now + grup_record->group_size - sizeof(GrupRecord);
 
         while (now < end) {
             const auto subrecord = (const Record*)now;
-            result->group.records.push(process_record(subrecord));
+            result->records.push(process_record(subrecord));
             now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(Record));
         }
     } else {
-        result->record.id = record->id;
-        result->record.version = record->version;
-        result->record.unknown = record->unknown;
+        auto result = (EspRecord*)result_base;
+
+        result->id = record->id;
+        result->version = record->version;
+        result->unknown = record->unknown;
         verify(record->version == 44);
-        result->record.fields = Array<EspRecordField*>();
+        result->fields = Array<EspRecordField*>();
 
         const uint8_t* now;
         const uint8_t* end;
@@ -57,12 +67,12 @@ EspRecord* EspParser::process_record(const Record* record) {
 
         while (now < end) {
             const auto field = (const RecordField*)now;
-            result->record.fields.push(process_field(result, field));
+            result->fields.push(process_field(result, field));
             now += sizeof(RecordField) + field->size;
         }
     }
 
-    return result;
+    return result_base;
 }
 
 EspRecordField* EspParser::process_field(EspRecord* record, const RecordField* field) {
