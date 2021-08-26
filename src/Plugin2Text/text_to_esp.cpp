@@ -453,6 +453,38 @@ struct TextRecordReader {
                 now = line_end + 1; // +1 for '\n'.
             } break;
 
+            case TypeKind::ByteArrayRLE: {
+                const auto line_end = peek_end_of_current_line();
+                const auto count = (line_end - now) / 2;
+                verify(((line_end - now) % 2) == 0);
+
+                const auto buffer = new uint8_t[400000];
+                auto buffer_now = buffer;
+
+                for (int i = 0; i < count; ++i) {
+                    char c0 = now[(i * 2) + 0];
+                    char c1 = now[(i * 2) + 1];
+                    if (c0 == '?') {
+                        constexpr char ZeroStart = '!';
+                        constexpr size_t MaxZeros = '~' - ZeroStart;
+                        uint8_t zeros = c1 - ZeroStart;
+                        verify(zeros < MaxZeros); // maybe wrong
+                        memset(buffer_now, 0x00, zeros);
+                        buffer_now += zeros;
+                        continue;
+                    }
+
+                    uint8_t a = parse_hex_char(c0);
+                    uint8_t b = parse_hex_char(c1);
+                    *buffer_now++ = (a << 4) | b;
+                }
+
+                write_bytes(buffer, count);
+                //compression_buffer.now = buffer;
+
+                now = line_end + 1; // +1 for '\n'.
+            } break;
+
             case TypeKind::ZString:
             case TypeKind::LString: {
                 // @TODO: localized LString

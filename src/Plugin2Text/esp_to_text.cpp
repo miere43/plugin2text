@@ -250,6 +250,15 @@ struct TextRecordWriter {
         return false;
     }
 
+    static size_t count_bytes(const uint8_t* start, size_t size, uint8_t byte) {
+        for (size_t i = 0; i < size; ++i) {
+            if (start[i] != byte) {
+                return i;
+            }
+        }
+        return size;
+    }
+
     void write_type(const Type* type, const void* value, size_t size) {
         indent += 1;
 
@@ -317,6 +326,40 @@ struct TextRecordWriter {
             case TypeKind::ByteArrayFixed: {
                 verify(type->size == size);
                 write_byte_array((uint8_t*)value, size);
+            } break;
+
+            case TypeKind::ByteArrayRLE: {
+                auto buffer = new uint8_t[size * 2];
+                auto data = (uint8_t*)value;
+                static const char alphabet[17] = "0123456789abcdef";
+                size_t bytes_written = 0;
+
+                for (size_t i = 0; i < size; ++i) {
+                    uint8_t c = data[i];
+                    if (c == 0 && i + 1 < size) {
+                        size_t zeros = 1 + count_bytes(&data[i + 1], size - 1, 0x00);
+                        if (zeros > 1) {
+                            constexpr char ZeroStart = '!';
+                            constexpr size_t MaxZeros = '~' - ZeroStart;
+                            if (zeros > MaxZeros) {
+                                zeros = MaxZeros;
+                            }
+                         
+                            buffer[bytes_written + 0] = '?';
+                            buffer[bytes_written + 1] = ZeroStart + zeros;
+                            bytes_written += 2;
+                            i += zeros - 1;
+                            continue;
+                        }
+                    }
+
+                    buffer[bytes_written + 0] = alphabet[c / 16];
+                    buffer[bytes_written + 1] = alphabet[c % 16];
+                    bytes_written += 2;
+                }
+
+                write_bytes(buffer, bytes_written);
+                delete[] buffer;
             } break;
 
             case TypeKind::Integer: {

@@ -50,14 +50,15 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         switch (result->group_type) {
             case RecordGroupType::CellPersistentChildren:
             case RecordGroupType::CellTemporaryChildren: {
-                qsort(result->records.data, result->records.count, sizeof(result->records[0]), [](void const* aa, void const* bb) -> int {
+                qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
                     const Record* a = *(const Record**)aa;
                     const Record* b = *(const Record**)bb;
 
                     verify(a->type != RecordType::GRUP);
                     verify(b->type != RecordType::GRUP);
 
-                    return a->id.value > b->id.value;
+                    verify(a->id.value != b->id.value);
+                    return a->id.value > b->id.value ? 1 : -1;
                 });
             } break;
         }

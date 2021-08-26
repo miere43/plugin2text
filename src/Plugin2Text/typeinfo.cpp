@@ -597,6 +597,7 @@ RECORD(REFR, "Reference",
             ),
         ),
         rf_formid("XLRL", "Location"),
+        rf_bytes("XRGD", "Ragdoll Data"),
         Type_LocationData,
     ),
     record_flags(
