@@ -680,6 +680,11 @@ struct TextRecordReader {
                 verify(false);
             } break;
 
+            case TypeKind::Filter: {
+                const auto filter_type = (const TypeFilter*)type;
+                read_type(filter_type->inner_type);
+            } break;
+
             default: {
                 verify(false);
             } break;

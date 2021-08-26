@@ -20,6 +20,7 @@ enum class TypeKind {
     Boolean, // 1 byte,
     VMAD,
     Constant,
+    Filter,
 };
 
 struct Type {
@@ -70,6 +71,19 @@ struct TypeConstant : Type {
     const uint8_t* bytes = nullptr;
 
     constexpr TypeConstant(const char* name, size_t size, const uint8_t* bytes) : Type(TypeKind::Constant, name, size), bytes(bytes) { }
+};
+
+struct TypeFilter : Type {
+    const Type* inner_type;
+    void (*preprocess)(void* data, size_t size);
+    
+    constexpr TypeFilter(
+            const Type* inner_type,
+            void (*preprocess)(void* data, size_t size))
+        : Type(TypeKind::Filter, inner_type->name, inner_type->size)
+        , inner_type(inner_type)
+        , preprocess(preprocess)
+    { }
 };
 
 constexpr bool VMAD_use_byte_array = true; // @TODO

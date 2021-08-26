@@ -154,6 +154,21 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
     return { &Type_ByteArrayFixed, name };
 }
 
+#define type_enum(m_size, m_flags, ...)                          \
+    ([]() -> const TypeEnum* {                                   \
+        static TypeEnumField fields[]{ __VA_ARGS__ };            \
+        static TypeEnum type{ "enum", m_size, fields, m_flags }; \
+        return &type;                                            \
+    })()
+
+#define type_enum_uint8(...) type_enum(1, false, __VA_ARGS__)
+#define type_enum_uint16(...) type_enum(2, false, __VA_ARGS__)
+#define type_enum_uint32(...) type_enum(4, false, __VA_ARGS__)
+
+#define type_flags_uint8(...) type_enum(1, true, __VA_ARGS__)
+#define type_flags_uint16(...) type_enum(2, true, __VA_ARGS__)
+#define type_flags_uint32(...) type_enum(4, true, __VA_ARGS__)
+
 #define sf_enum(m_name, m_size, m_flags, ...)                    \
     ([]() -> TypeStructField {                                   \
         static TypeEnumField fields[]{ __VA_ARGS__ };            \
@@ -168,6 +183,12 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
 #define sf_flags_uint8(m_name, ...) sf_enum(m_name, 1, true, __VA_ARGS__)
 #define sf_flags_uint16(m_name, ...) sf_enum(m_name, 2, true, __VA_ARGS__)
 #define sf_flags_uint32(m_name, ...) sf_enum(m_name, 4, true, __VA_ARGS__)
+
+#define sf_filter(m_name, m_inner, m_preprocess, ...)    \
+    ([]() -> TypeStructField {                           \
+        static TypeFilter type{ m_inner, m_preprocess }; \
+        return { &type, m_name };                        \
+    })()
 
 Type Type_ZString{ TypeKind::ZString, "CString", 0 };
 Type Type_LString{ TypeKind::LString, "LString", 0 };
@@ -470,11 +491,18 @@ RECORD(CELL, "Cell",
         rf_subrecord("XCLC", "Data", 12,
             sf_int32("X"),
             sf_int32("Y"),
-            sf_flags_uint32("Flags",
-                { 0x1, "Force Hide Land Quad 1" },
-                { 0x2, "Force Hide Land Quad 2" },
-                { 0x4, "Force Hide Land Quad 3" },
-                { 0x8, "Force Hide Land Quad 4" },
+            sf_filter("Flags",
+                type_flags_uint32(
+                    { 0x1, "Force Hide Land Quad 1" },
+                    { 0x2, "Force Hide Land Quad 2" },
+                    { 0x4, "Force Hide Land Quad 3" },
+                    { 0x8, "Force Hide Land Quad 4" },
+                ),
+                [](void* data, size_t size) -> void {
+                    verify(size == 4);
+                    uint32_t* flags = (uint32_t*)data;
+                    *flags &= 0b00000000'00000000'00000000'00001111;
+                },
             ),
         ),
         rf_formid("LTMP", "Lighting Template"),

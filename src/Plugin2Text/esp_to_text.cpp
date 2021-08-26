@@ -241,7 +241,13 @@ struct TextRecordWriter {
     }
 
     static bool has_custom_indent_rules(TypeKind kind) {
-        return kind == TypeKind::Struct || kind == TypeKind::Constant;
+        switch (kind) {
+            case TypeKind::Struct:
+            case TypeKind::Constant:
+            case TypeKind::Filter:
+                return true;
+        }
+        return false;
     }
 
     void write_type(const Type* type, const void* value, size_t size) {
@@ -604,6 +610,20 @@ struct TextRecordWriter {
                 verify(type->size == size);
                 const auto constant_type = (const TypeConstant*)type;
                 verify(memory_equals(value, constant_type->bytes, size));
+            } break;
+
+            case TypeKind::Filter: {
+                const auto filter_type = (const TypeFilter*)type;
+                auto highwater = scratch_buffer.now;
+                auto preprocessed_value = scratch_buffer.advance(size);
+                memcpy(preprocessed_value, value, size);
+
+                filter_type->preprocess(preprocessed_value, size);
+                indent -= 1;
+                write_type(filter_type->inner_type, preprocessed_value, size);
+                indent += 1;
+
+                scratch_buffer.now = highwater;
             } break;
 
             default: {
