@@ -188,5 +188,7 @@ extern RecordDef Record_Common;
 
 RecordDef* get_record_def(RecordType type);
 
-constexpr char ByteArrayRLE_ZeroStart = '!';
-constexpr size_t ByteArrayRLE_MaxZeros = '~' - ByteArrayRLE_ZeroStart;
+constexpr char ByteArrayRLE_StreamStart = '!';
+constexpr size_t ByteArrayRLE_MaxStreamValue = '~' - ByteArrayRLE_StreamStart;
+constexpr char ByteArrayRLE_SequenceMarker_00 = '?';
+constexpr char ByteArrayRLE_SequenceMarker_FF = '!';

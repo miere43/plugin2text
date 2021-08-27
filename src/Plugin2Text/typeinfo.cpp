@@ -69,6 +69,10 @@ constexpr RecordFieldDef rf_bytes_rle(char const type[5], const char* name) {
     return { type, &Type_ByteArrayRLE, name };
 }
 
+constexpr RecordFieldDef rf_bool(char const type[5], const char* name) {
+    return { type, &Type_bool, name };
+}
+
 #define rf_subrecord_shared(m_record, m_subrecord, m_name) \
     { #m_subrecord, &CONCAT(Type_, m_record)_##m_subrecord, m_name }
 
@@ -805,7 +809,7 @@ RECORD(DLVW, "Dialogue View",
         rf_formid("BNAM", "Branch"),
         rf_formid("TNAM", "Topic"),
         rf_uint32("ENAM", "Unknown"),
-        rf_uint8("DNAM", "Show All Text"),
+        rf_bool("DNAM", "Show All Text"),
     ),
 );
 

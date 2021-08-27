@@ -464,11 +464,11 @@ struct TextRecordReader {
                 for (int i = 0; i < count; ++i) {
                     char c0 = now[(i * 2) + 0];
                     char c1 = now[(i * 2) + 1];
-                    if (c0 == '?') {
-                        size_t zeros = 1ULL + ((size_t)c1 - (size_t)ByteArrayRLE_ZeroStart);
-                        verify(zeros <= ByteArrayRLE_MaxZeros); // maybe wrong
-                        memset(buffer_now, 0x00, zeros);
-                        buffer_now += zeros;
+                    if (c0 == ByteArrayRLE_SequenceMarker_00 || c0 == ByteArrayRLE_SequenceMarker_FF) {
+                        size_t repeats = 1ULL + ((size_t)c1 - (size_t)ByteArrayRLE_StreamStart);
+                        verify(repeats <= ByteArrayRLE_MaxStreamValue);
+                        memset(buffer_now, c0 == ByteArrayRLE_SequenceMarker_00 ? 0x00 : 0xFF, repeats);
+                        buffer_now += repeats;
                         continue;
                     }
 

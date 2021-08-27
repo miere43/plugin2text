@@ -336,17 +336,17 @@ struct TextRecordWriter {
 
                 for (size_t i = 0; i < size; ++i) {
                     uint8_t c = data[i];
-                    if (c == 0 && i + 1 < size) {
-                        size_t zeros = 1 + count_bytes(&data[i + 1], size - 1, 0x00);
-                        if (zeros > 1) {
-                            if (zeros > ByteArrayRLE_MaxZeros) {
-                                zeros = ByteArrayRLE_MaxZeros;
+                    if ((c == 0x00 || c == 0xFF) && i + 1 < size) {
+                        size_t repeats = 1 + count_bytes(&data[i + 1], size - 1, c);
+                        if (repeats > 1) {
+                            if (repeats > ByteArrayRLE_MaxStreamValue) {
+                                repeats = ByteArrayRLE_MaxStreamValue;
                             }
                          
-                            buffer[bytes_written + 0] = '?';
-                            buffer[bytes_written + 1] = ByteArrayRLE_ZeroStart + (zeros - 1);
+                            buffer[bytes_written + 0] = c == 0x00 ? ByteArrayRLE_SequenceMarker_00 : ByteArrayRLE_SequenceMarker_FF;
+                            buffer[bytes_written + 1] = ByteArrayRLE_StreamStart + (repeats - 1);
                             bytes_written += 2;
-                            i += zeros - 1;
+                            i += repeats - 1;
                             continue;
                         }
                     }
