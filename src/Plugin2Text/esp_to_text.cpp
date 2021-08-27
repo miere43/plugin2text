@@ -246,6 +246,7 @@ struct TextRecordWriter {
             case TypeKind::Constant:
             case TypeKind::Filter:
             case TypeKind::Vector3:
+            case TypeKind::VMAD:
                 return true;
         }
         return false;
@@ -258,6 +259,52 @@ struct TextRecordWriter {
             }
         }
         return size;
+    }
+
+    void write_papyrus_object(BinaryReader& r, const VMAD_Header* header) {
+        verify(header->object_format == 2);
+        auto value = r.read<VMAD_PropertyObjectV2>();
+        write_custom_field("Form ID", value.form_id);
+        write_custom_field("Alias", value.alias);
+        verify(value.unused == 0);
+    }
+
+    void write_papyrus_scripts(BinaryReader& r, const VMAD_Header* header, uint16_t script_count) {
+        for (int i = 0; i < script_count; ++i) {
+            begin_custom_struct("Script");
+            defer(end_custom_struct());
+
+            write_custom_field("Name", r.advance_wstring());
+
+            if (header->version >= 4) {
+                auto status = r.read<uint8_t>();
+                write_custom_field("Status", status);
+            }
+
+            auto property_count = r.read<uint16_t>();
+            for (int prop_index = 0; prop_index < property_count; ++prop_index) {
+                begin_custom_struct("Property");
+                defer(end_custom_struct());
+
+                write_custom_field("Name", r.advance_wstring());
+
+                auto property_type = r.read<PapyrusPropertyType>();
+                write_custom_field("Type", property_type);
+                if (header->version >= 4) {
+                    write_custom_field("Status", r.read<uint8_t>());
+                }
+
+                switch (property_type) {
+                    case PapyrusPropertyType::Object: {
+                        write_papyrus_object(r, header);
+                    } break;
+
+                    default: {
+                        verify(false);
+                    } break;
+                }
+            }
+        }
     }
 
     void write_type(const Type* type, const void* value, size_t size) {
@@ -493,117 +540,48 @@ struct TextRecordWriter {
             } break;
 
             case TypeKind::VMAD: {
-                if (VMAD_use_byte_array) {
-                    write_byte_array((uint8_t*)value, size);
-                    break;
-                }
-
                 BinaryReader r;
                 r.start = (uint8_t*)value;
                 r.now = r.start;
                 r.end = r.start + size;
 
-                #pragma pack(push, 1)
-                struct Header {
-                    int16_t version;
-                    int16_t object_format;
-                    uint16_t script_count;
-                };
+                auto now = (uint8_t*)value;
 
-                struct PropertyObjectV1 {
-                    FormID form_id;
-                    int16_t alias;
-                    uint16_t unused;
-                };
-
-                struct PropertyObjectV2 {
-                    uint16_t unused;
-                    int16_t alias;
-                    FormID form_id;
-                };
-                #pragma pack(pop)
-
-                auto header = r.advance<Header>();
+                auto header = r.advance<VMAD_Header>();
                 verify(header->version >= 2 && header->version <= 5);
                 verify(header->object_format >= 1 && header->object_format <= 2);
 
-                write_custom_field(true, "Version", header->version);
-                write_custom_field(true, "Object Format", header->object_format);
+                write_custom_field("Version", header->version);
+                write_custom_field("Object Format", header->object_format);
 
-                auto write_papyrus_object = [](TextRecordWriter& w, BinaryReader& r, uint16_t object_format, bool indent) {
-                    verify(object_format == 2);
-                    auto value = r.read<PropertyObjectV2>();
-                    w.write_custom_field(true, "Form ID", value.form_id);
-                    w.write_custom_field(true, "Alias", value.alias);
-                    w.write_custom_field(indent, "Unused", value.unused);
-                };
-
-                for (int i = 0; i < header->script_count; ++i) {
-                    begin_custom_struct("Script");
-                    
-                    write_custom_field(true, "Name", r.advance_wstring());
-
-                    uint16_t property_count;
-                    if (header->version >= 4) {
-                        auto status = r.read<uint8_t>();
-                        property_count = r.read<uint16_t>();
-                        write_custom_field(property_count, "Status", status);
-                    } else {
-                        property_count = r.read<uint16_t>();
-                    }
-
-                    for (int prop_index = 0; prop_index < property_count; ++prop_index) {
-                        begin_custom_struct("Property");
-
-                        write_custom_field(true, "Name", r.advance_wstring());
-
-                        auto property_type = r.read<PapyrusPropertyType>();
-                        write_custom_field(true, "Type", property_type);
-                        if (header->version >= 4) {
-                            write_custom_field(true, "Status", r.read<uint8_t>());
-                        }
-
-                        switch (property_type) {
-                            case PapyrusPropertyType::Object: {
-                                write_papyrus_object(*this, r, header->object_format, false);
-                            } break;
-
-                            default: {
-                                verify(false);
-                            } break;
-                        }
-
-                        end_custom_struct(prop_index != property_count - 1);
-                    }
-
-                    end_custom_struct(i != header->script_count - 1);
-                }
+                write_papyrus_scripts(r, header, header->script_count);
 
                 if (r.now != r.end) {
-                    write_newline();
-                    write_indent();
-
                     // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
                     switch (current_record->type) {
                         case RecordType::INFO: {
                             verify(r.read<uint8_t>() == 2); // version?
 
-                            auto flags = r.read<uint8_t>();
-                            int fragment_count = 0;
-                            if (flags == 1 || flags == 2) {
-                                fragment_count = 1;
-                            } else if (flags == 3) {
-                                fragment_count = 2;
-                            } else {
-                                verify(false);
-                            }
-                            write_custom_field(true, "Fragment Flags", flags);
-                            write_custom_field(true, "Fragment Script File Name", r.advance_wstring());
+                            auto flags = r.read<PapyrusFragmentFlags>();
+                            write_custom_field("Fragment Script File Name", r.advance_wstring());
 
-                            for (int i = 0; i < fragment_count; ++i) {
-                                write_custom_field(true, "Unknown", r.read<uint8_t>());
-                                write_custom_field(true, "Script Name", r.advance_wstring());
-                                write_custom_field(i != fragment_count - 1, "Fragment Name", r.advance_wstring());
+                            // @TODO: copypaste
+                            if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasBeginScript) {
+                                begin_custom_struct("Start Fragment");
+                                defer(end_custom_struct());
+
+                                verify(1 == r.read<uint8_t>());
+                                write_custom_field("Script Name", r.advance_wstring());
+                                write_custom_field("Fragment Name", r.advance_wstring());
+                            }
+
+                            if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasEndScript) {
+                                begin_custom_struct("End Fragment");
+                                defer(end_custom_struct());
+
+                                verify(1 == r.read<uint8_t>());
+                                write_custom_field("Script Name", r.advance_wstring());
+                                write_custom_field("Fragment Name", r.advance_wstring());
                             }
                         } break;
 
@@ -611,31 +589,31 @@ struct TextRecordWriter {
                             verify(r.read<uint8_t>() == 2); // version?
 
                             auto fragment_count = (int)r.read<uint16_t>();
-                            write_custom_field(true, "File Name", r.advance_wstring());
+                            write_custom_field("File Name", r.advance_wstring());
 
                             for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
                                 begin_custom_struct("Fragment");
+                                defer(end_custom_struct());
 
-                                write_custom_field(true, "Index", r.read<uint16_t>());
-                                write_custom_field(true, "Unknown", r.read<uint16_t>());
-                                write_custom_field(true, "Log Entry", r.read<uint32_t>());
-                                write_custom_field(true, "Unknown", r.read<uint8_t>());
-                                write_custom_field(true, "Script Name", r.advance_wstring());
-                                write_custom_field(true, "Function Name", r.advance_wstring());
-
-                                end_custom_struct(frag_index != fragment_count - 1);
+                                write_custom_field("Index", r.read<uint16_t>());
+                                verify(0 == r.read<uint16_t>());
+                                write_custom_field("Log Entry", r.read<uint32_t>());
+                                verify(1 == r.read<uint8_t>());
+                                write_custom_field("Script Name", r.advance_wstring());
+                                write_custom_field("Function Name", r.advance_wstring());
                             };
 
                             auto alias_count = (int)r.read<uint16_t>();
-
                             for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
                                 begin_custom_struct("Alias");
+                                defer(end_custom_struct());
 
-                                write_papyrus_object(*this, r, header->object_format, true);
+                                write_papyrus_object(r, header);
                                 verify(r.read<uint16_t>() == header->version);
                                 verify(r.read<uint16_t>() == header->object_format);
 
-                                end_custom_struct(alias_index != alias_count - 1);
+                                const auto script_count = r.read<uint16_t>();
+                                write_papyrus_scripts(r, header, script_count);
                             }
                         } break;
 
@@ -715,43 +693,31 @@ struct TextRecordWriter {
     }
 
     void begin_custom_struct(const char* header_name) {
+        write_indent();
         write_string(header_name);
         write_newline();
         ++indent;
-        write_indent();
     }
 
-    void end_custom_struct(bool do_indent = false) {
+    void end_custom_struct() {
         --indent;
-        if (do_indent) {
-            write_newline();
-            write_indent();
-        }
     }
 
-    void write_custom_field(bool indent_next_field, const char* field_name, const Type* type, const void* value, size_t size) {
-        // @TODO: get rid of "indent_next_field", this makes code really ugly.
-
+    void write_custom_field(const char* field_name, const Type* type, const void* value, size_t size) {
+        write_indent();
         write_string(field_name);
         write_newline();
-        indent += 1;
-        write_indent();
         write_type(type, value, size);
-        indent -= 1;
-        if (indent_next_field) {
-            write_newline();
-            write_indent();
-        }
     }
 
     template<typename T>
-    void write_custom_field(bool indent_next_field, const char* field_name, const T* value) {
-        write_custom_field(indent_next_field, field_name, resolve_type<T>(), value, sizeof(T));
+    void write_custom_field(const char* field_name, const T* value) {
+        write_custom_field(field_name, resolve_type<T>(), value, sizeof(T));
     }
 
     template<typename T>
-    void write_custom_field(bool indent_next_field, const char* field_name, const T& value) {
-        write_custom_field(indent_next_field, field_name, resolve_type<T>(), &value, sizeof(T));
+    void write_custom_field(const char* field_name, const T& value) {
+        write_custom_field(field_name, resolve_type<T>(), &value, sizeof(T));
     }
 };
 

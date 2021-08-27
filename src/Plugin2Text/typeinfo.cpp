@@ -247,6 +247,18 @@ const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
         false                                            \
     }
 
+#define TYPE_FLAGS(m_type, m_name, m_size, ...)           \
+    static TypeEnumField CONCAT(Type_, m_type)_Fields[]{ \
+        __VA_ARGS__                                      \
+    };                                                   \
+                                                         \
+    TypeEnum Type_##m_type{                              \
+        m_name,                                          \
+        m_size,                                          \
+        CONCAT(Type_, m_type)_Fields,                    \
+        true                                             \
+    }
+
 #define TYPE_STRUCT(m_type, m_name, m_size, ...)           \
     static TypeStructField CONCAT(Type_, m_type)_Fields[]{ \
         __VA_ARGS__                                        \
@@ -263,7 +275,7 @@ TYPE_STRUCT(CNTO, "Item", 8,
     sf_uint32("Count"),
 );
 
-TYPE_ENUM(PapyrusPropertyType, "Papyrus Property Type", 1,
+TYPE_ENUM(PapyrusPropertyType, "Papyrus Property Type", sizeof(PapyrusPropertyType),
     { (uint32_t)PapyrusPropertyType::Object, "Object" },
     { (uint32_t)PapyrusPropertyType::String, "String" },
     { (uint32_t)PapyrusPropertyType::Int, "Int" },
@@ -274,6 +286,11 @@ TYPE_ENUM(PapyrusPropertyType, "Papyrus Property Type", 1,
     { (uint32_t)PapyrusPropertyType::IntArray, "Int[]" },
     { (uint32_t)PapyrusPropertyType::FloatArray, "Float[]" },
     { (uint32_t)PapyrusPropertyType::BoolArray, "Bool[]" },
+);
+
+TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmentFlags),
+    { (uint32_t)PapyrusFragmentFlags::HasBeginScript, "Has Begin Script" },
+    { (uint32_t)PapyrusFragmentFlags::HasEndScript, "Has End Script" },
 );
 
 #define RECORD(m_type, m_name, ...)  \
@@ -814,8 +831,23 @@ RECORD(DLBR, "Dialogue Branch",
 RECORD(INFO, "Topic Info",
     record_fields(
         rf_subrecord("ENAM", "Data", 4,
-            sf_uint16("Flags"),
-            sf_uint16("Reset Time"),
+            sf_flags_uint16("Flags",
+                { 0x0001, "Goodbye" },
+                { 0x0002, "Random" },
+                { 0x0004, "Say Once" },
+                { 0x0010, "On Activation" },
+                { 0x0020, "Random End" },
+                { 0x0040, "Invisible Continue" },
+                { 0x0080, "Walk Away" },
+                { 0x0100, "Walk Away Invisible In Menu" },
+                { 0x0200, "Force Subtitle" },
+                { 0x0400, "Can Move While Greeting" },
+                { 0x0800, "Has No Lip File" },
+                { 0x1000, "Requires Post-Processing" },
+                { 0x4000, "Has Audio Output Override" },
+                { 0x8000, "Spends Favor Points" },
+            ),
+            sf_uint16("Hours Until Reset"),
         ),
         rf_formid("PNAM", "Previous Info"),
         rf_uint8("CNAM", "Favor Level"),
@@ -1045,6 +1077,7 @@ RECORD(LAND, "Landscape",
             sf_constant(uint8_t, 0),
             sf_uint16("Texture Layer"),
         ),
+        rf_bytes_rle("VTXT", "VTXT"),
     ),
 );
 

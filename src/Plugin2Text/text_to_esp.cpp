@@ -406,8 +406,6 @@ struct TextRecordReader {
         // @TODO: Cleanup: there are too many statements like "now = line_end + 1".
         switch (type->kind) {
             case TypeKind::ByteArray: {
-                read_type_byte_array: // @TODO: temp for VMAD
-
                 const auto line_end = peek_end_of_current_line();
                 const auto count = (line_end - now) / 2;
                 verify(((line_end - now) % 2) == 0);
@@ -702,10 +700,6 @@ struct TextRecordReader {
             } break;
 
             case TypeKind::VMAD: {
-                if (VMAD_use_byte_array) {
-                    goto read_type_byte_array; // @TODO: temp, remove this
-                }
-
                 verify(false);
             } break;
 

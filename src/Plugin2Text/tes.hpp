@@ -93,8 +93,26 @@ struct RawRecordField {
     RecordFieldType type = (RecordFieldType)0;
     uint16_t size = 0;
 };
-#pragma pack(pop)
 static_assert(sizeof(RawRecordField) == 6, "sizeof(RecordField) == 6");
+
+struct VMAD_Header {
+    int16_t version;
+    int16_t object_format;
+    uint16_t script_count;
+};
+
+//struct PropertyObjectV1 {
+//    FormID form_id;
+//    int16_t alias;
+//    uint16_t unused;
+//};
+
+struct VMAD_PropertyObjectV2 {
+    uint16_t unused;
+    int16_t alias;
+    FormID form_id;
+};
+#pragma pack(pop)
 
 const char* month_to_short_string(int month);
 int short_string_to_month(const char* str);

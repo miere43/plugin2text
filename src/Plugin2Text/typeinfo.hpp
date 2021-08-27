@@ -94,8 +94,6 @@ struct Vector3 {
     float z = 0;
 };
 
-constexpr bool VMAD_use_byte_array = true; // @TODO
-
 extern Type Type_ZString;
 extern Type Type_LString;
 extern Type Type_WString;
@@ -131,6 +129,12 @@ enum class PapyrusPropertyType : uint8_t {
 };
 extern TypeEnum Type_PapyrusPropertyType;
 
+enum class PapyrusFragmentFlags : uint8_t {
+    HasBeginScript = 0x1,
+    HasEndScript = 0x2,
+};
+extern TypeEnum Type_PapyrusFragmentFlags;
+
 template<typename T>
 inline const Type* resolve_type() {
     static_assert(false, "unknown type");
@@ -146,6 +150,7 @@ RESOLVE_TYPE(uint16_t);
 RESOLVE_TYPE(uint32_t);
 RESOLVE_TYPE(uint64_t);
 RESOLVE_TYPE(PapyrusPropertyType);
+RESOLVE_TYPE(PapyrusFragmentFlags);
 RESOLVE_TYPE(FormID);
 RESOLVE_TYPE(WString);
 
