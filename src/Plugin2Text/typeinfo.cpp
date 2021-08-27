@@ -142,6 +142,10 @@ constexpr TypeStructField sf_bool(const char* name) {
     return { &Type_bool, name };
 }
 
+constexpr TypeStructField sf_vector3(const char* name) {
+    return { &Type_Vector3, name };
+}
+
 #define sf_constant(m_decltype, ...)                                                               \
     ([]() -> TypeStructField {                                                                     \
         static m_decltype the_value = { __VA_ARGS__ };                                             \
@@ -217,16 +221,9 @@ TypeInteger Type_uint8_t{ "uint8", sizeof(uint8_t), true };
 TypeInteger Type_uint16_t{ "uint16", sizeof(uint16_t), true };
 TypeInteger Type_uint32_t{ "uint32", sizeof(uint32_t), true };
 TypeInteger Type_uint64_t{ "uint64", sizeof(uint64_t), true };
+Type Type_Vector3{ TypeKind::Vector3, "Vector3", sizeof(Vector3) };
 
-TypeStructField Type_Vector3_Fields[] = {
-    sf_float("X"),
-    sf_float("Y"),
-    sf_float("Z"),
-};
-
-TypeStruct Type_Vector3{ "Vector3", 12, Type_Vector3_Fields };
-
-auto Field_MODL = rf_zstring("MODL", "Model File Name");
+static auto Field_MODL = rf_zstring("MODL", "Model File Name");
 
 const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     for (int i = 0; i < fields.count; ++i) {
@@ -555,12 +552,8 @@ RECORD(CELL, "Cell",
 );
 
 auto Type_LocationData = rf_subrecord("DATA", "Data", 24,
-    sf_float("Pos X"),
-    sf_float("Pos Y"),
-    sf_float("Pos Z"),
-    sf_float("Rot X"),
-    sf_float("Rot Y"),
-    sf_float("Rot Z"),
+    sf_vector3("Pos XYZ"),
+    sf_vector3("Rot XYZ"),
 );
 
 RECORD(REFR, "Reference",
@@ -590,12 +583,8 @@ RECORD(REFR, "Reference",
         ),
         rf_subrecord("XTEL", "Door Teleport", 32,
             sf_formid("Destination Door"),
-            sf_float("Pos X"), // @TODO: Vector3 type
-            sf_float("Pos Y"),
-            sf_float("Pos Z"),
-            sf_float("Rot X"),
-            sf_float("Rot Y"),
-            sf_float("Rot Z"),
+            sf_vector3("Pos XYZ"),
+            sf_vector3("Rot XYZ"),
             sf_flags_uint32("Flags",
                 { 0x1, "No Alarm" },
             ),

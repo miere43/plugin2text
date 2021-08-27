@@ -714,6 +714,12 @@ struct TextRecordReader {
                 read_type(filter_type->inner_type);
             } break;
 
+            case TypeKind::Vector3: {
+                read_type(&Type_float);
+                read_type(&Type_float);
+                read_type(&Type_float);
+            } break;
+
             default: {
                 verify(false);
             } break;

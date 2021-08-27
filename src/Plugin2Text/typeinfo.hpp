@@ -22,6 +22,7 @@ enum class TypeKind {
     VMAD,
     Constant,
     Filter,
+    Vector3,
 };
 
 struct Type {
@@ -87,6 +88,12 @@ struct TypeFilter : Type {
     { }
 };
 
+struct Vector3 {
+    float x = 0;
+    float y = 0;
+    float z = 0;
+};
+
 constexpr bool VMAD_use_byte_array = true; // @TODO
 
 extern Type Type_ZString;
@@ -108,7 +115,7 @@ extern TypeInteger Type_uint8_t;
 extern TypeInteger Type_uint16_t;
 extern TypeInteger Type_uint32_t;
 extern TypeInteger Type_uint64_t;
-extern TypeStruct Type_Vector3;
+extern Type Type_Vector3;
 
 enum class PapyrusPropertyType : uint8_t {
     Object = 1,

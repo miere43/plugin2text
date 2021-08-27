@@ -36,7 +36,7 @@ struct TextRecordWriter {
         output_handle = 0;
     }
 
-    void write_format(const char* format, ...) {
+    void write_format(_Printf_format_string_ const char* format, ...) {
         char buffer[4096];
 
         va_list args;
@@ -245,6 +245,7 @@ struct TextRecordWriter {
             case TypeKind::Struct:
             case TypeKind::Constant:
             case TypeKind::Filter:
+            case TypeKind::Vector3:
                 return true;
         }
         return false;
@@ -665,6 +666,17 @@ struct TextRecordWriter {
                 indent += 1;
 
                 scratch_buffer.now = highwater;
+            } break;
+
+            case TypeKind::Vector3: {
+                // @TODO: maybe can replace with fixed array type.
+                verify(size == sizeof(Vector3));
+                const auto vector = (const Vector3*)value;
+                indent -= 1;
+                write_type(&Type_float, &vector->x, sizeof(vector->x));
+                write_type(&Type_float, &vector->y, sizeof(vector->y));
+                write_type(&Type_float, &vector->z, sizeof(vector->z));
+                indent += 1;
             } break;
 
             default: {
