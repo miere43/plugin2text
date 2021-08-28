@@ -78,7 +78,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\Plugin2Text;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\dev\plugin2text\src\zlib-1.2.11\out\build\$(Platform)-$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\zlib-1.2.11\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -89,7 +89,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\Plugin2Text;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\dev\plugin2text\src\zlib-1.2.11\out\build\$(Platform)-$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\zlib-1.2.11\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

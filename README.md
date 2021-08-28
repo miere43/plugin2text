@@ -1,4 +1,4 @@
-# plugin2text
+# plugin2text ![Build status](https://github.com/miere43/plugin2text/actions/workflows/msbuild.yml/badge.svg)
 Converts Skyrim SE *.esp to text format 
 
 ### Usage
