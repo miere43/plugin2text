@@ -53,6 +53,13 @@
 #define rf_flags_uint16(m_type, m_name, ...) rf_enum(m_type, m_name, 2, true, __VA_ARGS__)
 #define rf_flags_uint32(m_type, m_name, ...) rf_enum(m_type, m_name, 4, true, __VA_ARGS__)
 
+#define rf_subrecord(...)                                                     \
+    ([]() -> const RecordFieldDefSubrecord* {                                 \
+        static const RecordFieldDef* fields[]{ __VA_ARGS__ };                 \
+        static RecordFieldDefSubrecord field{ { fields, _countof(fields) } }; \
+        return &field;                                                        \
+    })()
+
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8_t, name };
 }
@@ -305,8 +312,10 @@ RECORD(
             sf_int32("Number Of Records"),
             sf_int32("Next Object ID"), 
         ),
-        rf_zstring("MAST", "Master File"),
-        rf_uint64("DATA", "Unused"),
+        rf_subrecord(
+            rf_zstring("MAST", "Master File"),
+            rf_uint64("DATA", "Unused"),
+        ),
         rf_zstring("CNAM", "Author"),
         rf_uint32("INTV", "Tagified Strings"),
         //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!

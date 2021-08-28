@@ -226,8 +226,24 @@ struct TextRecordWriter {
 
         write_newline();
 
-        for (const auto field : record->fields) {
-            write_field(def, field);
+        for (int i = 0; i < record->fields.count;) {
+            const auto field = record->fields[i];
+
+            auto field_def = def->get_field_def(field->type);
+            if (!field_def) {
+                field_def = Record_Common.get_field_def(field->type);
+            }
+
+            if (!field_def || field_def->def_type == RecordFieldDefType::Field) {
+                write_field(field, static_cast<const RecordFieldDef*>(field_def));
+                ++i;
+            } else if (field_def->def_type == RecordFieldDefType::Subrecord) {
+                const auto subrecord_field_def = static_cast<const RecordFieldDefSubrecord*>(field_def);
+                write_subrecord_fields(subrecord_field_def, { &record->fields.data[i], static_cast<size_t>(record->fields.count - i) });
+                i += subrecord_field_def->fields.count;
+            } else {
+                verify(false);
+            }
         }
     }
 
@@ -660,19 +676,11 @@ struct TextRecordWriter {
         --indent;
     }
 
-    void write_field(const RecordDef* def, const RecordField* field) {
+    void write_field(const RecordField* field, const RecordFieldDef* field_def) {
         ++indent;
         write_indent();
 
         write_bytes(&field->type, 4);
-        auto field_def = (const RecordFieldDef*)def->get_field_def(field->type);
-        if (!field_def) {
-            field_def = (const RecordFieldDef*)Record_Common.get_field_def(field->type);
-        }
-        
-        if (field_def) {
-            verify(field_def->def_type == RecordFieldDefType::Field);
-        }
 
         if (field_def && field_def->comment) {
             write_bytes(" - ", 3);
@@ -685,6 +693,17 @@ struct TextRecordWriter {
         write_type(data_type, field->data.data, field->data.count);
         
         --indent;
+    }
+
+    void write_subrecord_fields(const RecordFieldDefSubrecord* field_def, StaticArray<RecordField*> fields) {
+        for (int field_def_index = 0, processed_field_index = 0; field_def_index < field_def->fields.count; ++field_def_index) {
+            const auto inner_field_def = (const RecordFieldDef*)field_def->fields.data[field_def_index];
+            verify(inner_field_def->def_type == RecordFieldDefType::Field);
+
+            // @TODO: constant
+            verify(processed_field_index < fields.count);
+            write_field(fields.data[processed_field_index++], inner_field_def);
+        }
     }
 
     void begin_custom_struct(const char* header_name) {

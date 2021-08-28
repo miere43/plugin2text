@@ -87,4 +87,9 @@ template<typename T>
 struct StaticArray {
     T* data = nullptr;
     size_t count = 0;
+
+    T* begin() { return data ? &data[0] : nullptr; }
+    T* end() { return data ? &data[count] : nullptr; }
+    const T* begin() const { return data ? &data[0] : nullptr; }
+    const T* end() const { return data ? &data[count] : nullptr; }
 };

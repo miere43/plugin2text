@@ -329,7 +329,22 @@ struct TextRecordReader {
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
-                read_field(def, &record);
+                const auto curr = &now[indents * 2];
+                verify(curr + 4 <= end);
+                const auto field_type = *(RecordFieldType*)curr;
+
+                auto field_def = def->get_field_def(field_type);
+                if (!field_def) {
+                    field_def = Record_Common.get_field_def(field_type);
+                }
+
+                if (!field_def || field_def->def_type == RecordFieldDefType::Field) {
+                    read_field(static_cast<const RecordFieldDef*>(field_def));
+                } else if (field_def->def_type == RecordFieldDefType::Subrecord) {
+                    read_subrecord_fields(static_cast<const RecordFieldDefSubrecord*>(field_def));
+                } else {
+                    verify(false);
+                }
             } else {
                 verify(indents < indent);
                 break;
@@ -884,7 +899,7 @@ struct TextRecordReader {
         read_custom_field(slice, field_name, resolve_type<T>());
     }
 
-    void read_field(const RecordDef* def, RawRecord* record) {
+    void read_field(const RecordFieldDef* field_def) {
         const auto field_start_offset = buffer->now;
 
         RawRecordField field;
@@ -892,21 +907,19 @@ struct TextRecordReader {
         field.type = read_record_field_type();
 
         buffer->now += sizeof(field);
-        auto field_def = (const RecordFieldDef*)def->get_field_def(field.type);
-        if (!field_def) {
-            field_def = (const RecordFieldDef*)Record_Common.get_field_def(field.type);
-        }
-
-        if (field_def) {
-            verify(field_def->def_type == RecordFieldDefType::Field);
-        }
-
+        
         skip_to_next_line();
 
         read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
 
         field.size = (uint16_t)(buffer->now - field_start_offset - sizeof(field));
         buffer->write_struct_at(field_start_offset, &field);
+    }
+
+    void read_subrecord_fields(const RecordFieldDefSubrecord* field_def) {
+        for (const auto inner_field_def : field_def->fields) {
+            read_field(inner_field_def);
+        }
     }
 
     RecordType read_record_type() {

@@ -156,6 +156,7 @@ RESOLVE_TYPE(WString);
 
 enum class RecordFieldDefType {
     Field,
+    Subrecord,
 };
 
 struct RecordFieldDefBase {
@@ -164,12 +165,20 @@ struct RecordFieldDefBase {
     const char* comment = nullptr;
 
     constexpr RecordFieldDefBase(RecordFieldDefType def_type, char const type[5], const char* comment) : def_type(def_type), type((RecordFieldType)fourcc(type)), comment(comment) { }
+    constexpr RecordFieldDefBase(RecordFieldDefType def_type, RecordFieldType type, const char* comment) : def_type(def_type), type(type), comment(comment) { }
 };
 
 struct RecordFieldDef : RecordFieldDefBase {
     const Type* data_type = nullptr;
 
     constexpr RecordFieldDef(char const type[5], const Type* data_type, const char* comment) : RecordFieldDefBase(RecordFieldDefType::Field, type, comment), data_type(data_type) { }
+    constexpr RecordFieldDef(RecordFieldType type, const Type* data_type, const char* comment) : RecordFieldDefBase(RecordFieldDefType::Field, type, comment), data_type(data_type) { }
+};
+
+struct RecordFieldDefSubrecord : RecordFieldDefBase {
+    StaticArray<const RecordFieldDef*> fields;
+
+    constexpr RecordFieldDefSubrecord(StaticArray<const RecordFieldDef*> fields) : RecordFieldDefBase(RecordFieldDefType::Subrecord, fields.data[0]->type, fields.data[0]->comment), fields(fields) { }
 };
 
 struct RecordFlagDef {
