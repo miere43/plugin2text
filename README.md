@@ -3,7 +3,7 @@ Converts Skyrim SE *.esp to text format
 
 ### Usage
 ```
-Usage: plugin2text.exe <source file> <destination file>
+Usage: plugin2text.exe <source file> [destination file]
         
         <source file>       file to convert (*.esp, *.esm, *.esl, *.txt)
         [destination file]  output path
@@ -53,12 +53,8 @@ TES4 [00000000] - File Header
     "DEFAULT"
   MAST - Master File
     "Skyrim.esm"
-  DATA
-    0000000000000000
   MAST - Master File
     "Update.esm"
-  DATA
-    0000000000000000
-  INTV
-    01000000
+  INTV - Tagified Strings
+    1
 ```
