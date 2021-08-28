@@ -267,13 +267,15 @@ struct TextRecordWriter {
         return false;
     }
 
-    static size_t count_bytes(const uint8_t* start, size_t size, uint8_t byte) {
-        for (size_t i = 0; i < size; ++i) {
-            if (start[i] != byte) {
-                return i;
+    static size_t count_bytes(const uint8_t* start, const uint8_t* end, uint8_t byte) {
+        auto now = start;
+        while (now < end) {
+            if (*now != byte) {
+                return now - start;
             }
+            ++now;
         }
-        return size;
+        return end - start;
     }
 
     void write_papyrus_object(BinaryReader& r, const VMAD_Header* header) {
@@ -400,7 +402,7 @@ struct TextRecordWriter {
                 for (size_t i = 0; i < size; ++i) {
                     uint8_t c = data[i];
                     if ((c == 0x00 || c == 0xFF) && i + 1 < size) {
-                        size_t repeats = 1 + count_bytes(&data[i + 1], size - 1, c);
+                        size_t repeats = 1 + count_bytes(&data[i + 1], &data[size], c);
                         if (repeats > 1) {
                             if (repeats > ByteArrayRLE_MaxStreamValue) {
                                 repeats = ByteArrayRLE_MaxStreamValue;
