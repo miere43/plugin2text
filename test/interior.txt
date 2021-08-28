@@ -33,8 +33,58 @@ GRUP
         DATA - Flags
           + Interior
           + Public Area
-        XCLL
-          8080800000000000000000000000000000000000000000000000000000000000000000000000803f8d80860073807a0080868000807a80003d3d3a00c3c3c600000000000000803f000000000000803f00000000000000009f000000
+        XCLL - Lighting
+          Ambient Color
+            80808000
+          Directional Color
+            00000000
+          Fog Near Color
+            00000000
+          Fog Near
+            0.000000
+          Fog Far
+            0.000000
+          Rotation XY
+            0
+          Rotation Z
+            0
+          Directional Fade
+            0.000000
+          Fog Clip Distance
+            0.000000
+          Fow Pow
+            1.000000
+          Ambient X+ Color
+            8d808600
+          Ambient X- Color
+            73807a00
+          Ambient Y+ Color
+            80868000
+          Ambient Y- Color
+            807a8000
+          Ambient Z+ Color
+            3d3d3a00
+          Ambient Z- Color
+            c3c3c600
+          Specular Color
+            00000000
+          Fresnel Power
+            1.000000
+          Fog Far Color
+            00000000
+          Fog Max
+            1.000000
+          Light Fade Distance Start
+            0.000000
+          Light Fade Distance End
+            0.000000
+          Inheritance Flags
+            + Ambient Color
+            + Directional Color
+            + Fog Color
+            + Fog Near
+            + Fog Far
+            + Clip Distance
         LTMP - Lighting Template
           [00000000]
         XCLW
@@ -51,36 +101,78 @@ GRUP
         DATA - Flags
           + Interior
           + Public Area
-        XCLL
-          8080800000000000000000000000000000000000000000000000000000000000000000000000803f8d80860073807a0080868000807a80003d3d3a00c3c3c600000000000000803f000000000000803f00000000000000009f000000
+        XCLL - Lighting
+          Ambient Color
+            80808000
+          Directional Color
+            00000000
+          Fog Near Color
+            00000000
+          Fog Near
+            0.000000
+          Fog Far
+            0.000000
+          Rotation XY
+            0
+          Rotation Z
+            0
+          Directional Fade
+            0.000000
+          Fog Clip Distance
+            0.000000
+          Fow Pow
+            1.000000
+          Ambient X+ Color
+            8d808600
+          Ambient X- Color
+            73807a00
+          Ambient Y+ Color
+            80868000
+          Ambient Y- Color
+            807a8000
+          Ambient Z+ Color
+            3d3d3a00
+          Ambient Z- Color
+            c3c3c600
+          Specular Color
+            00000000
+          Fresnel Power
+            1.000000
+          Fog Far Color
+            00000000
+          Fog Max
+            1.000000
+          Light Fade Distance Start
+            0.000000
+          Light Fade Distance End
+            0.000000
+          Inheritance Flags
+            + Ambient Color
+            + Directional Color
+            + Fog Color
+            + Fog Near
+            + Fog Far
+            + Clip Distance
         LTMP - Lighting Template
           [00000000]
         XCLW
           00000000
       GRUP - Cell [02000D61]
         GRUP - Persistent [02000D61]
+          REFR [02000D63] - Reference
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "E3demoMarker001"
+            NAME - Base Form ID
+              [0000003B]
           REFR [02000D64] - Reference
             + Persistent
             + Deleted
             + 800
             EDID - Editor ID
               "MG03_FellglowEnableMarker001"
-            NAME - Base Form ID
-              [0000003B]
-          REFR [02000D6A] - Reference
-            + Persistent
-            + Deleted
-            + 800
-            EDID - Editor ID
-              "dunTGTQ04UtteringHillsEnabler001"
-            NAME - Base Form ID
-              [0000003B]
-          REFR [02000D69] - Reference
-            + Persistent
-            + Deleted
-            + 800
-            EDID - Editor ID
-              "TG06_MarkarthWizardsEnableMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D65] - Reference
@@ -91,6 +183,14 @@ GRUP
               "MS06WolfSkullCaveStateMarker001"
             NAME - Base Form ID
               [0000003B]
+          REFR [02000D66] - Reference
+            + Persistent
+            + Deleted
+            + 800
+            EDID - Editor ID
+              "dunDeadMensRespiteCompletedMarker001"
+            NAME - Base Form ID
+              [0000003B]
           REFR [02000D68] - Reference
             + Persistent
             + Deleted
@@ -99,27 +199,20 @@ GRUP
               "DefaultDragonEnableMarker001"
             NAME - Base Form ID
               [00000034]
-          REFR [02000D6C] - Reference
-            + Persistent
-            + Deleted
-            EDID - Editor ID
-              "dunHunterQSTinitiallyEnableds001"
-            NAME - Base Form ID
-              [0000003B]
-          REFR [02000D63] - Reference
+          REFR [02000D69] - Reference
             + Persistent
             + Deleted
             + 800
             EDID - Editor ID
-              "E3demoMarker001"
+              "TG06_MarkarthWizardsEnableMarker001"
             NAME - Base Form ID
               [0000003B]
-          REFR [02000D66] - Reference
+          REFR [02000D6A] - Reference
             + Persistent
             + Deleted
             + 800
             EDID - Editor ID
-              "dunDeadMensRespiteCompletedMarker001"
+              "dunTGTQ04UtteringHillsEnabler001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D6B] - Reference
@@ -130,10 +223,17 @@ GRUP
               "TG02GoldenglowGuardsEnabler001"
             NAME - Base Form ID
               [0000003B]
+          REFR [02000D6C] - Reference
+            + Persistent
+            + Deleted
+            EDID - Editor ID
+              "dunHunterQSTinitiallyEnableds001"
+            NAME - Base Form ID
+              [0000003B]
         GRUP - Temporary [02000D61]
+          NAVM [02000D62] - NavMesh
+            + Deleted
           ACHR [02000D67] - Actor
             + Deleted
             NAME - Base NPC
               [000F811C]
-          NAVM [02000D62] - NavMesh
-            + Deleted
