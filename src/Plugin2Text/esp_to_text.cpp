@@ -18,8 +18,7 @@ struct TextRecordWriter {
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
     
-    // @TODO: Replace with "RecordFlags current_record_type"
-    const RecordBase* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
+    RecordType current_record_type = (RecordType)0; // Sometimes ESP deserialization depends on record type.
 
     void open(const wchar_t* path) {
         verify(!output_handle);
@@ -172,7 +171,7 @@ struct TextRecordWriter {
     }
 
     void write_record(const RecordBase* record_base) {
-        current_record = record_base;
+        current_record_type = record_base->type;
         write_indent();
         write_bytes(&record_base->type, 4);
 
@@ -555,7 +554,7 @@ struct TextRecordWriter {
                 write_papyrus_scripts(r, header, header->script_count);
 
                 // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
-                switch (current_record->type) {
+                switch (current_record_type) {
                     case RecordType::INFO: {
                         verify(r.read<uint8_t>() == 2); // version?
 
