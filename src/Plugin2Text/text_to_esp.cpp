@@ -176,7 +176,6 @@ struct TextRecordReader {
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
-                expect_indent();
                 auto record = read_record();
                 if (group.group_type == RecordGroupType::Top) {
                     if (record->type == RecordType::GRUP) {
@@ -285,9 +284,10 @@ struct TextRecordReader {
     }
 
     RawRecord* read_record() {
-        auto record_start_offset = buffer->now;
+        const auto record_start_offset = buffer->now;
 
         RawRecord record;
+        expect_indent();
         record.type = read_record_type();
 
         if (record.type == RecordType::GRUP) {
@@ -326,7 +326,6 @@ struct TextRecordReader {
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
-                expect_indent();
                 read_field(def, &record);
             } else {
                 verify(indents < indent);
@@ -402,7 +401,21 @@ struct TextRecordReader {
         slice->advance(count);
     }
 
+    static bool has_custom_indent_rules(TypeKind kind) {
+        switch (kind) {
+            case TypeKind::Struct:
+                return true;
+        }
+        return false;
+    }
+
     size_t read_type(const Type* type, Slice* slice) {
+        indent += 1;
+
+        if (!has_custom_indent_rules(type->kind)) {
+            expect_indent();
+        }
+        
         auto slice_now_before_parsing = slice->now;
         
         // @TODO: Cleanup: there are too many statements like "now = line_end + 1".
@@ -552,15 +565,10 @@ struct TextRecordReader {
                         slice->write_bytes(constant_type->bytes, constant_type->size);
                         continue;
                     }
-                    if (i != 0) {
-                        expect_indent(); // @TODO: fix indent parsing
-                    }
+                    expect_indent();
                     verify(expect(field.name));
                     verify(expect("\n"));
-                    indent += 1;
-                    expect_indent();
                     read_type(field.type, slice);
-                    indent -= 1;
                 }
             } break;
 
@@ -682,6 +690,12 @@ struct TextRecordReader {
             } break;
         }
 
+        // @TODO: fix everything else before doing this
+        //if (!has_custom_indent_rules(type->kind)) {
+        //    expect("\n");
+        //}
+
+        indent -= 1;
         return slice->now - slice_now_before_parsing;
     }
 
@@ -709,9 +723,10 @@ struct TextRecordReader {
     }
 
     void read_field(const RecordDef* def, RawRecord* record) {
-        auto field_start_offset = buffer->now;
+        const auto field_start_offset = buffer->now;
 
         RawRecordField field;
+        expect_indent();
         field.type = read_record_field_type();
 
         buffer->now += sizeof(field);
@@ -722,12 +737,7 @@ struct TextRecordReader {
 
         skip_to_next_line();
 
-        indent += 1;
-
-        expect_indent();
         read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
-
-        indent -= 1;
 
         field.size = (uint16_t)(buffer->now - field_start_offset - sizeof(field));
         buffer->write_struct_at(field_start_offset, &field);

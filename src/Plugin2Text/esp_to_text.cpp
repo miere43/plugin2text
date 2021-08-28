@@ -123,7 +123,6 @@ struct TextRecordWriter {
         //verify(!record->last_user_id);
 
         write_record_unknown(record->unknown);
-
         write_newline();
 
         indent += 1;
