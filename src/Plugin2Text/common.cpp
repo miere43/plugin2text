@@ -47,26 +47,6 @@ int string_last_index_of(const wchar_t* str, char c) {
     return -1;
 }
 
-uint8_t* VirtualMemoryBuffer::advance(size_t size) {
-    verify(now + size <= end);
-    auto result = now;
-    now += size;
-    return result;
-}
-
-size_t VirtualMemoryBuffer::remaining_size() const {
-    return end - now;
-}
-
-VirtualMemoryBuffer VirtualMemoryBuffer::alloc(size_t size) {
-    VirtualMemoryBuffer buffer;
-    buffer.start = (uint8_t*)VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-    verify(buffer.start);
-    buffer.now = buffer.start;
-    buffer.end = buffer.start + size;
-    return buffer;
-}
-
 void BinaryReader::read(void* out, size_t size) {
     verify(now + size <= end);
     memcpy(out, now, size);

@@ -1,6 +1,7 @@
 #pragma once
 #include "common.hpp"
 #include "tes.hpp"
+#include "parseutils.hpp"
 
 struct RecordField {
     RecordFieldType type = (RecordFieldType)0;
@@ -37,7 +38,7 @@ struct EspObjectModel {
 };
 
 struct EspParser {
-    VirtualMemoryBuffer buffer;
+    Slice buffer;
 
     EspObjectModel model;
 

@@ -23,3 +23,12 @@ void* read_file(const wchar_t* path, uint32_t* size_out) {
     }
     return buffer;
 }
+
+Slice allocate_virtual_memory(size_t size) {
+    Slice slice;
+    slice.start = (uint8_t*)VirtualAlloc(0, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    verify(slice.start);
+    slice.now = slice.start;
+    slice.end = slice.start + size;
+    return slice;
+}

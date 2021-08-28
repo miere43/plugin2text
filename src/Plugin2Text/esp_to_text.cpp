@@ -12,7 +12,7 @@
 #include "esp_parser.hpp"
 
 struct TextRecordWriter {
-    VirtualMemoryBuffer scratch_buffer;
+    Slice scratch_buffer;
 
     HANDLE output_handle = 0;
     int indent = 0;
@@ -25,7 +25,7 @@ struct TextRecordWriter {
         output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
         verify(output_handle != INVALID_HANDLE_VALUE);
 
-        scratch_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 32);
+        scratch_buffer = allocate_virtual_memory(1024 * 1024 * 32);
 
         write_format("plugin2text version 1.00\n---\n");
     }

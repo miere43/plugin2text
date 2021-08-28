@@ -35,6 +35,7 @@
     <ClInclude Include="common.hpp" />
     <ClInclude Include="os.hpp" />
     <ClInclude Include="esp_parser.hpp" />
+    <ClInclude Include="parseutils.hpp" />
     <ClInclude Include="tes.hpp" />
     <ClInclude Include="esp_to_text.hpp" />
     <ClInclude Include="text_to_esp.hpp" />

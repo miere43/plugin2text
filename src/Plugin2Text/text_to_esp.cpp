@@ -9,19 +9,20 @@
 #include <stdlib.h>
 #include "base64.hpp"
 #include <zlib.h>
+#include "parseutils.hpp"
 
 struct TextRecordReader {
     // Current buffer. If writing compressed data, then points to "compression_buffer", otherwise to "esp_buffer".
-    VirtualMemoryBuffer* buffer = nullptr;
+    Slice* buffer = nullptr;
 
     // Buffer for writing ESP.
-    VirtualMemoryBuffer esp_buffer;
+    Slice esp_buffer;
 
     // Buffer for writing compressed data. Content from this buffer will be blitted into "esp_buffer" after compression.
     // @NOTE: It's possible to compress data inplace, but code for that is very annoying.
     // Looks like more trouble than worth.
     // Used as scratch buffer when decompressing base64-encoded fields.
-    VirtualMemoryBuffer compression_buffer;
+    Slice compression_buffer;
 
     bool inside_compressed_record = false;
 
@@ -32,8 +33,8 @@ struct TextRecordReader {
     int indent = 0;
 
     void open() {
-        esp_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 1024);
-        compression_buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 32);
+        esp_buffer = allocate_virtual_memory(1024 * 1024 * 1024);
+        compression_buffer = allocate_virtual_memory(1024 * 1024 * 32);
         buffer = &esp_buffer;
     }
 
@@ -218,7 +219,7 @@ struct TextRecordReader {
         }
 
         group.group_size = (uint32_t)(buffer->now - record_start_offset);
-        write_struct_at(record_start_offset, &group);
+        buffer->write_struct_at(record_start_offset, &group);
 
         return (RawGrupRecord*)record_start_offset;
     }
@@ -355,7 +356,7 @@ struct TextRecordReader {
         } else {
             record.data_size = (uint32_t)(buffer->now - record_start_offset - sizeof(record));
         }
-        write_struct_at(record_start_offset, &record);
+        buffer->write_struct_at(record_start_offset, &record);
 
         return (RawRecord*)record_start_offset;
     }
@@ -380,38 +381,39 @@ struct TextRecordReader {
         return formid;
     }
 
-    void read_formid_line() {
+    void read_formid_line(Slice* slice) {
         auto line_end = peek_end_of_current_line();
         auto formid = read_formid();
-        write_struct(&formid);
+        slice->write_struct(&formid);
         now += 1 + 8 + 1; // [DEADBEEF]
         verify(now == line_end);
         now = line_end + 1; // +1 for '\n'.
     }
 
-    void read_byte_array(size_t count) {
-        const auto buffer = new uint8_t[count]; // @TODO: use scratch
+    void read_byte_array(size_t count, Slice* slice) {
+        verify(slice->remaining_size() >= count);
 
         for (int i = 0; i < count; ++i) {
             uint8_t a = parse_hex_char(now[(i * 2) + 0]);
             uint8_t b = parse_hex_char(now[(i * 2) + 1]);
-            buffer[i] = (a << 4) | b;
+            slice->now[i] = (a << 4) | b;
         }
-
-        write_bytes(buffer, count);
-        delete[] buffer;
+        
+        slice->advance(count);
     }
 
-    void read_type(const Type* type) {
+    size_t read_type(const Type* type, Slice* slice) {
+        auto slice_now_before_parsing = slice->now;
+        
         // @TODO: Cleanup: there are too many statements like "now = line_end + 1".
         switch (type->kind) {
             case TypeKind::ByteArray: {
                 const auto line_end = peek_end_of_current_line();
-                const auto count = (line_end - now) / 2;
-                verify(((line_end - now) % 2) == 0);
+                const auto count = line_end - now;
+                verify((count % 2) == 0);
 
-                read_byte_array(count);
-
+                read_byte_array(count / 2, slice);
+                
                 now = line_end + 1; // +1 for '\n'.
             } break;
 
@@ -434,9 +436,10 @@ struct TextRecordReader {
                 const auto result = ::uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
                 verify(result == Z_OK);
 
-                write_bytes(decompressed_buffer, result_size);
+                slice->write_bytes(decompressed_buffer, result_size);
 
                 compression_buffer.now = base64_buffer;
+                
                 now = line_end + 1; // +1 for '\n'.
             } break;
 
@@ -446,7 +449,7 @@ struct TextRecordReader {
                 verify(((line_end - now) % 2) == 0);
                 verify(count == type->size);
 
-                read_byte_array(count);
+                read_byte_array(count, slice);
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
@@ -475,7 +478,7 @@ struct TextRecordReader {
                     *buffer_now++ = (a << 4) | b;
                 }
 
-                write_bytes(buffer, buffer_now - buffer);
+                slice->write_bytes(buffer, buffer_now - buffer);
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
@@ -487,8 +490,8 @@ struct TextRecordReader {
                 const auto line_end = peek_end_of_current_line();
                 const auto count = (line_end - now) - 2;
                 verify(now[0] == '"');
-                write_bytes(now + 1, count);
-                write_bytes("\0", 1);
+                slice->write_bytes(now + 1, count);
+                slice->write_bytes("\0", 1);
                 verify(now[count + 1] == '"');
 
                 now = line_end + 1; // +1 for '\n'.
@@ -504,7 +507,7 @@ struct TextRecordReader {
                         int count = sscanf_s(now, "%f%n", &value, &nread);
                         verify(count == 1);
                         verify(nread == line_end - now);
-                        write_struct(&value);
+                        slice->write_struct(&value);
                     } break;
 
                     case sizeof(double): {
@@ -512,7 +515,7 @@ struct TextRecordReader {
                         int count = sscanf_s(now, "%lf%n", &value, &nread);
                         verify(count == 1);
                         verify(nread == line_end - now);
-                        write_struct(&value);
+                        slice->write_struct(&value);
                     } break;
                 }
                 
@@ -535,26 +538,7 @@ struct TextRecordReader {
                     verify(nread == line_end - now);
                 }
 
-                switch (integer_type->size) {
-                    case 1: {
-                        uint8_t value8 = (uint8_t)value;
-                        write_struct(&value8);
-                    } break;
-
-                    case 2: {
-                        uint16_t value16 = (uint16_t)value;
-                        write_struct(&value16);
-                    } break;
-
-                    case 4: {
-                        uint32_t value32 = (uint32_t)value;
-                        write_struct(&value32);
-                    } break;
-
-                    case 8: {
-                        write_struct(&value);
-                    } break;
-                }
+                slice->write_integer_of_size(value, integer_type->size);
 
                 now = line_end + 1; // +1 for '\n'.
             } break;
@@ -565,7 +549,7 @@ struct TextRecordReader {
                     const auto& field = struct_type->fields[i];
                     if (field.type->kind == TypeKind::Constant) {
                         const auto constant_type = (const TypeConstant*)field.type;
-                        write_bytes(constant_type->bytes, constant_type->size);
+                        slice->write_bytes(constant_type->bytes, constant_type->size);
                         continue;
                     }
                     if (i != 0) {
@@ -575,22 +559,22 @@ struct TextRecordReader {
                     verify(expect("\n"));
                     indent += 1;
                     expect_indent();
-                    read_type(field.type);
+                    read_type(field.type, slice);
                     indent -= 1;
                 }
             } break;
 
             case TypeKind::FormID: {
-                read_formid_line();
+                read_formid_line(slice);
             } break;
 
             case TypeKind::FormIDArray: {
-                read_formid_line();
+                read_formid_line(slice);
                 while (true) {
                     auto current_indent = peek_indents();
                     if (indent == current_indent) {
                         expect_indent();
-                        read_formid_line();
+                        read_formid_line(slice);
                     } else {
                         verify(current_indent < indent);
                         break;
@@ -659,65 +643,67 @@ struct TextRecordReader {
                     parse_ok: {};
                 }
 
-                switch (enum_type->size) {
-                    case 1: {
-                        uint8_t value = (uint8_t)result;
-                        write_struct(&value);
-                    } break;
-
-                    case 2: {
-                        uint16_t value = (uint16_t)result;
-                        write_struct(&value);
-                    } break;
-
-                    case 4: {
-                        uint32_t value = (uint32_t)result;
-                        write_struct(&value);
-                    } break;
-
-                    case 8: {
-                        uint64_t value = (uint64_t)result;
-                        write_struct(&value);
-                    } break;
-
-                    default: {
-                        verify(false);
-                    } break;
-                }
+                slice->write_integer_of_size(result, enum_type->size);
             } break;
 
             case TypeKind::Boolean: {
-                auto line_end = peek_end_of_current_line();
+                const auto line_end = peek_end_of_current_line();
                 if (expect("True\n")) {
-                    bool value = true;
-                    write_struct(&value);
+                    const auto value = true;
+                    slice->write_struct(&value);
                 } else if (expect("False\n")) {
-                    bool value = false;
-                    write_struct(&value);
+                    const auto value = false;
+                    slice->write_struct(&value);
                 } else {
                     verify(false);
                 }
             } break;
 
             case TypeKind::VMAD: {
+                //auto version = read_custom_field<uint16_t>("Version");
+
                 verify(false);
             } break;
 
             case TypeKind::Filter: {
                 const auto filter_type = (const TypeFilter*)type;
-                read_type(filter_type->inner_type);
+                read_type(filter_type->inner_type, slice);
             } break;
 
             case TypeKind::Vector3: {
-                read_type(&Type_float);
-                read_type(&Type_float);
-                read_type(&Type_float);
+                read_type(&Type_float, slice);
+                read_type(&Type_float, slice);
+                read_type(&Type_float, slice);
             } break;
 
             default: {
                 verify(false);
             } break;
         }
+
+        return slice->now - slice_now_before_parsing;
+    }
+
+    void read_custom_field(Slice* slice, const char* field_name, const Type* type, void* value, size_t size) {
+        expect_indent();
+        verify(expect(field_name));
+        verify(expect("\n"));
+
+        indent += 1;
+        read_type(type, slice);
+        indent -= 1;
+
+        //write_indent();
+        //write_string(field_name);
+        //write_newline();
+        //write_type(type, value, size);
+    }
+
+    template<typename T>
+    T read_custom_field(Slice* slice, const char* field_name) {
+        T value;
+        read_custom_field(slice, field_name, resolve_type<T>(), &value, sizeof(T));
+        return value;
     }
 
     void read_field(const RecordDef* def, RawRecord* record) {
@@ -737,12 +723,12 @@ struct TextRecordReader {
         indent += 1;
 
         expect_indent();
-        read_type(field_def ? field_def->data_type : &Type_ByteArray);
+        read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
 
         indent -= 1;
 
         field.size = (uint16_t)(buffer->now - field_start_offset - sizeof(field));
-        write_struct_at(field_start_offset, &field);
+        buffer->write_struct_at(field_start_offset, &field);
     }
 
     RecordType read_record_type() {
@@ -825,27 +811,6 @@ struct TextRecordReader {
                 ++now;
             }
         }
-    }
-
-    template<typename T>
-    void write_struct(const T* data) {
-        write_bytes(data, sizeof(T));
-    }
-
-    template<typename T>
-    void write_struct_at(uint8_t* pos, const T* data) {
-        write_bytes_at(pos, data, sizeof(T));
-    }
-
-    void write_bytes(const void* data, size_t size) {
-        write_bytes_at(buffer->now, data, size);
-        buffer->now += size;
-    }
-
-    void write_bytes_at(uint8_t* pos, const void* data, size_t size) {
-        verify(pos >= buffer->start);
-        verify(pos + size <= buffer->end);
-        memcpy(pos, data, size);
     }
 };
 

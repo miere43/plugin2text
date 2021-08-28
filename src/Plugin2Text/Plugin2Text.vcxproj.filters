@@ -21,6 +21,7 @@
     <ClInclude Include="base64.hpp" />
     <ClInclude Include="esp_parser.hpp" />
     <ClInclude Include="array.hpp" />
+    <ClInclude Include="parseutils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Plugin2Text.natvis" />

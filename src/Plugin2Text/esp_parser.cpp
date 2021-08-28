@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 void EspParser::parse(const wchar_t* esp_path) {
-    buffer = VirtualMemoryBuffer::alloc(1024 * 1024 * 128);
+    buffer = allocate_virtual_memory(1024 * 1024 * 128);
 
     uint32_t size = 0;
     uint8_t* plugin = (uint8_t*)read_file(esp_path, &size);
