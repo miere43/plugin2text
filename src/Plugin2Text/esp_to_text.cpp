@@ -17,7 +17,8 @@ struct TextRecordWriter {
     HANDLE output_handle = 0;
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
-
+    
+    // @TODO: Replace with "RecordFlags current_record_type"
     const RecordBase* current_record = nullptr; // Sometimes ESP deserialization depends on record type.
 
     void open(const wchar_t* path) {
@@ -544,9 +545,7 @@ struct TextRecordWriter {
                 r.now = r.start;
                 r.end = r.start + size;
 
-                auto now = (uint8_t*)value;
-
-                auto header = r.advance<VMAD_Header>();
+                const auto header = r.advance<VMAD_Header>();
                 verify(header->version >= 2 && header->version <= 5);
                 verify(header->object_format >= 1 && header->object_format <= 2);
 
@@ -555,71 +554,65 @@ struct TextRecordWriter {
 
                 write_papyrus_scripts(r, header, header->script_count);
 
-                if (r.now != r.end) {
-                    // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
-                    switch (current_record->type) {
-                        case RecordType::INFO: {
-                            verify(r.read<uint8_t>() == 2); // version?
+                // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
+                switch (current_record->type) {
+                    case RecordType::INFO: {
+                        verify(r.read<uint8_t>() == 2); // version?
 
-                            auto flags = r.read<PapyrusFragmentFlags>();
-                            write_custom_field("Fragment Script File Name", r.advance_wstring());
+                        auto flags = r.read<PapyrusFragmentFlags>();
+                        write_custom_field("Fragment Script File Name", r.advance_wstring());
 
-                            // @TODO: copypaste
-                            if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasBeginScript) {
-                                begin_custom_struct("Start Fragment");
-                                defer(end_custom_struct());
+                        // @TODO: copypaste
+                        if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasBeginScript) {
+                            begin_custom_struct("Start Fragment");
+                            defer(end_custom_struct());
 
-                                verify(1 == r.read<uint8_t>());
-                                write_custom_field("Script Name", r.advance_wstring());
-                                write_custom_field("Fragment Name", r.advance_wstring());
-                            }
+                            verify(1 == r.read<uint8_t>());
+                            write_custom_field("Script Name", r.advance_wstring());
+                            write_custom_field("Fragment Name", r.advance_wstring());
+                        }
 
-                            if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasEndScript) {
-                                begin_custom_struct("End Fragment");
-                                defer(end_custom_struct());
+                        if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasEndScript) {
+                            begin_custom_struct("End Fragment");
+                            defer(end_custom_struct());
 
-                                verify(1 == r.read<uint8_t>());
-                                write_custom_field("Script Name", r.advance_wstring());
-                                write_custom_field("Fragment Name", r.advance_wstring());
-                            }
-                        } break;
+                            verify(1 == r.read<uint8_t>());
+                            write_custom_field("Script Name", r.advance_wstring());
+                            write_custom_field("Fragment Name", r.advance_wstring());
+                        }
+                    } break;
 
-                        case RecordType::QUST: {
-                            verify(r.read<uint8_t>() == 2); // version?
+                    case RecordType::QUST: {
+                        verify(r.read<uint8_t>() == 2); // version?
 
-                            auto fragment_count = (int)r.read<uint16_t>();
-                            write_custom_field("File Name", r.advance_wstring());
+                        auto fragment_count = (int)r.read<uint16_t>();
+                        write_custom_field("File Name", r.advance_wstring());
 
-                            for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
-                                begin_custom_struct("Fragment");
-                                defer(end_custom_struct());
+                        for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
+                            begin_custom_struct("Fragment");
+                            defer(end_custom_struct());
 
-                                write_custom_field("Index", r.read<uint16_t>());
-                                verify(0 == r.read<uint16_t>());
-                                write_custom_field("Log Entry", r.read<uint32_t>());
-                                verify(1 == r.read<uint8_t>());
-                                write_custom_field("Script Name", r.advance_wstring());
-                                write_custom_field("Function Name", r.advance_wstring());
-                            };
+                            write_custom_field("Index", r.read<uint16_t>());
+                            verify(0 == r.read<uint16_t>());
+                            write_custom_field("Log Entry", r.read<uint32_t>());
+                            verify(1 == r.read<uint8_t>());
+                            write_custom_field("Script Name", r.advance_wstring());
+                            write_custom_field("Function Name", r.advance_wstring());
+                        };
 
-                            auto alias_count = (int)r.read<uint16_t>();
-                            for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
-                                begin_custom_struct("Alias");
-                                defer(end_custom_struct());
+                        auto alias_count = (int)r.read<uint16_t>();
+                        for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
+                            begin_custom_struct("Alias");
+                            defer(end_custom_struct());
 
-                                write_papyrus_object(r, header);
-                                verify(r.read<uint16_t>() == header->version);
-                                verify(r.read<uint16_t>() == header->object_format);
+                            write_papyrus_object(r, header);
+                            verify(r.read<uint16_t>() == header->version);
+                            verify(r.read<uint16_t>() == header->object_format);
 
-                                const auto script_count = r.read<uint16_t>();
-                                write_papyrus_scripts(r, header, script_count);
-                            }
-                        } break;
-
-                        default: {
-                            verify(false);
-                        } break;
-                    }
+                            const auto script_count = r.read<uint16_t>();
+                            write_papyrus_scripts(r, header, script_count);
+                        }
+                    } break;
                 }
 
                 verify(r.now == r.end);

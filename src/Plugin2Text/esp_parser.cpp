@@ -13,16 +13,9 @@ void EspParser::parse(const wchar_t* esp_path) {
 }
 
 RecordBase* EspParser::process_record(const RawRecord* record) {
-    RecordBase* result_base;
-    if (record->type == RecordType::GRUP) {
-        auto result = buffer.advance<GrupRecord>();
-        *result = GrupRecord();
-        result_base = result;
-    } else {
-        auto result = buffer.advance<Record>();
-        *result = Record();
-        result_base = result;
-    }
+    auto result_base = record->type == RecordType::GRUP
+        ? static_cast<RecordBase*>(buffer.advance<GrupRecord>())
+        : static_cast<RecordBase*>(buffer.advance<Record>());
 
     verify(!record->current_user_id);
     verify(!record->last_user_id);
@@ -94,7 +87,6 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
 
 RecordField* EspParser::process_field(Record* record, const RawRecordField* field) {
     auto result = buffer.advance<RecordField>();
-    memset(result, 0, sizeof(result));
 
     verify(record->type != RecordType::GRUP);
 

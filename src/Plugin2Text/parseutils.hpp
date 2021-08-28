@@ -13,7 +13,9 @@ struct Slice {
 
     template<typename T>
     T* advance() {
-        return (T*)advance(sizeof(T));
+        T* obj = (T*)advance(sizeof(T));
+        *obj = T();
+        return obj;
     }
 
     inline uint8_t* advance(size_t count) {
@@ -21,6 +23,11 @@ struct Slice {
         auto result = now;
         now += count;
         return result;
+    }
+
+    template<typename T>
+    void write_constant(const T& value) {
+        write_bytes(&value, sizeof(T));
     }
 
     template<typename T>

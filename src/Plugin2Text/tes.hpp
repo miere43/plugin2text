@@ -108,8 +108,8 @@ struct VMAD_Header {
 //};
 
 struct VMAD_PropertyObjectV2 {
-    uint16_t unused;
-    int16_t alias;
+    uint16_t unused = 0;
+    int16_t alias = 0;
     FormID form_id;
 };
 #pragma pack(pop)
