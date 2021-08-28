@@ -6,8 +6,8 @@
 #define CONCAT(a, b) a##b
 
 #define rf_field(m_type, m_data_type, m_name)                            \
-    ([]() -> const RecordFieldDefField* {                                \
-        static RecordFieldDefField field{ m_type, m_data_type, m_name }; \
+    ([]() -> const RecordFieldDef* {                                \
+        static RecordFieldDef field{ m_type, m_data_type, m_name }; \
         return &field;                                                   \
     })()
 
@@ -29,20 +29,20 @@
 #define rf_bytes_rle(m_type, m_name) rf_field(m_type, &Type_ByteArrayRLE, m_name)
 #define rf_bool(m_type, m_name) rf_field(m_type, &Type_bool, m_name)
 
-#define rf_struct(m_type, m_name, m_size, ...)                     \
-    ([]() -> const RecordFieldDefField* {                          \
-        static TypeStructField fields[]{ __VA_ARGS__ };            \
-        static TypeStruct type{ m_name, m_size, fields };          \
-        static RecordFieldDefField field{ m_type, &type, m_name }; \
-        return &field;                                             \
+#define rf_struct(m_type, m_name, m_size, ...)                \
+    ([]() -> const RecordFieldDef* {                          \
+        static TypeStructField fields[]{ __VA_ARGS__ };       \
+        static TypeStruct type{ m_name, m_size, fields };     \
+        static RecordFieldDef field{ m_type, &type, m_name }; \
+        return &field;                                        \
     })()
 
-#define rf_enum(m_type, m_name, m_size, m_flags, ...)              \
-    ([]() -> const RecordFieldDefField* {                          \
-        static TypeEnumField fields[]{ __VA_ARGS__ };              \
-        static TypeEnum type{ m_name, m_size, fields, m_flags };   \
-        static RecordFieldDefField field{ m_type, &type, m_name }; \
-        return &field;                                             \
+#define rf_enum(m_type, m_name, m_size, m_flags, ...)            \
+    ([]() -> const RecordFieldDef* {                             \
+        static TypeEnumField fields[]{ __VA_ARGS__ };            \
+        static TypeEnum type{ m_name, m_size, fields, m_flags }; \
+        static RecordFieldDef field{ m_type, &type, m_name };    \
+        return &field;                                           \
     })()
 
 #define rf_enum_uint8(m_type, m_name, ...) rf_enum(m_type, m_name, 1, false, __VA_ARGS__)
@@ -180,7 +180,7 @@ Type Type_Vector3{ TypeKind::Vector3, "Vector3", sizeof(Vector3) };
 
 static auto Field_MODL = rf_zstring("MODL", "Model File Name");
 
-const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
+const RecordFieldDefBase* RecordDef::get_field_def(RecordFieldType type) const {
     for (int i = 0; i < fields.count; ++i) {
         const auto field = fields.data[i];
         if (field->type == type) {
@@ -262,8 +262,8 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
     })()
 
 #define record_fields(...)                                    \
-    ([]() -> StaticArray<const RecordFieldDef*> {             \
-        static const RecordFieldDef* fields[]{ __VA_ARGS__ }; \
+    ([]() -> StaticArray<const RecordFieldDefBase*> {             \
+        static const RecordFieldDefBase* fields[]{ __VA_ARGS__ }; \
         return { fields, _countof(fields) };                  \
     })()
 

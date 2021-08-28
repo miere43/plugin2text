@@ -158,18 +158,18 @@ enum class RecordFieldDefType {
     Field,
 };
 
-struct RecordFieldDef {
+struct RecordFieldDefBase {
     RecordFieldDefType def_type = RecordFieldDefType::Field;
     RecordFieldType type = (RecordFieldType)0;
     const char* comment = nullptr;
 
-    constexpr RecordFieldDef(RecordFieldDefType def_type, char const type[5], const char* comment) : def_type(def_type), type((RecordFieldType)fourcc(type)), comment(comment) { }
+    constexpr RecordFieldDefBase(RecordFieldDefType def_type, char const type[5], const char* comment) : def_type(def_type), type((RecordFieldType)fourcc(type)), comment(comment) { }
 };
 
-struct RecordFieldDefField : RecordFieldDef {
+struct RecordFieldDef : RecordFieldDefBase {
     const Type* data_type = nullptr;
 
-    constexpr RecordFieldDefField(char const type[5], const Type* data_type, const char* comment) : RecordFieldDef(RecordFieldDefType::Field, type, comment), data_type(data_type) { }
+    constexpr RecordFieldDef(char const type[5], const Type* data_type, const char* comment) : RecordFieldDefBase(RecordFieldDefType::Field, type, comment), data_type(data_type) { }
 };
 
 struct RecordFlagDef {
@@ -180,13 +180,13 @@ struct RecordFlagDef {
 struct RecordDef {
     RecordType type;
     const char* comment = nullptr;
-    StaticArray<const RecordFieldDef*> fields;
+    StaticArray<const RecordFieldDefBase*> fields;
     StaticArray<RecordFlagDef> flags;
 
     constexpr RecordDef(
             char const type[5],
             const char* comment,
-            StaticArray<const RecordFieldDef*> fields)
+            StaticArray<const RecordFieldDefBase*> fields)
         : type((RecordType)fourcc(type))
         , comment(comment)
         , fields(fields)
@@ -195,7 +195,7 @@ struct RecordDef {
     constexpr RecordDef(
             char const type[5],
             const char* comment,
-            StaticArray<const RecordFieldDef*> fields,
+            StaticArray<const RecordFieldDefBase*> fields,
             StaticArray<RecordFlagDef> flags)
         : type((RecordType)fourcc(type))
         , comment(comment)
@@ -203,7 +203,7 @@ struct RecordDef {
         , flags(flags)
     { }
 
-    const RecordFieldDef* get_field_def(RecordFieldType type) const;
+    const RecordFieldDefBase* get_field_def(RecordFieldType type) const;
 };
 
 extern RecordDef Record_Common;
