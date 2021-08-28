@@ -5,86 +5,44 @@
 
 #define CONCAT(a, b) a##b
 
-constexpr RecordFieldDef rf_zstring(char const type[5], const char* name) {
-    return { type, &Type_ZString, name };
-}
-
-constexpr RecordFieldDef rf_lstring(char const type[5], const char* name) {
-    return { type, &Type_LString, name };
-}
-
-constexpr RecordFieldDef rf_float(char const type[5], const char* name) {
-    return { type, &Type_float, name };
-}
-
-constexpr RecordFieldDef rf_int8(char const type[5], const char* name) {
-    return { type, &Type_int8_t, name };
-}
-
-constexpr RecordFieldDef rf_int16(char const type[5], const char* name) {
-    return { type, &Type_int16_t, name };
-}
-
-constexpr RecordFieldDef rf_int32(char const type[5], const char* name) {
-    return { type, &Type_int32_t, name };
-}
-
-constexpr RecordFieldDef rf_int64(char const type[5], const char* name) {
-    return { type, &Type_int64_t, name };
-}
-
-constexpr RecordFieldDef rf_uint8(char const type[5], const char* name) {
-    return { type, &Type_uint8_t, name };
-}
-
-constexpr RecordFieldDef rf_uint16(char const type[5], const char* name) {
-    return { type, &Type_uint16_t, name };
-}
-
-constexpr RecordFieldDef rf_uint32(char const type[5], const char* name) {
-    return { type, &Type_uint32_t, name };
-}
-
-constexpr RecordFieldDef rf_uint64(char const type[5], const char* name) {
-    return { type, &Type_uint64_t, name };
-}
-
-constexpr RecordFieldDef rf_formid(char const type[5], const char* name) {
-    return { type, &Type_FormID, name };
-}
-
-constexpr RecordFieldDef rf_formid_array(char const type[5], const char* name) {
-    return { type, &Type_FormIDArray, name };
-}
-
-constexpr RecordFieldDef rf_bytes(char const type[5], const char* name) {
-    return { type, &Type_ByteArray, name };
-}
-
-constexpr RecordFieldDef rf_compressed(char const type[5], const char* name) {
-    return { type, &Type_ByteArrayCompressed, name };
-}
-
-constexpr RecordFieldDef rf_bytes_rle(char const type[5], const char* name) {
-    return { type, &Type_ByteArrayRLE, name };
-}
-
-constexpr RecordFieldDef rf_bool(char const type[5], const char* name) {
-    return { type, &Type_bool, name };
-}
-
-#define rf_struct(m_type, m_name, m_size, ...)    \
-    ([]() -> RecordFieldDef {                             \
-        static TypeStructField fields[]{ __VA_ARGS__ };   \
-        static TypeStruct type{ m_name, m_size, fields }; \
-        return { m_type, &type, m_name };            \
+#define rf_field(m_type, m_data_type, m_name)                            \
+    ([]() -> const RecordFieldDefField* {                                \
+        static RecordFieldDefField field{ m_type, m_data_type, m_name }; \
+        return &field;                                                   \
     })()
 
-#define rf_enum(m_type, m_name, m_size, m_flags, ...)       \
-    ([]() -> RecordFieldDef {                                    \
-        static TypeEnumField fields[]{ __VA_ARGS__ };            \
-        static TypeEnum type{ m_name, m_size, fields, m_flags }; \
-        return { m_type, &type, m_name };                   \
+#define rf_zstring(m_type, m_name) rf_field(m_type, &Type_ZString, m_name)
+#define rf_lstring(m_type, m_name) rf_field(m_type, &Type_LString, m_name)
+#define rf_float(m_type, m_name) rf_field(m_type, &Type_float, m_name)
+#define rf_int8(m_type, m_name) rf_field(m_type, &Type_int8_t, m_name)
+#define rf_int16(m_type, m_name) rf_field(m_type, &Type_int16_t, m_name)
+#define rf_int32(m_type, m_name) rf_field(m_type, &Type_int32_t, m_name)
+#define rf_int64(m_type, m_name) rf_field(m_type, &Type_int64_t, m_name)
+#define rf_uint8(m_type, m_name) rf_field(m_type, &Type_uint8_t, m_name)
+#define rf_uint16(m_type, m_name) rf_field(m_type, &Type_uint16_t, m_name)
+#define rf_uint32(m_type, m_name) rf_field(m_type, &Type_uint32_t, m_name)
+#define rf_uint64(m_type, m_name) rf_field(m_type, &Type_uint64_t, m_name)
+#define rf_formid(m_type, m_name) rf_field(m_type, &Type_FormID, m_name)
+#define rf_formid_array(m_type, m_name) rf_field(m_type, &Type_FormIDArray, m_name)
+#define rf_bytes(m_type, m_name) rf_field(m_type, &Type_ByteArray, m_name)
+#define rf_compressed(m_type, m_name) rf_field(m_type, &Type_ByteArrayCompressed, m_name)
+#define rf_bytes_rle(m_type, m_name) rf_field(m_type, &Type_ByteArrayRLE, m_name)
+#define rf_bool(m_type, m_name) rf_field(m_type, &Type_bool, m_name)
+
+#define rf_struct(m_type, m_name, m_size, ...)                     \
+    ([]() -> const RecordFieldDefField* {                          \
+        static TypeStructField fields[]{ __VA_ARGS__ };            \
+        static TypeStruct type{ m_name, m_size, fields };          \
+        static RecordFieldDefField field{ m_type, &type, m_name }; \
+        return &field;                                             \
+    })()
+
+#define rf_enum(m_type, m_name, m_size, m_flags, ...)              \
+    ([]() -> const RecordFieldDefField* {                          \
+        static TypeEnumField fields[]{ __VA_ARGS__ };              \
+        static TypeEnum type{ m_name, m_size, fields, m_flags };   \
+        static RecordFieldDefField field{ m_type, &type, m_name }; \
+        return &field;                                             \
     })()
 
 #define rf_enum_uint8(m_type, m_name, ...) rf_enum(m_type, m_name, 1, false, __VA_ARGS__)
@@ -224,9 +182,9 @@ static auto Field_MODL = rf_zstring("MODL", "Model File Name");
 
 const RecordFieldDef* RecordDef::get_field_def(RecordFieldType type) const {
     for (int i = 0; i < fields.count; ++i) {
-        const auto& field = fields.data[i];
-        if (field.type == type) {
-            return &field;
+        const auto field = fields.data[i];
+        if (field->type == type) {
+            return field;
         }
     }
     return nullptr;
@@ -303,10 +261,10 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
         return { fields, _countof(fields) };          \
     })()
 
-#define record_fields(...)                             \
-    ([]() -> StaticArray<RecordFieldDef> {             \
-        static RecordFieldDef fields[]{ __VA_ARGS__ }; \
-        return { fields, _countof(fields) };           \
+#define record_fields(...)                                    \
+    ([]() -> StaticArray<const RecordFieldDef*> {             \
+        static const RecordFieldDef* fields[]{ __VA_ARGS__ }; \
+        return { fields, _countof(fields) };                  \
     })()
 
 RecordDef Record_Common{
@@ -324,8 +282,8 @@ RecordDef Record_Common{
             sf_int16("Z2"),
         ),
         rf_int32("COCT", "Item Count"),
-        { "CNTO", &Type_CNTO, "Items" },
-        { "VMAD", &Type_VMAD, "Script" },
+        rf_field("CNTO", &Type_CNTO, "Items"),
+        rf_field("VMAD", &Type_VMAD, "Script"),
         rf_int32("KSIZ", "Keyword Count"),
         rf_formid_array("KWDA", "Keywords"),
         rf_zstring("FLTR", "Object Window Filter"),

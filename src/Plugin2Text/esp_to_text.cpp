@@ -665,9 +665,13 @@ struct TextRecordWriter {
         write_indent();
 
         write_bytes(&field->type, 4);
-        auto field_def = def->get_field_def(field->type);
+        auto field_def = (const RecordFieldDefField*)def->get_field_def(field->type);
         if (!field_def) {
-            field_def = Record_Common.get_field_def(field->type);
+            field_def = (const RecordFieldDefField*)Record_Common.get_field_def(field->type);
+        }
+        
+        if (field_def) {
+            verify(field_def->def_type == RecordFieldDefType::Field);
         }
 
         if (field_def && field_def->comment) {

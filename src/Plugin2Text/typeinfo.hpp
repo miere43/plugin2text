@@ -154,12 +154,22 @@ RESOLVE_TYPE(PapyrusFragmentFlags);
 RESOLVE_TYPE(FormID);
 RESOLVE_TYPE(WString);
 
+enum class RecordFieldDefType {
+    Field,
+};
+
 struct RecordFieldDef {
-    RecordFieldType type;
-    const Type* data_type;
+    RecordFieldDefType def_type = RecordFieldDefType::Field;
+    RecordFieldType type = (RecordFieldType)0;
     const char* comment = nullptr;
 
-    constexpr RecordFieldDef(char const type[5], const Type* data_type, const char* comment) : type((RecordFieldType)fourcc(type)), data_type(data_type), comment(comment) { }
+    constexpr RecordFieldDef(RecordFieldDefType def_type, char const type[5], const char* comment) : def_type(def_type), type((RecordFieldType)fourcc(type)), comment(comment) { }
+};
+
+struct RecordFieldDefField : RecordFieldDef {
+    const Type* data_type = nullptr;
+
+    constexpr RecordFieldDefField(char const type[5], const Type* data_type, const char* comment) : RecordFieldDef(RecordFieldDefType::Field, type, comment), data_type(data_type) { }
 };
 
 struct RecordFlagDef {
@@ -170,13 +180,13 @@ struct RecordFlagDef {
 struct RecordDef {
     RecordType type;
     const char* comment = nullptr;
-    StaticArray<RecordFieldDef> fields;
+    StaticArray<const RecordFieldDef*> fields;
     StaticArray<RecordFlagDef> flags;
 
     constexpr RecordDef(
             char const type[5],
             const char* comment,
-            StaticArray<RecordFieldDef> fields)
+            StaticArray<const RecordFieldDef*> fields)
         : type((RecordType)fourcc(type))
         , comment(comment)
         , fields(fields)
@@ -185,7 +195,7 @@ struct RecordDef {
     constexpr RecordDef(
             char const type[5],
             const char* comment,
-            StaticArray<RecordFieldDef> fields,
+            StaticArray<const RecordFieldDef*> fields,
             StaticArray<RecordFlagDef> flags)
         : type((RecordType)fourcc(type))
         , comment(comment)
