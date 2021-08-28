@@ -354,7 +354,7 @@ RECORD(
         //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!
     ),
     record_flags(
-        { 0x1, "Master" },
+        { (uint32_t)RecordFlags::TES4_Master, "Master" },
         { (uint32_t)RecordFlags::TES4_Localized, "Localized" },
         { 0x200, "Light Master" },
     )

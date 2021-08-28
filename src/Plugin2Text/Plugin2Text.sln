@@ -5,6 +5,11 @@ VisualStudioVersion = 17.0.31521.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin2Text", "Plugin2Text.vcxproj", "{C2C915C3-A952-4DDB-B066-99B583493F3D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin2TextTest", "..\Plugin2TextTest\Plugin2TextTest.vcxproj", "{D9225F24-685E-4D77-B537-F49B6342FFD3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C2C915C3-A952-4DDB-B066-99B583493F3D} = {C2C915C3-A952-4DDB-B066-99B583493F3D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -15,6 +20,10 @@ Global
 		{C2C915C3-A952-4DDB-B066-99B583493F3D}.Debug|x64.Build.0 = Debug|x64
 		{C2C915C3-A952-4DDB-B066-99B583493F3D}.Release|x64.ActiveCfg = Release|x64
 		{C2C915C3-A952-4DDB-B066-99B583493F3D}.Release|x64.Build.0 = Release|x64
+		{D9225F24-685E-4D77-B537-F49B6342FFD3}.Debug|x64.ActiveCfg = Debug|x64
+		{D9225F24-685E-4D77-B537-F49B6342FFD3}.Debug|x64.Build.0 = Debug|x64
+		{D9225F24-685E-4D77-B537-F49B6342FFD3}.Release|x64.ActiveCfg = Release|x64
+		{D9225F24-685E-4D77-B537-F49B6342FFD3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

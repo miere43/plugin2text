@@ -6,6 +6,7 @@ constexpr uint32_t fourcc(char const p[5]) {
 }
 
 enum class RecordType : uint32_t {
+    TES4 = fourcc("TES4"),
     GRUP = fourcc("GRUP"),
     CELL = fourcc("CELL"),
     INFO = fourcc("INFO"),
@@ -14,6 +15,7 @@ enum class RecordType : uint32_t {
 
 enum class RecordFlags : uint32_t {
     None = 0,
+    TES4_Master = 0x1,
     TES4_Localized = 0x80,
     Compressed = 0x40000,
 };

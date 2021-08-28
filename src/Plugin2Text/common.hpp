@@ -3,11 +3,7 @@
 
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line);
 
-#ifdef _DEBUG
-#define verify(cond) do { if (!(cond)) __debugbreak(); } while (0)
-#else
-#define verify(cond) do { if (!(cond)) verify_impl(#cond, __FILE__, __LINE__); } while (0)
-#endif
+#define verify(cond) do { if (!(cond)) { verify_impl(#cond, __FILE__, __LINE__); } } while (0)
 
 template <typename F>
 struct privDefer {

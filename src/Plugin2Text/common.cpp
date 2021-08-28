@@ -6,6 +6,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#include <exception>
 
 #ifdef _DEBUG
 #pragma comment(lib, "zlibstaticd.lib")
@@ -15,7 +16,7 @@
 
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line) {
     printf("error: assertion failed: condition \"%s\" is false (%s:%d)\n", msg, file, line);
-    exit(1);
+    throw std::exception("err");
 }
 
 __declspec(noreturn) void exit_error(const wchar_t* format, ...) {
