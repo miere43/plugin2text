@@ -32,3 +32,9 @@ Slice allocate_virtual_memory(size_t size) {
     slice.end = slice.start + size;
     return slice;
 }
+
+void free_virtual_memory(Slice* slice) {
+    verify(slice);
+    verify(VirtualFree(slice->start, 0, MEM_RELEASE));
+    *slice = Slice();
+}

@@ -1,21 +1,19 @@
 #pragma once
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
 #include "esp_parser.hpp"
 #include "typeinfo.hpp"
 
 struct TextRecordWriter {
+    Slice output_buffer;
     Slice scratch_buffer;
 
-    HANDLE output_handle = 0;
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record
 
     RecordType current_record_type = (RecordType)0; // Sometimes ESP deserialization depends on record type.
 
-    void open(const wchar_t* path);
-    void close();
+    void init();
+    void dispose();
+
     void write_format(_Printf_format_string_ const char* format, ...);
     void write_byte_array(const uint8_t* data, size_t size);
     void write_indent();

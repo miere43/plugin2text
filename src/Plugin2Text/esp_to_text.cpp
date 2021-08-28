@@ -1,23 +1,21 @@
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+
 #include "esp_to_text.hpp"
 #include "os.hpp"
 #include "base64.hpp"
 #include <stdio.h>
 #include <zlib.h>
 
-void TextRecordWriter::open(const wchar_t* path) {
-    verify(!output_handle);
-    output_handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    verify(output_handle != INVALID_HANDLE_VALUE);
-
+void TextRecordWriter::init() {
+    output_buffer = allocate_virtual_memory(1024 * 1024 * 64);
     scratch_buffer = allocate_virtual_memory(1024 * 1024 * 32);
-
-    write_format("plugin2text version 1.00\n---\n");
 }
 
-void TextRecordWriter::close() {
-    verify(output_handle);
-    CloseHandle(output_handle);
-    output_handle = 0;
+void TextRecordWriter::dispose() {
+    free_virtual_memory(&output_buffer);
+    free_virtual_memory(&scratch_buffer);
 }
 
 void TextRecordWriter::write_format(_Printf_format_string_ const char* format, ...) {
@@ -61,13 +59,14 @@ void TextRecordWriter::write_string(const char* str) {
 }
 
 void TextRecordWriter::write_bytes(const void* data, size_t size) {
-    // @TODO: add buffering
-    DWORD written = 0;
-    verify(WriteFile(output_handle, data, (uint32_t)size, &written, nullptr));
-    verify(written == size);
+    verify(output_buffer.now + size < output_buffer.end);
+    memcpy(output_buffer.now, data, size);
+    output_buffer.now += size;
 }
 
 void TextRecordWriter::write_records(const Array<RecordBase*> records) {
+    write_format("plugin2text version 1.00\n---\n");
+
     for (const auto record : records) {
         write_record(record);
     }
@@ -710,10 +709,17 @@ void TextRecordWriter::write_custom_field(const char* field_name, const Type* ty
 
 void esp_to_text(const EspObjectModel& model, const wchar_t* text_path) {
     TextRecordWriter writer;
-    writer.open(text_path);
-
-    uint32_t size = 0;
+    writer.init();
     writer.write_records(model.records);
 
-    writer.close();
+    const auto file = CreateFileW(text_path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    verify(file != INVALID_HANDLE_VALUE);
+
+    // @TODO: add buffering
+    DWORD written = 0;
+    verify(WriteFile(file, writer.output_buffer.start, static_cast<uint32_t>(writer.output_buffer.size()), &written, nullptr));
+    verify(written == writer.output_buffer.size());
+
+    CloseHandle(file);
+    writer.dispose();
 }

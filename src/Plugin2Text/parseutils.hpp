@@ -77,4 +77,8 @@ struct Slice {
             } break;
         }
     }
+
+    size_t size() const {
+        return now - start;
+    }
 };
