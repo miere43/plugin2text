@@ -660,7 +660,8 @@ struct TextRecordReader {
             } break;
 
             case TypeKind::VMAD: {
-                //auto version = read_custom_field<uint16_t>("Version");
+                auto version = read_custom_field<uint16_t>("Version");
+                auto object_format = read_custom_field<uint16_t>("Object Format");
 
                 verify(false);
             } break;
@@ -684,25 +685,26 @@ struct TextRecordReader {
         return slice->now - slice_now_before_parsing;
     }
 
-    void read_custom_field(Slice* slice, const char* field_name, const Type* type, void* value, size_t size) {
-        expect_indent();
+    void read_custom_field(Slice* slice, const char* field_name, const Type* type) {
         verify(expect(field_name));
         verify(expect("\n"));
 
         indent += 1;
         read_type(type, slice);
         indent -= 1;
-
-        //write_indent();
-        //write_string(field_name);
-        //write_newline();
-        //write_type(type, value, size);
     }
 
     template<typename T>
-    T read_custom_field(Slice* slice, const char* field_name) {
+    T read_custom_field(const char* field_name) {
         T value;
-        read_custom_field(slice, field_name, resolve_type<T>(), &value, sizeof(T));
+        
+        Slice slice;
+        slice.start = (uint8_t*)&value;
+        slice.now = slice.start;
+        slice.end = slice.start + sizeof(T);
+
+        read_custom_field(&slice, field_name, resolve_type<T>());
+
         return value;
     }
 
