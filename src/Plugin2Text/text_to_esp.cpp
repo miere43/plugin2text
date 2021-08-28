@@ -174,7 +174,7 @@ struct TextRecordReader {
         group.timestamp = read_record_timestamp();
         group.unknown = read_record_unknown();
 
-        indent += 1;
+        ++indent;
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
@@ -208,7 +208,7 @@ struct TextRecordReader {
                 break;
             }
         }
-        indent -= 1;
+        --indent;
 
         // validate
         switch (group.group_type) {
@@ -238,7 +238,7 @@ struct TextRecordReader {
         }
         defs[def_count - 1] = &Record_Common;
 
-        indent += 1;
+        ++indent;
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
@@ -280,7 +280,7 @@ struct TextRecordReader {
                 break;
             }
         }
-        indent -= 1;
+        --indent;
 
         return flags;
     }
@@ -325,7 +325,7 @@ struct TextRecordReader {
             buffer = &compression_buffer;
         }
 
-        indent += 1;
+        ++indent;
         while (true) {
             auto indents = peek_indents();
             if (indents == indent) {
@@ -335,7 +335,7 @@ struct TextRecordReader {
                 break;
             }
         }
-        indent -= 1;
+        --indent;
 
         if (use_compression_buffer) {
             constexpr int SkyrimZLibCompressionLevel = 7;
@@ -465,7 +465,7 @@ struct TextRecordReader {
     }
 
     size_t read_type(const Type* type, Slice* slice) {
-        indent += 1;
+        ++indent;
 
         if (!has_custom_indent_rules(type->kind)) {
             expect_indent();
@@ -811,17 +811,17 @@ struct TextRecordReader {
 
             case TypeKind::Filter: {
                 const auto filter_type = (const TypeFilter*)type;
-                indent -= 1;
+                --indent;
                 read_type(filter_type->inner_type, slice);
-                indent += 1;
+                ++indent;
             } break;
 
             case TypeKind::Vector3: {
-                indent -= 1;
+                --indent;
                 read_type(&Type_float, slice);
                 read_type(&Type_float, slice);
                 read_type(&Type_float, slice);
-                indent += 1;
+                ++indent;
             } break;
 
             default: {
@@ -834,7 +834,7 @@ struct TextRecordReader {
         //    expect("\n");
         //}
 
-        indent -= 1;
+        --indent;
         return slice->now - slice_now_before_parsing;
     }
 
@@ -846,7 +846,7 @@ struct TextRecordReader {
             const auto count = line_end - start;
             if (count == strlen(header_name) && memory_equals(start, header_name, count)) {
                 now = line_end + 1; // skip \n
-                indent += 1;
+                ++indent;
                 return true;
             }
         }
@@ -854,7 +854,7 @@ struct TextRecordReader {
     }
 
     void end_custom_struct() {
-        indent -= 1;
+        --indent;
     }
 
     void read_custom_field(Slice* slice, const char* field_name, const Type* type) {

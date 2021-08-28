@@ -126,11 +126,11 @@ struct TextRecordWriter {
         write_record_unknown(record->unknown);
         write_newline();
 
-        indent += 1;
+        ++indent;
         for (const auto record : record->records) {
             write_record(record);
         }
-        indent -= 1;
+        --indent;
     }
 
     RecordFlags write_flags(RecordFlags flags, const RecordDef* def) {
@@ -150,9 +150,9 @@ struct TextRecordWriter {
     void write_record_timestamp(uint16_t timestamp) {
         if (timestamp) {
             write_newline();
-            indent += 1;
+            ++indent;
             write_indent();
-            indent -= 1;
+            --indent;
             int y = (timestamp & 0b1111111'0000'00000) >> 9;
             int m = (timestamp & 0b0000000'1111'00000) >> 5;
             int d = (timestamp & 0b0000000'0000'11111);
@@ -164,9 +164,9 @@ struct TextRecordWriter {
     void write_record_unknown(uint32_t unknown) {
         if (unknown) {
             write_newline();
-            indent += 1;
+            ++indent;
             write_indent();
-            indent -= 1;
+            --indent;
             write_format("Unknown = %X", unknown);
         }
     }
@@ -208,7 +208,7 @@ struct TextRecordWriter {
 
         if (record->flags != RecordFlags::None) {
             auto flags = record->flags;
-            indent += 1;
+            ++indent;
             if (def) {
                 flags = write_flags(flags, def);
             }
@@ -218,7 +218,7 @@ struct TextRecordWriter {
                 write_indent();
                 write_format("+ %X", flags);
             }
-            indent -= 1;
+            --indent;
         }
 
         if (!def) {
@@ -308,7 +308,7 @@ struct TextRecordWriter {
     }
 
     void write_type(const Type* type, const void* value, size_t size) {
-        indent += 1;
+        ++indent;
 
         if (!has_custom_indent_rules(type->kind)) {
             write_indent();
@@ -631,9 +631,9 @@ struct TextRecordWriter {
                 memcpy(preprocessed_value, value, size);
 
                 filter_type->preprocess(preprocessed_value, size);
-                indent -= 1;
+                --indent;
                 write_type(filter_type->inner_type, preprocessed_value, size);
-                indent += 1;
+                ++indent;
 
                 scratch_buffer.now = highwater;
             } break;
@@ -642,11 +642,11 @@ struct TextRecordWriter {
                 // @TODO: maybe can replace with fixed array type.
                 verify(size == sizeof(Vector3));
                 const auto vector = (const Vector3*)value;
-                indent -= 1;
+                --indent;
                 write_type(&Type_float, &vector->x, sizeof(vector->x));
                 write_type(&Type_float, &vector->y, sizeof(vector->y));
                 write_type(&Type_float, &vector->z, sizeof(vector->z));
-                indent += 1;
+                ++indent;
             } break;
 
             default: {
@@ -658,11 +658,11 @@ struct TextRecordWriter {
             write_newline();
         }
 
-        indent -= 1;
+        --indent;
     }
 
     void write_field(const RecordDef* def, const RecordField* field) {
-        indent += 1;
+        ++indent;
         write_indent();
 
         write_bytes(&field->type, 4);
@@ -681,7 +681,7 @@ struct TextRecordWriter {
         const auto data_type = field_def ? field_def->data_type : &Type_ByteArray;
         write_type(data_type, field->data.data, field->data.count);
         
-        indent -= 1;
+        --indent;
     }
 
     void begin_custom_struct(const char* header_name) {
