@@ -16,8 +16,8 @@ struct RecordBase {
 struct Record : RecordBase {
     FormID id;
     Array<RecordField*> fields;
-    uint16_t version;
-    uint16_t unknown;
+    uint16_t version = 0;
+    uint16_t unknown = 0;
 };
 
 struct GrupRecord : RecordBase {
@@ -31,6 +31,8 @@ struct GrupRecord : RecordBase {
         uint32_t label;
     };
     uint32_t unknown;
+
+    inline GrupRecord() : group_type(RecordGroupType::Top), label(0), unknown(0) { }
 };
 
 struct EspObjectModel {
