@@ -5,29 +5,29 @@
 
 #define CONCAT(a, b) a##b
 
-#define rf_field(m_type, m_data_type, m_name)                            \
+#define rf_field(m_type, m_name, m_data_type)                       \
     ([]() -> const RecordFieldDef* {                                \
         static RecordFieldDef field{ m_type, m_data_type, m_name }; \
-        return &field;                                                   \
+        return &field;                                              \
     })()
 
-#define rf_zstring(m_type, m_name) rf_field(m_type, &Type_ZString, m_name)
-#define rf_lstring(m_type, m_name) rf_field(m_type, &Type_LString, m_name)
-#define rf_float(m_type, m_name) rf_field(m_type, &Type_float, m_name)
-#define rf_int8(m_type, m_name) rf_field(m_type, &Type_int8_t, m_name)
-#define rf_int16(m_type, m_name) rf_field(m_type, &Type_int16_t, m_name)
-#define rf_int32(m_type, m_name) rf_field(m_type, &Type_int32_t, m_name)
-#define rf_int64(m_type, m_name) rf_field(m_type, &Type_int64_t, m_name)
-#define rf_uint8(m_type, m_name) rf_field(m_type, &Type_uint8_t, m_name)
-#define rf_uint16(m_type, m_name) rf_field(m_type, &Type_uint16_t, m_name)
-#define rf_uint32(m_type, m_name) rf_field(m_type, &Type_uint32_t, m_name)
-#define rf_uint64(m_type, m_name) rf_field(m_type, &Type_uint64_t, m_name)
-#define rf_formid(m_type, m_name) rf_field(m_type, &Type_FormID, m_name)
-#define rf_formid_array(m_type, m_name) rf_field(m_type, &Type_FormIDArray, m_name)
-#define rf_bytes(m_type, m_name) rf_field(m_type, &Type_ByteArray, m_name)
-#define rf_compressed(m_type, m_name) rf_field(m_type, &Type_ByteArrayCompressed, m_name)
-#define rf_bytes_rle(m_type, m_name) rf_field(m_type, &Type_ByteArrayRLE, m_name)
-#define rf_bool(m_type, m_name) rf_field(m_type, &Type_bool, m_name)
+#define rf_zstring(m_type, m_name)      rf_field(m_type, m_name, &Type_ZString)
+#define rf_lstring(m_type, m_name)      rf_field(m_type, m_name, &Type_LString)
+#define rf_float(m_type, m_name)        rf_field(m_type, m_name, &Type_float)
+#define rf_int8(m_type, m_name)         rf_field(m_type, m_name, &Type_int8_t)
+#define rf_int16(m_type, m_name)        rf_field(m_type, m_name, &Type_int16_t)
+#define rf_int32(m_type, m_name)        rf_field(m_type, m_name, &Type_int32_t)
+#define rf_int64(m_type, m_name)        rf_field(m_type, m_name, &Type_int64_t)
+#define rf_uint8(m_type, m_name)        rf_field(m_type, m_name, &Type_uint8_t)
+#define rf_uint16(m_type, m_name)       rf_field(m_type, m_name, &Type_uint16_t)
+#define rf_uint32(m_type, m_name)       rf_field(m_type, m_name, &Type_uint32_t)
+#define rf_uint64(m_type, m_name)       rf_field(m_type, m_name, &Type_uint64_t)
+#define rf_formid(m_type, m_name)       rf_field(m_type, m_name, &Type_FormID)
+#define rf_formid_array(m_type, m_name) rf_field(m_type, m_name, &Type_FormIDArray)
+#define rf_bytes(m_type, m_name)        rf_field(m_type, m_name, &Type_ByteArray)
+#define rf_compressed(m_type, m_name)   rf_field(m_type, m_name, &Type_ByteArrayCompressed)
+#define rf_bytes_rle(m_type, m_name)    rf_field(m_type, m_name, &Type_ByteArrayRLE)
+#define rf_bool(m_type, m_name)         rf_field(m_type, m_name, &Type_bool)
 
 #define rf_struct(m_type, m_name, m_size, ...)                \
     ([]() -> const RecordFieldDef* {                          \
@@ -45,13 +45,12 @@
         return &field;                                           \
     })()
 
-#define rf_enum_uint8(m_type, m_name, ...) rf_enum(m_type, m_name, 1, false, __VA_ARGS__)
-#define rf_enum_uint16(m_type, m_name, ...) rf_enum(m_type, m_name, 2, false, __VA_ARGS__)
-#define rf_enum_uint32(m_type, m_name, ...) rf_enum(m_type, m_name, 4, false, __VA_ARGS__)
-
-#define rf_flags_uint8(m_type, m_name, ...) rf_enum(m_type, m_name, 1, true, __VA_ARGS__)
-#define rf_flags_uint16(m_type, m_name, ...) rf_enum(m_type, m_name, 2, true, __VA_ARGS__)
-#define rf_flags_uint32(m_type, m_name, ...) rf_enum(m_type, m_name, 4, true, __VA_ARGS__)
+#define rf_enum_uint8(m_type, m_name, ...)   rf_enum(m_type, m_name, 1, false, __VA_ARGS__)
+#define rf_enum_uint16(m_type, m_name, ...)  rf_enum(m_type, m_name, 2, false, __VA_ARGS__)
+#define rf_enum_uint32(m_type, m_name, ...)  rf_enum(m_type, m_name, 4, false, __VA_ARGS__)
+#define rf_flags_uint8(m_type, m_name, ...)  rf_enum(m_type, m_name, 1, true,  __VA_ARGS__)
+#define rf_flags_uint16(m_type, m_name, ...) rf_enum(m_type, m_name, 2, true,  __VA_ARGS__)
+#define rf_flags_uint32(m_type, m_name, ...) rf_enum(m_type, m_name, 4, true,  __VA_ARGS__)
 
 #define rf_subrecord(...)                                                     \
     ([]() -> const RecordFieldDefSubrecord* {                                 \
@@ -143,13 +142,12 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
         return &type;                                            \
     })()
 
-#define type_enum_uint8(...) type_enum(1, false, __VA_ARGS__)
-#define type_enum_uint16(...) type_enum(2, false, __VA_ARGS__)
-#define type_enum_uint32(...) type_enum(4, false, __VA_ARGS__)
-
-#define type_flags_uint8(...) type_enum(1, true, __VA_ARGS__)
-#define type_flags_uint16(...) type_enum(2, true, __VA_ARGS__)
-#define type_flags_uint32(...) type_enum(4, true, __VA_ARGS__)
+#define type_enum_uint8(...)   type_enum(1, false, __VA_ARGS__)
+#define type_enum_uint16(...)  type_enum(2, false, __VA_ARGS__)
+#define type_enum_uint32(...)  type_enum(4, false, __VA_ARGS__)
+#define type_flags_uint8(...)  type_enum(1, true,  __VA_ARGS__)
+#define type_flags_uint16(...) type_enum(2, true,  __VA_ARGS__)
+#define type_flags_uint32(...) type_enum(4, true,  __VA_ARGS__)
 
 #define sf_enum(m_name, m_size, m_flags, ...)                    \
     ([]() -> TypeStructField {                                   \
@@ -158,13 +156,12 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
         return { &type, m_name };                                \
     })()
 
-#define sf_enum_uint8(m_name, ...) sf_enum(m_name, 1, false, __VA_ARGS__)
-#define sf_enum_uint16(m_name, ...) sf_enum(m_name, 2, false, __VA_ARGS__)
-#define sf_enum_uint32(m_name, ...) sf_enum(m_name, 4, false, __VA_ARGS__)
-
-#define sf_flags_uint8(m_name, ...) sf_enum(m_name, 1, true, __VA_ARGS__)
-#define sf_flags_uint16(m_name, ...) sf_enum(m_name, 2, true, __VA_ARGS__)
-#define sf_flags_uint32(m_name, ...) sf_enum(m_name, 4, true, __VA_ARGS__)
+#define sf_enum_uint8(m_name, ...)   sf_enum(m_name, 1, false, __VA_ARGS__)
+#define sf_enum_uint16(m_name, ...)  sf_enum(m_name, 2, false, __VA_ARGS__)
+#define sf_enum_uint32(m_name, ...)  sf_enum(m_name, 4, false, __VA_ARGS__)
+#define sf_flags_uint8(m_name, ...)  sf_enum(m_name, 1, true,  __VA_ARGS__)
+#define sf_flags_uint16(m_name, ...) sf_enum(m_name, 2, true,  __VA_ARGS__)
+#define sf_flags_uint32(m_name, ...) sf_enum(m_name, 4, true,  __VA_ARGS__)
 
 #define sf_filter(m_name, m_inner, m_preprocess, ...)    \
     ([]() -> TypeStructField {                           \
@@ -297,8 +294,8 @@ RecordDef Record_Common{
             sf_int16("Z2"),
         ),
         rf_int32("COCT", "Item Count"),
-        rf_field("CNTO", &Type_CNTO, "Items"),
-        rf_field("VMAD", &Type_VMAD, "Script"),
+        rf_field("CNTO", "Items", &Type_CNTO),
+        rf_field("VMAD", "Script", &Type_VMAD),
         rf_int32("KSIZ", "Keyword Count"),
         rf_formid_array("KWDA", "Keywords"),
         rf_zstring("FLTR", "Object Window Filter"),
