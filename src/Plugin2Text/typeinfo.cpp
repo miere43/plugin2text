@@ -60,6 +60,14 @@
         return &field;                                                        \
     })()
 
+#define rf_constant(m_type, m_name, m_decltype, ...)                                               \
+    ([]() -> const RecordFieldDef* {                                                               \
+        static m_decltype the_value = { __VA_ARGS__ };                                             \
+        static TypeConstant constant{ "Constant", sizeof(the_value), (const uint8_t*)&the_value }; \
+        static RecordFieldDef field{ m_type, &constant, m_name };                                  \
+        return &field;                                                                             \
+    })()
+
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8_t, name };
 }
@@ -314,7 +322,7 @@ RECORD(
         ),
         rf_subrecord(
             rf_zstring("MAST", "Master File"),
-            rf_uint64("DATA", "Unused"),
+            rf_constant("DATA", "Unused", uint64_t, 0),
         ),
         rf_zstring("CNAM", "Author"),
         rf_uint32("INTV", "Tagified Strings"),

@@ -700,7 +700,10 @@ struct TextRecordWriter {
             const auto inner_field_def = (const RecordFieldDef*)field_def->fields.data[field_def_index];
             verify(inner_field_def->def_type == RecordFieldDefType::Field);
 
-            // @TODO: constant
+            if (inner_field_def->data_type->kind == TypeKind::Constant) {
+                continue;
+            }
+
             verify(processed_field_index < fields.count);
             write_field(fields.data[processed_field_index++], inner_field_def);
         }

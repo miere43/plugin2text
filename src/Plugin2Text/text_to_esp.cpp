@@ -330,7 +330,7 @@ struct TextRecordReader {
             auto indents = peek_indents();
             if (indents == indent) {
                 const auto curr = &now[indents * 2];
-                verify(curr + 4 <= end);
+                verify(curr + sizeof(RecordFieldType) <= end);
                 const auto field_type = *(RecordFieldType*)curr;
 
                 auto field_def = def->get_field_def(field_type);
@@ -918,6 +918,15 @@ struct TextRecordReader {
 
     void read_subrecord_fields(const RecordFieldDefSubrecord* field_def) {
         for (const auto inner_field_def : field_def->fields) {
+            if (inner_field_def->data_type->kind == TypeKind::Constant) {
+                const auto constant_type = (const TypeConstant*)inner_field_def->data_type;
+
+                buffer->write_constant<RawRecordField>({ inner_field_def->type, static_cast<uint16_t>(constant_type->size) });
+                buffer->write_bytes(constant_type->bytes, constant_type->size);
+
+                continue;
+            }
+
             read_field(inner_field_def);
         }
     }
