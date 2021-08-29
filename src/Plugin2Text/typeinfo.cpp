@@ -578,6 +578,7 @@ RECORD(REFR, "Reference",
     ),
     record_flags(
         { 0x400, "Persistent" },
+        { 0x800, "Initially Disabled" },
     )
 );
 

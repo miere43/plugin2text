@@ -157,64 +157,64 @@ GRUP
         GRUP - Persistent [02000D61]
           REFR [02000D63] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "E3demoMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D64] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "MG03_FellglowEnableMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D65] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "MS06WolfSkullCaveStateMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D66] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "dunDeadMensRespiteCompletedMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D68] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "DefaultDragonEnableMarker001"
             NAME - Base Form ID
               [00000034]
           REFR [02000D69] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "TG06_MarkarthWizardsEnableMarker001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D6A] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "dunTGTQ04UtteringHillsEnabler001"
             NAME - Base Form ID
               [0000003B]
           REFR [02000D6B] - Reference
             + Persistent
+            + Initially Disabled
             + Deleted
-            + 800
             EDID - Editor ID
               "TG02GoldenglowGuardsEnabler001"
             NAME - Base Form ID
