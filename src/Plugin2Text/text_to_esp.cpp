@@ -462,6 +462,58 @@ PapyrusFragmentFlags TextRecordReader::read_papyrus_info_record_fragment(Slice* 
     return flags;
 }
 
+void TextRecordReader::read_string(Slice* slice) {
+    if (expect("\"\"\"")) {
+        verify(expect("\n"));
+        auto had_at_least_one_newline = false;
+
+        while (true) {
+            expect_indent();
+            if (expect("\"\"\"")) {
+                verify(peek_end_of_current_line() == now); // ensure there is no trailing stuff
+                if (had_at_least_one_newline) {
+                    // Rollback last newline. This is ugly, but better than alternatives.
+                    slice->now -= 2; 
+                }
+                ++now; // skip \n
+                return;
+            }
+
+            while (now < end) {
+                char c = *now++;
+                if (c == '"') {
+                    verify(false); // should be prefixed with backslash
+                } else if (c == '\r') {
+                    verify(false); // CRLF line endings are not supported
+                } else if (c == '\n') {
+                    slice->write_literal("\r\n");
+                    had_at_least_one_newline = true;
+                    goto next_line;
+                } else if (c == '\\') {
+                    verify(now < end && *now == '"');
+                    slice->write_literal("\"");
+                    ++now;
+                } else {
+                    slice->write_bytes(&c, 1);
+                }
+            }
+
+            verify(false); // reached end of file
+            next_line: {}
+        }
+    }
+    
+    if (!expect("\"")) {
+        verify(false);
+    }
+ 
+    const auto line_end = peek_end_of_current_line();
+    const auto count = (line_end - now) - 1;
+    slice->write_bytes(now, count);
+    verify(now[count] == '"');
+    now = line_end + 1; // +1 for '\n'.
+}
+
 size_t TextRecordReader::read_type(const Type* type, Slice* slice) {
     ++indent;
 
@@ -552,30 +604,18 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) {
         case TypeKind::ZString:
         case TypeKind::LString: {
             // @TODO: localized LString
-
-            const auto line_end = peek_end_of_current_line();
-            const auto count = (line_end - now) - 2;
-            verify(now[0] == '"');
-            slice->write_bytes(now + 1, count);
-            slice->write_bytes("\0", 1);
-            verify(now[count + 1] == '"');
-
-            now = line_end + 1; // +1 for '\n'.
+            const auto sss = slice->now;
+            read_string(slice);
+            slice->write_literal("\0");
         } break;
 
         case TypeKind::WString: {
-            const auto line_end = peek_end_of_current_line();
-            const auto count = (line_end - now) - 2;
-
+            const auto string_start = slice->now;
+            auto count_small = slice->advance<uint16_t>();
+            read_string(slice);
+            const auto count = slice->now - string_start;
             verify(count >= 0 && count <= 0xffff);
-            const auto count_small = static_cast<uint16_t>(count);
-            slice->write_struct(&count_small);
-                
-            verify(now[0] == '"');
-            slice->write_bytes(now + 1, count);
-            verify(now[count + 1] == '"');
-
-            now = line_end + 1; // +1 for '\n'.
+            *count_small = static_cast<uint16_t>(count);
         } break;
 
         case TypeKind::Float: {

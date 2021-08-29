@@ -225,14 +225,6 @@ void TextRecordWriter::write_record(const RecordBase* record_base) {
     }
 }
 
-static void validate_ascii(const char* now, size_t count) {
-    const auto end = now + count;
-    while (now < end) {
-        char c = *now++;
-        verify(c >= 32 && c < 127); // @TODO: Escape string
-    }
-}
-
 static bool has_custom_indent_rules(TypeKind kind) {
     switch (kind) {
         case TypeKind::Struct:
@@ -316,6 +308,46 @@ void TextRecordWriter::write_papyrus_info_record_fragment(BinaryReader& r, Papyr
     end_custom_struct();
 }
 
+void TextRecordWriter::write_string(const char* text, size_t count) {
+    auto now = text;
+    const auto end = now + count;
+    auto multiline = false;
+    while (now < end) {
+        const auto c = *now++;
+        if (c == '\r' || c == '\n' || c == '"') {
+            multiline = true;
+            continue;
+        }
+        verify(c >= 32 && c < 127);
+    }
+
+    now = text;
+    if (multiline) {
+        write_literal("\"\"\"\n");
+        write_indent();
+        while (now < end) {
+            const auto c = *now++;
+            if (c == '\r') {
+                verify(now < end && *now == '\n');
+                ++now;
+                write_newline();
+                write_indent();
+            } else if (c == '\"') {
+                write_literal("\\\"");
+            } else {
+                write_bytes(&c, 1);
+            }
+        }
+        write_newline();
+        write_indent();
+        write_literal("\"\"\"");
+    } else {
+        write_literal("\"");
+        write_bytes(text, count);
+        write_literal("\"");
+    }
+}
+
 void TextRecordWriter::write_type(const Type* type, const void* value, size_t size) {
     ++indent;
 
@@ -326,12 +358,9 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
     switch (type->kind) {
         case TypeKind::ZString: {
             if (size == 0) {
-                write_bytes("\"\"", 2);
+                write_literal("\"\"");
             } else {
-                validate_ascii((char*)value, size - 1);
-                write_bytes("\"", 1);
-                write_bytes(value, size - 1);
-                write_bytes("\"", 1);
+                write_string((const char*)value, size - 1);
             }
         } break;
 
@@ -340,9 +369,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             if (size == 0) {
                 write_bytes("\"\"", 2);
             } else {
-                write_bytes("\"", 1);
-                write_bytes(value, size - 1);
-                write_bytes("\"", 1);
+                write_string((const char*)value, size - 1);
             }
         } break;
 
@@ -351,10 +378,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             if (wstr->count == 0) {
                 write_literal("\"\"");
             } else {
-                validate_ascii((char*)wstr->data, wstr->count);
-                write_bytes("\"", 1);
-                write_bytes(wstr->data, wstr->count);
-                write_bytes("\"", 1);
+                write_string((const char*)wstr->data, wstr->count);
             }
         } break;
 

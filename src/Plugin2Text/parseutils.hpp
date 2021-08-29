@@ -25,6 +25,11 @@ struct Slice {
         return result;
     }
 
+    template<size_t N>
+    void write_literal(const char(&data)[N]) {
+        write_bytes(data, N - 1);
+    }
+
     template<typename T>
     void write_constant(const T& value) {
         write_bytes(&value, sizeof(T));

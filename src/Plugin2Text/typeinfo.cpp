@@ -323,7 +323,7 @@ RECORD(
         ),
         rf_zstring("CNAM", "Author"),
         rf_uint32("INTV", "Tagified Strings"),
-        //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!
+        rf_zstring("SNAM", "Description"),
     ),
     record_flags(
         { RecordFlags::TES4_Master, "Master" },

@@ -78,5 +78,13 @@ public:
             L"../../../../test/npc_expect.esp"
         );
     }
+
+    TEST_METHOD(TestMultilineString) {
+        test(
+            L"../../../../test/multiline_string.esp",
+            L"../../../../test/multiline_string_expect.txt",
+            L"../../../../test/multiline_string_expect.esp"
+        );
+    }
     };
 }

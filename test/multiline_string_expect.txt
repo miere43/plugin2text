@@ -1,0 +1,25 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.7
+    Number Of Records
+      0
+    Next Object ID
+      -16773790
+  CNAM - Author
+    "DEFAULT"
+  SNAM - Description
+    """
+    this string
+    has
+    multiple \"\"
+    
+    lines
+    
+    """
+  MAST - Master File
+    "Skyrim.esm"
+  INTV - Tagified Strings
+    1
