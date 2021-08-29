@@ -3,7 +3,7 @@ plugin2text version 1.00
 TES4 [00000000] - File Header
   HEDR - Header
     Version
-      1.700000
+      1.7
     Number Of Records
       22
     Next Object ID
@@ -37,19 +37,19 @@ GRUP
           Fog Near Color
             00000000
           Fog Near
-            0.000000
+            0
           Fog Far
-            0.000000
+            0
           Rotation XY
             0
           Rotation Z
             0
           Directional Fade
-            0.000000
+            0
           Fog Clip Distance
-            0.000000
+            0
           Fow Pow
-            1.000000
+            1
           Ambient X+ Color
             8d808600
           Ambient X- Color
@@ -65,15 +65,15 @@ GRUP
           Specular Color
             00000000
           Fresnel Power
-            1.000000
+            1
           Fog Far Color
             00000000
           Fog Max
-            1.000000
+            1
           Light Fade Distance Start
-            0.000000
+            0
           Light Fade Distance End
-            0.000000
+            0
           Inheritance Flags
             + Ambient Color
             + Directional Color
@@ -105,19 +105,19 @@ GRUP
           Fog Near Color
             00000000
           Fog Near
-            0.000000
+            0
           Fog Far
-            0.000000
+            0
           Rotation XY
             0
           Rotation Z
             0
           Directional Fade
-            0.000000
+            0
           Fog Clip Distance
-            0.000000
+            0
           Fow Pow
-            1.000000
+            1
           Ambient X+ Color
             8d808600
           Ambient X- Color
@@ -133,15 +133,15 @@ GRUP
           Specular Color
             00000000
           Fresnel Power
-            1.000000
+            1
           Fog Far Color
             00000000
           Fog Max
-            1.000000
+            1
           Light Fade Distance Start
-            0.000000
+            0
           Light Fade Distance End
-            0.000000
+            0
           Inheritance Flags
             + Ambient Color
             + Directional Color

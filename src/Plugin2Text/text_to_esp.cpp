@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include "base64.hpp"
 #include <zlib.h>
+#include <charconv>
 
 void TextRecordReader::init() {
     esp_buffer = allocate_virtual_memory(1024 * 1024 * 1024);
@@ -583,18 +584,18 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) {
                 
             switch (type->size) {
                 case sizeof(float): {
-                    float value = 0;
-                    int count = sscanf_s(now, "%f%n", &value, &nread);
-                    verify(count == 1);
-                    verify(nread == line_end - now);
+                    float value;
+                    const auto result = std::from_chars(now, line_end, value);
+                    verify(result.ec == std::errc{});
+                    verify(result.ptr == line_end);
                     slice->write_struct(&value);
                 } break;
 
                 case sizeof(double): {
-                    double value = 0;
-                    int count = sscanf_s(now, "%lf%n", &value, &nread);
-                    verify(count == 1);
-                    verify(nread == line_end - now);
+                    double value;
+                    const auto result = std::from_chars(now, line_end, value);
+                    verify(result.ec == std::errc{});
+                    verify(result.ptr == line_end);
                     slice->write_struct(&value);
                 } break;
             }

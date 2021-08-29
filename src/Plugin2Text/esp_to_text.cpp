@@ -1,12 +1,12 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
-
 #include "esp_to_text.hpp"
 #include "os.hpp"
 #include "base64.hpp"
 #include <stdio.h>
 #include <zlib.h>
+#include <charconv>
 
 void TextRecordWriter::init() {
     output_buffer = allocate_virtual_memory(1024 * 1024 * 64);
@@ -440,12 +440,16 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         case TypeKind::Float: {
             verify(type->size == size);
             switch (size) {
-                case sizeof(float) : {
-                    write_format("%f", *(float*)value);
+                case sizeof(float): {
+                    const auto result = std::to_chars((char*)output_buffer.now, (char*)output_buffer.end, *(float*)value);
+                    verify(result.ec == std::errc{});
+                    output_buffer.now = (uint8_t*)result.ptr;
                 } break;
 
-                case sizeof(double) : {
-                    write_format("%f", *(double*)value);
+                case sizeof(double): {
+                    const auto result = std::to_chars((char*)output_buffer.now, (char*)output_buffer.end, *(double*)value);
+                    verify(result.ec == std::errc{});
+                    output_buffer.now = (uint8_t*)result.ptr;
                 } break;
             }
         } break;

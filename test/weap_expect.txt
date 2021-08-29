@@ -3,7 +3,7 @@ plugin2text version 1.00
 TES4 [00000000] - File Header
   HEDR - Header
     Version
-      1.700000
+      1.7
     Number Of Records
       2
     Next Object ID
@@ -67,7 +67,7 @@ GRUP
       Value
         45
       Weight
-        10.000000
+        10
       Damage
         8
     DNAM - Weapon Data
@@ -78,15 +78,15 @@ GRUP
       Unknown 1
         0
       Speed
-        1.000000
+        1
       Reach
-        1.000000
+        1
       Flags
         64
       Flags?
         0
       Sight FOV
-        0.000000
+        0
       VATS to hit
         0
       Projectiles
@@ -94,32 +94,32 @@ GRUP
       Embedded Weapon
         0
       Min Range
-        0.000000
+        0
       Max Range
-        0.000000
+        0
       Flags
         256
       Unknown
-        0.800000
+        0.8
       Rumble Left
-        0.500000
+        0.5
       Rumble Right
-        1.000000
+        1
       Rumble Duration
-        0.330000
+        0.33
       Skill
         6
       Resist
         -1
       Stagger
-        0.750000
+        0.75
     CRDT - Critical Data
       Critical Damage
         4
       Unknown
         0
       Critical % Mult
-        1.000000
+        1
       Flags
         1
       Unknown

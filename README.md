@@ -31,7 +31,6 @@ Following information is lost or changed when converting ESP to text:
 * Some fields that may contain junk data are cleared with zeros (`XCLC` field flags in `CELL` record for example).
 * Some fields are assumed to be constant, aka they always have same size and data inside them. These fields are not serialized to text format (some parts of `TRDT` field in `INFO` record for example).
 * Records inside persistent/temporary cell children groups are sorted by Form ID for consistency (Creation Kit saves this information in random order).
-* Floating point values may lose precision.
 
 Even if none of these things apply to ESP file, if ESP constains compressed records, Plugin2Text may generate different compressed data for that record, 
 which in turn may change record size/byte sequence, thus producing ESP that is not same as original ESP. Creation Kit uses really old zlib version and

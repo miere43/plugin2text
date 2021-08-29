@@ -3,7 +3,7 @@ plugin2text version 1.00
 TES4 [00000000] - File Header
   HEDR - Header
     Version
-      1.700000
+      1.7
     Number Of Records
       2
     Next Object ID
@@ -194,7 +194,7 @@ GRUP
       Unknown
         16964
       Far Away Model Distance
-        0.000000
+        0
       Geared Up Weapons
         1
       Unknown
@@ -214,9 +214,9 @@ GRUP
     NAM5
       ff00
     NAM6 - Height
-      1.000000
+      1
     NAM7 - Weight
-      35.000000
+      35
     NAM8 - Sound Level
       Normal
     DOFT - Default Outfit
@@ -225,48 +225,48 @@ GRUP
       b3bd0100
     QNAM - Skin Tone
       Red
-        0.776471
+        0.77647066
       Green
-        0.690196
+        0.6901961
       Blue
-        0.658824
+        0.65882355
     NAM9 - Face Morph
       Nose Long/Short
-        1.000000
+        1
       Nose Up/Down
-        0.400000
+        0.4
       Jaw Up/Down
-        -0.300000
+        -0.3
       Jaw Narrow/Wide
-        -0.500000
+        -0.5
       Jaw Forward/Back
-        -1.000000
+        -1
       Cheeks Up/Down
-        1.000000
+        1
       Cheeks Forward/Back
-        1.000000
+        1
       Eyes Up/Down
-        -0.300000
+        -0.3
       Eyes In/Out
-        -0.300000
+        -0.3
       Brows Up/Down
-        -0.300000
+        -0.3
       Brows In/Out
-        -1.000000
+        -1
       Brows Forward/Back
-        -1.000000
+        -1
       Lips Up/Down
-        0.900000
+        0.9
       Lips In/Out
-        -1.000000
+        -1
       Chin Thin/Wide
-        1.000000
+        1
       Chin Up/Down
-        -1.000000
+        -1
       Chin Underbite/Overbite
-        -0.500000
+        -0.5
       Eyes Forward/Back
-        -0.900000
+        -0.9
       Unknown
         2139095039
     NAMA - Face Parts
