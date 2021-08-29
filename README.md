@@ -58,3 +58,18 @@ TES4 [00000000] - File Header
   INTV - Tagified Strings
     1
 ```
+
+### Building
+Look at `.github/workflows/msbuild.yml` for reference.
+
+#### Dependencies
+* Microsoft Visual Studio 2022 Preview, with following components:
+    * Desktop environment for C++
+    * C++ CMake tools for Windows
+
+#### Build steps
+1. Build and install `src/zlib-1.2.11` CMake project with Visual Studio
+2. Build `src/Plugin2Text/Plugin2Text.sln` with Visual Studio
+
+### License
+MIT
