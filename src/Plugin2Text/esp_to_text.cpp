@@ -713,7 +713,6 @@ void esp_to_text(const EspObjectModel& model, const wchar_t* text_path) {
     const auto file = CreateFileW(text_path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     verify(file != INVALID_HANDLE_VALUE);
 
-    // @TODO: add buffering
     DWORD written = 0;
     verify(WriteFile(file, writer.output_buffer.start, static_cast<uint32_t>(writer.output_buffer.size()), &written, nullptr));
     verify(written == writer.output_buffer.size());
