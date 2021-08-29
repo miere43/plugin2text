@@ -12,9 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    - name: Add Ninja to PATH
-      uses: seanmiddleditch/gha-setup-ninja@master
    
     - name: Setup Visual Studio environment
       uses: ilammy/msvc-dev-cmd@v1
