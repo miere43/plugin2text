@@ -315,7 +315,7 @@ RECORD(
         rf_struct("HEDR", "Header", 12,
             sf_float("Version"),
             sf_int32("Number Of Records"),
-            sf_int32("Next Object ID"), 
+            sf_formid("Next Object ID"), 
         ),
         rf_subrecord(
             rf_zstring("MAST", "Master File"),

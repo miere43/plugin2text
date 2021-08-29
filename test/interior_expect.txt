@@ -7,7 +7,7 @@ TES4 [00000000] - File Header
     Number Of Records
       22
     Next Object ID
-      3437
+      [00000D6D]
   CNAM - Author
     "DEFAULT"
   MAST - Master File

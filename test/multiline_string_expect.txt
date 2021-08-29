@@ -7,7 +7,7 @@ TES4 [00000000] - File Header
     Number Of Records
       0
     Next Object ID
-      -16773790
+      [000012C4]
   CNAM - Author
     "DEFAULT"
   SNAM - Description
