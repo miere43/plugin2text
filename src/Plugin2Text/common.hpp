@@ -26,6 +26,7 @@ __declspec(noreturn) void exit_error(const wchar_t* format, ...);
 bool string_equals(const wchar_t* a, const wchar_t* b);
 bool memory_equals(const void* a, const void* b, size_t size);
 int string_last_index_of(const wchar_t* str, char c);
+bool string_starts_with(const wchar_t* a, const wchar_t* b);
 
 #pragma pack(push, 1)
 struct WString {
@@ -103,3 +104,9 @@ template<typename T>
 inline bool is_bit_set(const T& obj, const T& bit) {
     return (obj & bit) != (T)0;
 }
+
+enum class ProgramOptions : uint32_t {
+    None = 0,
+    ExportTimestamp = 0x1,
+};
+ENUM_BIT_OPS(uint32_t, ProgramOptions);

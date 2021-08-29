@@ -260,6 +260,10 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
     { (uint32_t)PapyrusFragmentFlags::HasEndScript, "Has End Script" },
 );
 
+TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
+    { (uint32_t)ProgramOptions::ExportTimestamp, "Export Timestamp" },
+);
+
 #define RECORD(m_type, m_name, ...)  \
     static RecordDef Record_##m_type{ \
         #m_type,                      \

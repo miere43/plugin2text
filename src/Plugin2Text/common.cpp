@@ -48,6 +48,18 @@ int string_last_index_of(const wchar_t* str, char c) {
     return -1;
 }
 
+bool string_starts_with(const wchar_t* a, const wchar_t* b) {
+    while (true) {
+        if (*b == L'\0') {
+            return true;
+        } else if (*a != *b) {
+            return false;
+        }
+        ++a;
+        ++b;
+    }
+}
+
 void BinaryReader::read(void* out, size_t size) {
     verify(now + size <= end);
     memcpy(out, now, size);

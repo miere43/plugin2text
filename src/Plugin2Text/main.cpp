@@ -10,12 +10,16 @@
 #include "os.hpp"
 
 static void print_usage(const char* hint) {
-    printf("%s", hint);
-    printf(
+    puts(hint);
+    puts(
         "Usage: plugin2text.exe <source file> [destination file]\n"
         "\n"
-        "       <source file>       file to convert (*.esp, *.esm, *.esl, *.txt)\n"
-        "       [destination file]  output path\n"
+        "       <source file>         file to convert (*.esp, *.esm, *.esl, *.txt)\n"
+        "       [destination file]    output path\n"
+        "\n"
+        "Text serialization options:\n"
+        "\n"
+        "      --export-timestamp     write timestamps for records\n"
         "\n"
         "If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted\n"
         "to text format. If <source file> has TXT extension, then <source file> will be converted\n"
@@ -54,19 +58,50 @@ static const wchar_t* replace_destination_file_extension(const wchar_t* source_f
     return destination_file;
 }
 
-int main() {
-    int argc = 0;
-    auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-    verify(argv);
+struct Args {
+    const wchar_t* source_file = nullptr;
+    const wchar_t* destination_file = nullptr;
+    ProgramOptions options = ProgramOptions::None;
 
-    if (argc == 1) {
-        print_usage("<source file> arguments are missing.\n\n");
+    void parse() {
+        int argc = 0;
+        const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+        verify(argv);
+
+        for (int i = 1; i < argc; ++i) {
+            auto arg = argv[i];
+            if (string_starts_with(arg, L"--")) {
+                arg += 2;
+                if (string_equals(arg, L"export-timestamp") || string_equals(arg, L"export-timestamps")) {
+                    options |= ProgramOptions::ExportTimestamp;
+                } else {
+                    wprintf(L"warning: unknown option \"--%s\"\n", arg);
+                }
+            } else {
+                if (!source_file) {
+                    source_file = arg;
+                } else if (!destination_file) {
+                    destination_file = arg;
+                } else {
+                    wprintf(L"warning: unknown argument \"%s\"\n", arg);
+                }
+            }
+        }
+    }
+};
+
+int main() {
+    Args args;
+    args.parse();
+
+    if (!args.source_file) {
+        print_usage("<source file> argument is missing.\n");
         return 1;
     }
 
-    const auto source_file = argv[1];
+    const auto source_file = args.source_file;
     const auto source_file_extension = get_file_extension(source_file);
-    const auto destination_file = argc > 2 ? argv[2] : replace_destination_file_extension(source_file, source_file_extension);
+    const auto destination_file = args.destination_file ? args.destination_file : replace_destination_file_extension(source_file, source_file_extension);
 
     if (string_equals(source_file_extension, L".txt")) {
         text_to_esp(source_file, destination_file);
@@ -80,7 +115,7 @@ int main() {
 
         parser.parse(file);
 
-        esp_to_text(parser.model, destination_file);
+        esp_to_text(args.options, parser.model, destination_file);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);
     }

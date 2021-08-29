@@ -10,7 +10,7 @@ namespace EspToTextTest
     public:
         TEST_METHOD(Test_ByteArrayRLE_ReadingPastProvidedBuffer) {
             TextRecordWriter writer;
-            writer.init();
+            writer.init(ProgramOptions::None);
             defer(writer.dispose());
 
             const char zeros[15] = "\00\00\00\00\00\00\00\00\00\00\00\00\00\00";

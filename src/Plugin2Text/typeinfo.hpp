@@ -229,3 +229,5 @@ constexpr char ByteArrayRLE_StreamStart = '!';
 constexpr size_t ByteArrayRLE_MaxStreamValue = '~' - ByteArrayRLE_StreamStart;
 constexpr char ByteArrayRLE_SequenceMarker_00 = '?';
 constexpr char ByteArrayRLE_SequenceMarker_FF = '!';
+
+extern TypeEnum Type_ProgramOptions;

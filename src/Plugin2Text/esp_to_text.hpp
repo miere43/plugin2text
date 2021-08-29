@@ -10,8 +10,9 @@ struct TextRecordWriter {
     bool localized_strings = false; // @TODO: load value from TES4 record
 
     RecordType current_record_type = (RecordType)0; // Sometimes ESP deserialization depends on record type.
+    ProgramOptions options = ProgramOptions::None;
 
-    void init();
+    void init(ProgramOptions options);
     void dispose();
 
     void write_format(_Printf_format_string_ const char* format, ...);
@@ -55,4 +56,4 @@ struct TextRecordWriter {
     }
 };
 
-void esp_to_text(const EspObjectModel& model, const wchar_t* text_path);
+void esp_to_text(ProgramOptions options, const EspObjectModel& model, const wchar_t* text_path);

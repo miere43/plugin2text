@@ -16,7 +16,7 @@ private:
         Assert::IsTrue(memory_equals(expected.data, actual.data, expected.count), L"invalid array contents");
     }
 
-    void test(const wchar_t* esp_path, const wchar_t* expect_txt_path, const wchar_t* expect_esp_path) {
+    void test(ProgramOptions options, const wchar_t* esp_path, const wchar_t* expect_txt_path, const wchar_t* expect_esp_path) {
         const auto empty_esp = read_file(esp_path);
         const auto empty_expect_txt = read_file(expect_txt_path);
         const auto empty_expect_esp = expect_esp_path ? read_file(expect_esp_path) : empty_esp;
@@ -34,7 +34,7 @@ private:
         parser.parse(empty_esp);
 
         TextRecordWriter writer;
-        writer.init();
+        writer.init(options);
         defer(writer.dispose());
         writer.write_records(parser.model.records);
 
@@ -51,6 +51,7 @@ private:
 public:
     TEST_METHOD(TestEmpty) {
         test(
+            ProgramOptions::None,
             L"../../../../test/empty.esp",
             L"../../../../test/empty_expect.txt",
             nullptr
@@ -59,6 +60,7 @@ public:
 
     TEST_METHOD(TestWeap) {
         test(
+            ProgramOptions::None,
             L"../../../../test/weap.esp",
             L"../../../../test/weap_expect.txt",
             L"../../../../test/weap_expect.esp"
@@ -67,6 +69,7 @@ public:
 
     TEST_METHOD(TestInterior) {
         test(
+            ProgramOptions::None,
             L"../../../../test/interior.esp",
             L"../../../../test/interior_expect.txt",
             L"../../../../test/interior_expect.esp"
@@ -75,14 +78,16 @@ public:
 
     TEST_METHOD(TestNpc) {
         test(
+            ProgramOptions::ExportTimestamp,
             L"../../../../test/npc.esp",
             L"../../../../test/npc_expect.txt",
-            L"../../../../test/npc_expect.esp"
+            nullptr
         );
     }
 
     TEST_METHOD(TestMultilineString) {
         test(
+            ProgramOptions::None,
             L"../../../../test/multiline_string.esp",
             L"../../../../test/multiline_string_expect.txt",
             nullptr

@@ -11,6 +11,9 @@ struct RecordField {
 struct RecordBase {
     RecordType type;
     RecordFlags flags;
+    uint16_t timestamp = 0;
+    uint8_t last_user_id = 0;
+    uint8_t current_user_id = 0;
 };
 
 struct Record : RecordBase {

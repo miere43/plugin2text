@@ -8,9 +8,11 @@
 #include <zlib.h>
 #include <charconv>
 
-void TextRecordWriter::init() {
+void TextRecordWriter::init(ProgramOptions options) {
     output_buffer = allocate_virtual_memory(1024 * 1024 * 64);
     scratch_buffer = allocate_virtual_memory(1024 * 1024 * 32);
+    
+    this->options = options;
 }
 
 void TextRecordWriter::dispose() {
@@ -19,7 +21,7 @@ void TextRecordWriter::dispose() {
 }
 
 void TextRecordWriter::write_format(_Printf_format_string_ const char* format, ...) {
-    char buffer[4096];
+    char buffer[4096]; // @TODO: this buffer is not needed, just write into "output_buffer" directly.
 
     va_list args;
     va_start(args, format);
@@ -93,13 +95,7 @@ void TextRecordWriter::write_grup_record(const GrupRecord* record) {
         }
     }
 
-    //constexpr bool ExportTimestamp = false;
-    //if (ExportTimestamp) {
-    //    write_record_timestamp(record->timestamp);
-    //}
-    //verify(!record->current_user_id);
-    //verify(!record->last_user_id);
-
+    write_record_timestamp(record->timestamp);
     write_record_unknown(record->unknown);
     write_newline();
 
@@ -125,7 +121,7 @@ RecordFlags TextRecordWriter::write_flags(RecordFlags flags, const RecordDef* de
 }
 
 void TextRecordWriter::write_record_timestamp(uint16_t timestamp) {
-    if (timestamp) {
+    if (timestamp && is_bit_set(options, ProgramOptions::ExportTimestamp)) {
         write_newline();
         ++indent;
         write_indent();
@@ -171,16 +167,7 @@ void TextRecordWriter::write_record(const RecordBase* record_base) {
         write_bytes(def->comment, strlen(def->comment));
     }
 
-    //write_record_timestamp(record->timestamp);
-
-    //if (record->current_user_id) {
-    //    verify(false);
-    //}
-
-    //if (record->last_user_id) {
-    //    verify(false);
-    //}
-
+    write_record_timestamp(record->timestamp);
     write_record_unknown(record->unknown);
 
     if (record->flags != RecordFlags::None) {
@@ -733,9 +720,9 @@ void TextRecordWriter::write_custom_field(const char* field_name, const Type* ty
     write_type(type, value, size);
 }
 
-void esp_to_text(const EspObjectModel& model, const wchar_t* text_path) {
+void esp_to_text(ProgramOptions options, const EspObjectModel& model, const wchar_t* text_path) {
     TextRecordWriter writer;
-    writer.init();
+    writer.init(options);
     writer.write_records(model.records);
 
     const auto file = CreateFileW(text_path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);

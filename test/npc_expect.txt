@@ -17,7 +17,9 @@ TES4 [00000000] - File Header
   INTV - Tagified Strings
     1
 GRUP
+  25 Aug 2021
   NPC_ [02000D61] - Non-Player Character
+    25 Aug 2021
     + Compressed
     EDID - Editor ID
       "CiceroDUPLICATE001"

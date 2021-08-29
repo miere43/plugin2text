@@ -20,11 +20,11 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         ? static_cast<RecordBase*>(buffer.advance<GrupRecord>())
         : static_cast<RecordBase*>(buffer.advance<Record>());
 
-    verify(!record->current_user_id);
-    verify(!record->last_user_id);
-
     result_base->type = record->type;
     result_base->flags = record->flags;
+    result_base->timestamp = record->timestamp;
+    result_base->last_user_id = record->last_user_id;
+    result_base->current_user_id = record->current_user_id;
 
     if (record->type == RecordType::GRUP) {
         const auto grup_record = (const RawGrupRecord*)record;
