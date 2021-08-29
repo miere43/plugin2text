@@ -564,9 +564,8 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) {
             const auto result = ::uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
             verify(result == Z_OK);
 
+            compression_buffer.now = base64_buffer; // This line must be before slice->write_bytes, because slice can point to &compression_buffer
             slice->write_bytes(decompressed_buffer, result_size);
-
-            compression_buffer.now = base64_buffer;
                 
             now = line_end + 1; // +1 for '\n'.
         } break;
@@ -908,7 +907,9 @@ void TextRecordReader::read_field(const RecordFieldDef* field_def) {
 
     read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
 
-    field.size = (uint16_t)(buffer->now - field_start_offset - sizeof(field));
+    const auto size = buffer->now - field_start_offset - sizeof(field);
+    verify(size <= 0xffff);
+    field.size = static_cast<uint16_t>(size);
     buffer->write_struct_at(field_start_offset, &field);
 }
 

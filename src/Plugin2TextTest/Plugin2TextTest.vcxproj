@@ -97,6 +97,8 @@
   <ItemGroup>
     <ClCompile Include="compare_test.cpp" />
     <ClCompile Include="esp_to_text_test.cpp" />
+    <ClCompile Include="test_common.cpp" />
+    <ClCompile Include="text_to_esp_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test_common.hpp" />

@@ -17,3 +17,6 @@ template<> inline std::wstring ToString<uint16_t>(const uint16_t& q) {
 }
 
 }}}
+
+void assert_same_array_content(const StaticArray<uint8_t>& expected, const StaticArray<uint8_t>& actual);
+void test_esps(ProgramOptions options, const wchar_t* esp_path, const wchar_t* expect_txt_path, const wchar_t* expect_esp_path);
