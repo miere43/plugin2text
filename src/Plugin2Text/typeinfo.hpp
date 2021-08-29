@@ -133,6 +133,8 @@ enum class PapyrusFragmentFlags : uint8_t {
     HasBeginScript = 0x1,
     HasEndScript = 0x2,
 };
+ENUM_BIT_OPS(uint8_t, PapyrusFragmentFlags);
+
 extern TypeEnum Type_PapyrusFragmentFlags;
 
 template<typename T>
@@ -182,8 +184,11 @@ struct RecordFieldDefSubrecord : RecordFieldDefBase {
 };
 
 struct RecordFlagDef {
-    uint32_t bit = 0;
+    RecordFlags bit = RecordFlags::None;
     const char* name = nullptr;
+
+    constexpr RecordFlagDef(RecordFlags bit, const char* name) : bit(bit), name(name) { }
+    constexpr RecordFlagDef(uint32_t bit, const char* name) : bit((RecordFlags)bit), name(name) { }
 };
 
 struct RecordDef {

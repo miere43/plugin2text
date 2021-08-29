@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 bool RawRecord::is_compressed() const {
-    return (uint32_t)flags & (uint32_t)RecordFlags::Compressed;
+    return is_bit_set(flags, RecordFlags::Compressed);
 }
 
 uint8_t* RawRecord::uncompress(uint32_t* out_uncompressed_data_size) const {

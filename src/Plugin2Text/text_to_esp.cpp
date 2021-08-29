@@ -772,7 +772,7 @@ struct TextRecordReader {
                         if (try_begin_custom_struct("Start Fragment")) {
                             defer(end_custom_struct());
 
-                            *flags = (PapyrusFragmentFlags)((uint8_t)*flags | (uint8_t)PapyrusFragmentFlags::HasBeginScript);
+                            *flags |= PapyrusFragmentFlags::HasBeginScript;
                         
                             slice->write_constant<uint8_t>(1);
                             passthrough_custom_field<WString>(slice, "Script Name");
@@ -782,7 +782,7 @@ struct TextRecordReader {
                         if (try_begin_custom_struct("End Fragment")) {
                             defer(end_custom_struct());
 
-                            *flags = (PapyrusFragmentFlags)((uint8_t)*flags | (uint8_t)PapyrusFragmentFlags::HasEndScript);
+                            *flags |= PapyrusFragmentFlags::HasEndScript;
 
                             slice->write_constant<uint8_t>(1);
                             passthrough_custom_field<WString>(slice, "Script Name");

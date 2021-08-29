@@ -113,12 +113,12 @@ void TextRecordWriter::write_grup_record(const GrupRecord* record) {
 RecordFlags TextRecordWriter::write_flags(RecordFlags flags, const RecordDef* def) {
     for (size_t i = 0; i < def->flags.count; ++i) {
         const auto& flag = def->flags.data[i];
-        if ((uint32_t)flags & flag.bit) {
+        if (is_bit_set(flags, flag.bit)) {
             write_newline();
             write_indent();
             write_literal("+ ");
             write_string(flag.name);
-            flags = clear_bit(flags, (RecordFlags)flag.bit);
+            flags = clear_bit(flags, flag.bit);
         }
     }
     return flags;
@@ -558,7 +558,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                     write_custom_field("Fragment Script File Name", r.advance_wstring());
 
                     // @TODO: copypaste
-                    if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasBeginScript) {
+                    if (is_bit_set(flags, PapyrusFragmentFlags::HasBeginScript)) {
                         begin_custom_struct("Start Fragment");
                         defer(end_custom_struct());
 
@@ -567,7 +567,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                         write_custom_field("Fragment Name", r.advance_wstring());
                     }
 
-                    if ((uint8_t)flags & (uint8_t)PapyrusFragmentFlags::HasEndScript) {
+                    if (is_bit_set(flags, PapyrusFragmentFlags::HasEndScript)) {
                         begin_custom_struct("End Fragment");
                         defer(end_custom_struct());
 

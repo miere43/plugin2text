@@ -93,3 +93,13 @@ struct StaticArray {
     const T* begin() const { return data ? &data[0] : nullptr; }
     const T* end() const { return data ? &data[count] : nullptr; }
 };
+
+#define ENUM_BIT_OPS(m_decltype, m_enum) \
+    inline m_enum operator&(const m_enum& a, const m_enum& b) { return (m_enum)((m_decltype)a & (m_decltype)b); } \
+    inline m_enum operator|(const m_enum& a, const m_enum& b) { return (m_enum)((m_decltype)a | (m_decltype)b); } \
+    inline m_enum& operator|=(m_enum& a, const m_enum& b) { return (a = a | b); }
+
+template<typename T>
+inline bool is_bit_set(const T& obj, const T& bit) {
+    return (obj & bit) != (T)0;
+}

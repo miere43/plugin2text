@@ -302,7 +302,7 @@ RecordDef Record_Common{
     ),
     record_flags(
         { 0x20, "Deleted" },
-        { (uint32_t)RecordFlags::Compressed, "Compressed" },
+        { RecordFlags::Compressed, "Compressed" },
         { 0x800000, "Is Marker" },
         { 0x8000000, "NavMesh Generation - Bounding Box" },
     ),
@@ -326,8 +326,8 @@ RECORD(
         //rf_zstring("SNAM", "Description"), // @TODO: Multiline strings!
     ),
     record_flags(
-        { (uint32_t)RecordFlags::TES4_Master, "Master" },
-        { (uint32_t)RecordFlags::TES4_Localized, "Localized" },
+        { RecordFlags::TES4_Master, "Master" },
+        { RecordFlags::TES4_Localized, "Localized" },
         { 0x200, "Light Master" },
     )
 );

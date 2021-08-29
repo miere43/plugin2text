@@ -1,5 +1,5 @@
 #pragma once
-#include <stdint.h>
+#include "common.hpp"
 
 constexpr uint32_t fourcc(char const p[5]) {
     return (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
@@ -19,12 +19,7 @@ enum class RecordFlags : uint32_t {
     TES4_Localized = 0x80,
     Compressed = 0x40000,
 };
-
-inline RecordFlags operator&(const RecordFlags& a, const RecordFlags& b) { return (RecordFlags)((uint32_t)a | (uint32_t)b); }
-inline RecordFlags operator|(const RecordFlags& a, const RecordFlags& b) { return (RecordFlags)((uint32_t)a | (uint32_t)b); }
-inline RecordFlags& operator|=(RecordFlags& a, const RecordFlags& b) {
-    return (a = a | b);
-}
+ENUM_BIT_OPS(uint32_t, RecordFlags);
 
 template<typename T>
 inline T clear_bit(const T& flags, const T& bit) {
