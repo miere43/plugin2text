@@ -130,6 +130,7 @@ enum class PapyrusPropertyType : uint8_t {
 extern TypeEnum Type_PapyrusPropertyType;
 
 enum class PapyrusFragmentFlags : uint8_t {
+    None = 0,
     HasBeginScript = 0x1,
     HasEndScript = 0x2,
 };

@@ -302,6 +302,20 @@ void TextRecordWriter::write_papyrus_scripts(BinaryReader& r, const VMAD_Header*
     }
 }
 
+void TextRecordWriter::write_papyrus_info_record_fragment(BinaryReader& r, PapyrusFragmentFlags flags, const char* name, PapyrusFragmentFlags bit) {
+    if (!is_bit_set(flags, bit)) {
+        return;
+    }
+
+    begin_custom_struct(name);
+
+    verify(1 == r.read<uint8_t>());
+    write_custom_field("Script Name", r.advance_wstring());
+    write_custom_field("Fragment Name", r.advance_wstring());
+
+    end_custom_struct();
+}
+
 void TextRecordWriter::write_type(const Type* type, const void* value, size_t size) {
     ++indent;
 
@@ -557,24 +571,8 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                     auto flags = r.read<PapyrusFragmentFlags>();
                     write_custom_field("Fragment Script File Name", r.advance_wstring());
 
-                    // @TODO: copypaste
-                    if (is_bit_set(flags, PapyrusFragmentFlags::HasBeginScript)) {
-                        begin_custom_struct("Start Fragment");
-                        defer(end_custom_struct());
-
-                        verify(1 == r.read<uint8_t>());
-                        write_custom_field("Script Name", r.advance_wstring());
-                        write_custom_field("Fragment Name", r.advance_wstring());
-                    }
-
-                    if (is_bit_set(flags, PapyrusFragmentFlags::HasEndScript)) {
-                        begin_custom_struct("End Fragment");
-                        defer(end_custom_struct());
-
-                        verify(1 == r.read<uint8_t>());
-                        write_custom_field("Script Name", r.advance_wstring());
-                        write_custom_field("Fragment Name", r.advance_wstring());
-                    }
+                    write_papyrus_info_record_fragment(r, flags, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
+                    write_papyrus_info_record_fragment(r, flags, "End Fragment", PapyrusFragmentFlags::HasEndScript);
                 } break;
 
                 case RecordType::QUST: {

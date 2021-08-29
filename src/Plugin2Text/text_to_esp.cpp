@@ -479,6 +479,19 @@ struct TextRecordReader {
         return script_count;
     }
 
+    PapyrusFragmentFlags read_papyrus_info_record_fragment(Slice* slice, const char* fragment, PapyrusFragmentFlags flags) {
+        if (!try_begin_custom_struct(fragment)) {
+            return PapyrusFragmentFlags::None;
+        }
+
+        slice->write_constant<uint8_t>(1);
+        passthrough_custom_field<WString>(slice, "Script Name");
+        passthrough_custom_field<WString>(slice, "Fragment Name");
+        
+        end_custom_struct();
+        return flags;
+    }
+
     size_t read_type(const Type* type, Slice* slice) {
         ++indent;
 
@@ -768,26 +781,8 @@ struct TextRecordReader {
                         
                         passthrough_custom_field<WString>(slice, "Fragment Script File Name");
                     
-                        // @TODO: copypaste
-                        if (try_begin_custom_struct("Start Fragment")) {
-                            defer(end_custom_struct());
-
-                            *flags |= PapyrusFragmentFlags::HasBeginScript;
-                        
-                            slice->write_constant<uint8_t>(1);
-                            passthrough_custom_field<WString>(slice, "Script Name");
-                            passthrough_custom_field<WString>(slice, "Fragment Name");
-                        }
-
-                        if (try_begin_custom_struct("End Fragment")) {
-                            defer(end_custom_struct());
-
-                            *flags |= PapyrusFragmentFlags::HasEndScript;
-
-                            slice->write_constant<uint8_t>(1);
-                            passthrough_custom_field<WString>(slice, "Script Name");
-                            passthrough_custom_field<WString>(slice, "Fragment Name");
-                        }
+                        *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
+                        *flags |= read_papyrus_info_record_fragment(slice, "End Fragment", PapyrusFragmentFlags::HasEndScript);
                     } break;
 
                     case RecordType::QUST: {
