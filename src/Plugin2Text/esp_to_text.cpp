@@ -21,19 +21,16 @@ void TextRecordWriter::dispose() {
 }
 
 void TextRecordWriter::write_format(_Printf_format_string_ const char* format, ...) {
-    char buffer[4096]; // @TODO: this buffer is not needed, just write into "output_buffer" directly.
-
     va_list args;
     va_start(args, format);
-    int count = vsprintf_s(buffer, format, args);
+    int count = vsnprintf((char*)output_buffer.now, output_buffer.remaining_size(), format, args);
     va_end(args);
-
     verify(count > 0);
-    write_bytes(buffer, count);
+    output_buffer.now += count;
 }
 
 void TextRecordWriter::write_byte_array(const uint8_t* data, size_t size) {
-    auto buffer = new uint8_t[size * 2];
+    auto buffer = output_buffer.advance(size * 2);
     static const char alphabet[17] = "0123456789abcdef";
 
     for (size_t i = 0; i < size; ++i) {
@@ -41,19 +38,16 @@ void TextRecordWriter::write_byte_array(const uint8_t* data, size_t size) {
         buffer[(i * 2) + 0] = alphabet[c / 16];
         buffer[(i * 2) + 1] = alphabet[c % 16];
     }
-
-    write_bytes(buffer, size * 2);
-    delete[] buffer;
 }
 
 void TextRecordWriter::write_indent() {
-    for (int i = 0; i < indent; ++i) {
-        write_bytes("  ", 2);
-    }
+    const auto bytes = indent * 2;
+    auto buffer = output_buffer.advance(bytes);
+    memset(buffer, ' ', bytes);
 }
 
 void TextRecordWriter::write_newline() {
-    write_bytes("\n", 1);
+    write_literal("\n");
 }
 
 void TextRecordWriter::write_string(const char* str) {
@@ -67,7 +61,7 @@ void TextRecordWriter::write_bytes(const void* data, size_t size) {
 }
 
 void TextRecordWriter::write_records(const Array<RecordBase*> records) {
-    write_format("plugin2text version 1.00\n---\n");
+    write_literal("plugin2text version 1.00\n---\n");
 
     for (const auto record : records) {
         write_record(record);
@@ -163,8 +157,8 @@ void TextRecordWriter::write_record(const RecordBase* record_base) {
 
     auto def = get_record_def(record->type);
     if (def && def->comment) {
-        write_bytes(" - ", 3);
-        write_bytes(def->comment, strlen(def->comment));
+        write_literal(" - ");
+        write_string(def->comment);
     }
 
     write_record_timestamp(record->timestamp);
@@ -354,7 +348,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         case TypeKind::LString: {
             verify(!localized_strings);
             if (size == 0) {
-                write_bytes("\"\"", 2);
+                write_literal("\"\"");
             } else {
                 write_string((const char*)value, size - 1);
             }
@@ -397,7 +391,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::ByteArrayRLE: {
-            auto buffer = new uint8_t[size * 2];
+            auto buffer = output_buffer.advance(size * 2); // We actually may need less than "size * 2", but whatever.
             auto data = (uint8_t*)value;
             static const char alphabet[17] = "0123456789abcdef";
             size_t bytes_written = 0;
@@ -411,21 +405,18 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                             repeats = ByteArrayRLE_MaxStreamValue;
                         }
                          
-                        buffer[bytes_written + 0] = c == 0x00 ? ByteArrayRLE_SequenceMarker_00 : ByteArrayRLE_SequenceMarker_FF;
-                        buffer[bytes_written + 1] = ByteArrayRLE_StreamStart + ((char)repeats - 1);
-                        bytes_written += 2;
+                        buffer[bytes_written++] = c == 0x00 ? ByteArrayRLE_SequenceMarker_00 : ByteArrayRLE_SequenceMarker_FF;
+                        buffer[bytes_written++] = ByteArrayRLE_StreamStart + ((char)repeats - 1);
                         i += repeats - 1;
                         continue;
                     }
                 }
 
-                buffer[bytes_written + 0] = alphabet[c / 16];
-                buffer[bytes_written + 1] = alphabet[c % 16];
-                bytes_written += 2;
+                buffer[bytes_written++] = alphabet[c / 16];
+                buffer[bytes_written++] = alphabet[c % 16];
             }
 
-            write_bytes(buffer, bytes_written);
-            delete[] buffer;
+            output_buffer.now = buffer + bytes_written;
         } break;
 
         case TypeKind::Integer: {
@@ -478,7 +469,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                 }
 
                 write_indent();
-                write_bytes(field.name, strlen(field.name));
+                write_string(field.name);
                 write_newline();
 
                 write_type(field.type, (uint8_t*)value + offset, field.type->size);
@@ -544,7 +535,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                 for (size_t i = 0; i < enum_type->field_count; ++i) {
                     const auto& field = enum_type->fields[i];
                     if (field.value == enum_value) {
-                        write_bytes(field.name, strlen(field.name));
+                        write_string(field.name);
                         goto ok;
                     }
                 }
@@ -676,8 +667,8 @@ void TextRecordWriter::write_field(const RecordField* field, const RecordFieldDe
     write_bytes(&field->type, 4);
 
     if (field_def && field_def->comment) {
-        write_bytes(" - ", 3);
-        write_bytes(field_def->comment, strlen(field_def->comment));
+        write_literal(" - ");
+        write_string(field_def->comment);
     }
 
     write_newline();
