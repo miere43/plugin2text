@@ -19,11 +19,13 @@ private:
     void test(const wchar_t* esp_path, const wchar_t* expect_txt_path, const wchar_t* expect_esp_path) {
         const auto empty_esp = read_file(esp_path);
         const auto empty_expect_txt = read_file(expect_txt_path);
-        const auto empty_expect_esp = read_file(expect_esp_path);
+        const auto empty_expect_esp = expect_esp_path ? read_file(expect_esp_path) : empty_esp;
         defer({
             delete[] empty_esp.data;
             delete[] empty_expect_txt.data;
-            delete[] empty_expect_esp.data;
+            if (expect_esp_path) {
+                delete[] empty_expect_esp.data;
+            }
         });
 
         EspParser parser;
@@ -51,7 +53,7 @@ public:
         test(
             L"../../../../test/empty.esp",
             L"../../../../test/empty_expect.txt",
-            L"../../../../test/empty_expect.esp"
+            nullptr
         );
     }
 
@@ -83,7 +85,7 @@ public:
         test(
             L"../../../../test/multiline_string.esp",
             L"../../../../test/multiline_string_expect.txt",
-            L"../../../../test/multiline_string_expect.esp"
+            nullptr
         );
     }
     };
