@@ -151,8 +151,7 @@ void TextRecordWriter::write_record(const RecordBase* record_base) {
     auto record = (const Record*)record_base;
     write_format(" [%08X]", record->id.value);
     if (record->version != 44) {
-        verify(false);
-        //write_format(",v%d", record->version);
+        write_format(",v%d", record->version);
     }
 
     auto def = get_record_def(record->type);

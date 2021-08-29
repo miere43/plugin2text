@@ -267,13 +267,23 @@ RawRecord* TextRecordReader::read_record() {
         return (RawRecord*)read_grup_record();
     }
 
-    record.version = 44; // @TODO
     buffer->now += sizeof(record);
 
     verify(expect(" "));
     record.id = read_formid();
 
-    skip_to_next_line();
+    {
+        const auto line_end = peek_end_of_current_line();
+        if (expect(",v")) {
+            int version = 0;
+            verify(1 == _snscanf_s(now, line_end - now, "%d%n", &version));
+            verify(version >= 1 && version <= 44);
+            record.version = static_cast<uint16_t>(version);
+        } else {
+            record.version = 44;
+        }
+        now = line_end + 1; // skip \n
+    }
 
     record.timestamp = read_record_timestamp();
     {
@@ -365,6 +375,7 @@ FormID TextRecordReader::read_formid() {
     int count = sscanf_s(now, "[%08X]%n", &formid.value, &nread);
     verify(count == 1);
     verify(nread == 1 + 8 + 1); // [DEADBEEF]
+    now += 1 + 8 + 1;
     return formid;
 }
 
@@ -372,7 +383,6 @@ void TextRecordReader::read_formid_line(Slice* slice) {
     auto line_end = peek_end_of_current_line();
     auto formid = read_formid();
     slice->write_struct(&formid);
-    now += 1 + 8 + 1; // [DEADBEEF]
     verify(now == line_end);
     now = line_end + 1; // +1 for '\n'.
 }

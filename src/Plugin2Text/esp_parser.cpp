@@ -64,7 +64,6 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         result->id = record->id;
         result->version = record->version;
         result->unknown = record->unknown;
-        verify(record->version == 44);
         result->fields = Array<RecordField*>();
 
         const uint8_t* now;
