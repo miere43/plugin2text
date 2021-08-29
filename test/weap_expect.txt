@@ -87,12 +87,8 @@ GRUP
         0
       Sight FOV
         0.000000
-      Blank
-        0
       VATS to hit
         0
-      Unknown 1
-        -1
       Projectiles
         1
       Embedded Weapon
@@ -101,12 +97,8 @@ GRUP
         0.000000
       Max Range
         0.000000
-      Unknown 2
-        0
       Flags
         256
-      Unknown
-        1.000000
       Unknown
         0.800000
       Rumble Left
@@ -115,22 +107,10 @@ GRUP
         1.000000
       Rumble Duration
         0.330000
-      Blank
-        0
-      Blank
-        0
-      Blank
-        0
       Skill
         6
-      Blank
-        0
-      Blank
-        0
       Resist
         -1
-      Blank
-        0
       Stagger
         0.750000
     CRDT - Critical Data
