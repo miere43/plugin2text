@@ -15,7 +15,7 @@ namespace EspToTextTest
 
             const char zeros[15] = "\00\00\00\00\00\00\00\00\00\00\00\00\00\00";
             writer.write_type(&Type_ByteArrayRLE, zeros, 10); // pass only 10 zeros out of 15.
-            writer.write_bytes("\0", 1); // zero-terminate string.
+            writer.write_literal("\0"); // zero-terminate string.
 
             Assert::AreEqual("  ?*\n", (const char*)writer.output_buffer.start, L"reading past provided buffer");
         }

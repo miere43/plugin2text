@@ -44,7 +44,10 @@ struct EspParser {
 
     EspObjectModel model;
 
-    void parse(const wchar_t* esp_path);
+    void init();
+    void dispose();
+
+    void parse(const StaticArray<uint8_t> data);
 private:
     RecordField* process_field(Record* record, const RawRecordField* field);
     RecordBase* process_record(const RawRecord* record);

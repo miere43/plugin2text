@@ -3,13 +3,16 @@
 #include "array.hpp"
 #include <stdlib.h>
 
-void EspParser::parse(const wchar_t* esp_path) {
+void EspParser::init() {
     buffer = allocate_virtual_memory(1024 * 1024 * 128);
+}
 
-    uint32_t size = 0;
-    uint8_t* plugin = (uint8_t*)read_file(esp_path, &size);
+void EspParser::dispose() {
+    free_virtual_memory(&buffer);
+}
 
-    process_records(plugin, plugin + size);
+void EspParser::parse(const StaticArray<uint8_t> data) {
+    process_records(data.data, data.data + data.count);
 }
 
 RecordBase* EspParser::process_record(const RawRecord* record) {

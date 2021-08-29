@@ -7,6 +7,7 @@
 #include "common.hpp"
 #include "esp_parser.hpp"
 #include <stdio.h>
+#include "os.hpp"
 
 static void print_usage(const char* hint) {
     printf("%s", hint);
@@ -71,7 +72,14 @@ int main() {
         text_to_esp(source_file, destination_file);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
         EspParser parser;
-        parser.parse(source_file);
+        parser.init();
+        defer(parser.dispose());
+        
+        const auto file = read_file(source_file);
+        defer(delete[] file.data);
+
+        parser.parse(file);
+
         esp_to_text(parser.model, destination_file);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);
