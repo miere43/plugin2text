@@ -43,7 +43,7 @@ plugin2text version 1.00
 TES4 [00000000] - File Header
   HEDR - Header
     Version
-      1.700000
+      1.7
     Number Of Records
       0
     Next Object ID
