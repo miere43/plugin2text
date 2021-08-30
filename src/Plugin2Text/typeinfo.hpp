@@ -116,6 +116,7 @@ extern TypeInteger Type_uint64_t;
 extern Type Type_Vector3;
 
 enum class PapyrusPropertyType : uint8_t {
+    None = 0,
     Object = 1,
     String = 2,
     Int = 3,

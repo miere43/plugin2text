@@ -225,12 +225,24 @@ static size_t count_bytes(const uint8_t* start, const uint8_t* end, uint8_t byte
     return end - start;
 }
 
-void TextRecordWriter::write_papyrus_object(BinaryReader& r, const VMAD_Header* header) {
+void TextRecordWriter::write_papyrus_object(BinaryReader& r, const VMAD_Header* header, PapyrusPropertyType type) {
     verify(header->object_format == 2);
-    auto value = r.read<VMAD_PropertyObjectV2>();
-    write_custom_field("Form ID", value.form_id);
-    write_custom_field("Alias", value.alias);
-    verify(value.unused == 0);
+    
+    switch (type) {
+        case PapyrusPropertyType::Object: {
+            begin_custom_struct("Object Value");
+            defer(end_custom_struct());
+
+            auto value = r.read<VMAD_PropertyObjectV2>();
+            write_custom_field("Form ID", value.form_id);
+            write_custom_field("Alias", value.alias);
+            verify(value.unused == 0);
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
 }
 
 void TextRecordWriter::write_papyrus_scripts(BinaryReader& r, const VMAD_Header* header, uint16_t script_count) {
@@ -253,20 +265,11 @@ void TextRecordWriter::write_papyrus_scripts(BinaryReader& r, const VMAD_Header*
             write_custom_field("Name", r.advance_wstring());
 
             auto property_type = r.read<PapyrusPropertyType>();
-            write_custom_field("Type", property_type);
             if (header->version >= 4) {
                 write_custom_field("Status", r.read<uint8_t>());
             }
 
-            switch (property_type) {
-                case PapyrusPropertyType::Object: {
-                    write_papyrus_object(r, header);
-                } break;
-
-                default: {
-                    verify(false);
-                } break;
-            }
+            write_papyrus_object(r, header, property_type);
         }
     }
 }
@@ -599,7 +602,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                         begin_custom_struct("Alias");
                         defer(end_custom_struct());
 
-                        write_papyrus_object(r, header);
+                        write_papyrus_object(r, header, PapyrusPropertyType::Object);
                         verify(r.read<uint16_t>() == header->version);
                         verify(r.read<uint16_t>() == header->object_format);
 

@@ -398,11 +398,35 @@ static bool has_custom_indent_rules(TypeKind kind) {
     return false;
 }
 
-void TextRecordReader::read_papyrus_object(Slice* slice, const VMAD_Header* header) {
+void TextRecordReader::read_papyrus_object(Slice* slice, const VMAD_Header* header, PapyrusPropertyType expect_type) {
     verify(header->object_format == 2);
-    const auto property = slice->advance<VMAD_PropertyObjectV2>();
-    property->form_id = read_custom_field<FormID>("Form ID");
-    property->alias = read_custom_field<uint16_t>("Alias");
+
+    PapyrusPropertyType type;
+    if (try_begin_custom_struct("Object Value")) {
+        type = PapyrusPropertyType::Object;
+    } else {
+        verify(false);
+    }
+
+    if (expect_type == PapyrusPropertyType::None) {
+        slice->write_struct(&type);
+    } else {
+        verify(type == expect_type);
+    }
+
+    switch (type) {
+        case PapyrusPropertyType::Object: {
+            const auto property = slice->advance<VMAD_PropertyObjectV2>();
+            property->form_id = read_custom_field<FormID>("Form ID");
+            property->alias = read_custom_field<uint16_t>("Alias");
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
+
+    end_custom_struct();
 }
 
 uint16_t TextRecordReader::read_papyrus_scripts(Slice* slice, const VMAD_Header* header) {
@@ -424,23 +448,11 @@ uint16_t TextRecordReader::read_papyrus_scripts(Slice* slice, const VMAD_Header*
             *property_count += 1;
 
             passthrough_custom_field<WString>(slice, "Name");
-
-            const auto property_type = read_custom_field<PapyrusPropertyType>("Type");
-            slice->write_struct(&property_type);
-
             if (header->version >= 4) {
                 passthrough_custom_field<uint8_t>(slice, "Status");
             }
 
-            switch (property_type) {
-                case PapyrusPropertyType::Object: {
-                    read_papyrus_object(slice, header);
-                } break;
-
-                default: {
-                    verify(false);
-                } break;
-            }
+            read_papyrus_object(slice, header);
         }
     }
 
@@ -809,7 +821,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                         defer(end_custom_struct());
                         *alias_count += 1;
 
-                        read_papyrus_object(slice, header);
+                        read_papyrus_object(slice, header, PapyrusPropertyType::Object);
                         slice->write_constant<uint16_t>(header->version);
                         slice->write_constant<uint16_t>(header->object_format);
 

@@ -33,7 +33,7 @@ struct TextRecordWriter {
     void write_record_timestamp(uint16_t timestamp);
     void write_record_unknown(uint32_t unknown);
     void write_record(const RecordBase* record_base);
-    void write_papyrus_object(BinaryReader& r, const VMAD_Header* header);
+    void write_papyrus_object(BinaryReader& r, const VMAD_Header* header, PapyrusPropertyType type);
     void write_papyrus_scripts(BinaryReader& r, const VMAD_Header* header, uint16_t script_count);
     void write_papyrus_info_record_fragment(BinaryReader& r, PapyrusFragmentFlags flags, const char* name, PapyrusFragmentFlags bit);
     void write_string(const char* text, size_t count);
