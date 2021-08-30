@@ -135,37 +135,31 @@ void TextRecordReader::read_grup_record(RawGrupRecord* group) {
     group->unknown = read_record_unknown();
 
     ++indent;
-    while (true) {
-        auto indents = peek_indents();
-        if (indents == indent) {
-            auto record = read_record();
-            if (group->group_type == RecordGroupType::Top) {
-                if (record->type == RecordType::GRUP) {
-                    if (!group->label) {
-                        auto record_as_group = (RawGrupRecord*)record;
-                        switch (record_as_group->group_type) {
-                            case RecordGroupType::InteriorCellBlock: {
-                                group->label = fourcc("CELL");
-                            } break;
+    while (try_continue_current_indent()) {
+        auto record = read_record();
+        if (group->group_type == RecordGroupType::Top) {
+            if (record->type == RecordType::GRUP) {
+                if (!group->label) {
+                    auto record_as_group = (RawGrupRecord*)record;
+                    switch (record_as_group->group_type) {
+                        case RecordGroupType::InteriorCellBlock: {
+                            group->label = fourcc("CELL");
+                        } break;
 
-                            case RecordGroupType::WorldChildren: {
-                                group->label = fourcc("WRLD");
-                            } break;
+                        case RecordGroupType::WorldChildren: {
+                            group->label = fourcc("WRLD");
+                        } break;
 
-                            default: {
-                                verify(false);
-                            } break;
-                        }
+                        default: {
+                            verify(false);
+                        } break;
                     }
-                } else if (group->label == 0) {
-                    group->label = (uint32_t)record->type;
-                } else {
-                    verify(group->label == (uint32_t)record->type);
                 }
+            } else if (group->label == 0) {
+                group->label = (uint32_t)record->type;
+            } else {
+                verify(group->label == (uint32_t)record->type);
             }
-        } else {
-            verify(indents < indent);
-            break;
         }
     }
     --indent;
@@ -196,46 +190,40 @@ RecordFlags TextRecordReader::read_record_flags(RecordDef* def) {
     defs[def_count - 1] = &Record_Common;
 
     ++indent;
-    while (true) {
-        auto indents = peek_indents();
-        if (indents == indent) {
-            if (&now[indent * 2] < end && now[indent * 2] != '+') {
-                break;
-            }
-            expect_indent();
-            verify(expect("+ "));
+    while (try_continue_current_indent()) {
+        if (&now[indent * 2] < end && now[indent * 2] != '+') {
+            break;
+        }
+        expect_indent();
+        verify(expect("+ "));
 
-            auto line_end = peek_end_of_current_line();
-            auto count = line_end - now;
-            verify(count > 0);
+        auto line_end = peek_end_of_current_line();
+        auto count = line_end - now;
+        verify(count > 0);
 
-            // bypass flag checks if this is HEX number (we can have FFFFFFFF but whatever).
-            if (!(now[0] >= '0' && now[0] <= '9')) {
-                for (int def_index = 0; def_index < def_count; ++def_index) {
-                    const auto current_def = defs[def_index];
-                    for (int i = 0; i < current_def->flags.count; ++i) {
-                        const auto& flag = current_def->flags.data[i];
-                        if (strlen(flag.name) == count && memory_equals(flag.name, now, count)) {
-                            flags |= (RecordFlags)flag.bit;
-                            goto ok;
-                        }
+        // bypass flag checks if this is HEX number (we can have FFFFFFFF but whatever).
+        if (!(now[0] >= '0' && now[0] <= '9')) {
+            for (int def_index = 0; def_index < def_count; ++def_index) {
+                const auto current_def = defs[def_index];
+                for (int i = 0; i < current_def->flags.count; ++i) {
+                    const auto& flag = current_def->flags.data[i];
+                    if (strlen(flag.name) == count && memory_equals(flag.name, now, count)) {
+                        flags |= (RecordFlags)flag.bit;
+                        goto ok;
                     }
                 }
             }
-
-            uint32_t unrecognized_flags;
-            int nread;
-            verify(1 == _snscanf_s(now, count, "%X%n", &unrecognized_flags, &nread));
-            verify(nread == count);
-
-            flags |= (RecordFlags)unrecognized_flags;
-
-            ok: {}
-            now = line_end + 1; // skip \n
-        } else {
-            verify(indents < indent);
-            break;
         }
+
+        uint32_t unrecognized_flags;
+        int nread;
+        verify(1 == _snscanf_s(now, count, "%X%n", &unrecognized_flags, &nread));
+        verify(nread == count);
+
+        flags |= (RecordFlags)unrecognized_flags;
+
+        ok: {}
+        now = line_end + 1; // skip \n
     }
     --indent;
 
@@ -293,28 +281,22 @@ RawRecord* TextRecordReader::read_record() {
     }
 
     ++indent;
-    while (true) {
-        auto indents = peek_indents();
-        if (indents == indent) {
-            const auto curr = &now[indents * 2];
-            verify(curr + sizeof(RecordFieldType) <= end);
-            const auto field_type = *(RecordFieldType*)curr;
+    while (try_continue_current_indent()) {
+        const auto curr = &now[indent * 2];
+        verify(curr + sizeof(RecordFieldType) <= end);
+        const auto field_type = *(RecordFieldType*)curr;
 
-            auto field_def = def->get_field_def(field_type);
-            if (!field_def) {
-                field_def = Record_Common.get_field_def(field_type);
-            }
+        auto field_def = def->get_field_def(field_type);
+        if (!field_def) {
+            field_def = Record_Common.get_field_def(field_type);
+        }
 
-            if (!field_def || field_def->def_type == RecordFieldDefType::Field) {
-                read_field(static_cast<const RecordFieldDef*>(field_def));
-            } else if (field_def->def_type == RecordFieldDefType::Subrecord) {
-                read_subrecord_fields(static_cast<const RecordFieldDefSubrecord*>(field_def));
-            } else {
-                verify(false);
-            }
+        if (!field_def || field_def->def_type == RecordFieldDefType::Field) {
+            read_field(static_cast<const RecordFieldDef*>(field_def));
+        } else if (field_def->def_type == RecordFieldDefType::Subrecord) {
+            read_subrecord_fields(static_cast<const RecordFieldDefSubrecord*>(field_def));
         } else {
-            verify(indents < indent);
-            break;
+            verify(false);
         }
     }
     --indent;
@@ -459,15 +441,9 @@ PapyrusPropertyType TextRecordReader::read_papyrus_object(Slice* slice, const VM
             verify(expect_type == PapyrusPropertyType::None);
             const auto inner_type = (PapyrusPropertyType)((uint32_t)type - 10);
             auto count = slice->advance<uint32_t>();
-            while (true) {
-                const auto indents = peek_indents();
-                if (indents == indent) {
-                    *count += 1;
-                    read_papyrus_object(slice, header, inner_type);
-                } else {
-                    verify(indents < indent);
-                    break;
-                }
+            while (try_continue_current_indent()) {
+                *count += 1;
+                read_papyrus_object(slice, header, inner_type);
             }
         } break;
 
@@ -740,15 +716,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
         case TypeKind::FormIDArray: {
             read_formid_line(slice);
-            while (true) {
-                auto current_indent = peek_indents();
-                if (indent == current_indent) {
-                    expect_indent();
-                    read_formid_line(slice);
-                } else {
-                    verify(current_indent < indent);
-                    break;
-                }
+            while (try_continue_current_indent()) {
+                expect_indent();
+                read_formid_line(slice);
             }
         } break;
 
@@ -787,14 +757,10 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                     parse_flag_ok:
                     now = line_end + 1;
 
-                    auto indents = peek_indents();
-                    if (indents == indent) {
-                        expect_indent();
-                        continue;
-                    } else {
-                        verify(indents < indent);
+                    if (!try_continue_current_indent()) {
                         break;
                     }
+                    expect_indent();
                 }
             } else {
                 auto line_end = peek_end_of_current_line();
@@ -838,53 +804,52 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
             header->script_count = read_papyrus_scripts(slice, header);
 
-            const auto indents = peek_indents();
-            if (indents == indent) {
-                switch (current_record_type) {
-                    case RecordType::INFO: {
-                        slice->write_constant<uint16_t>(2); // version?
-                        const auto flags = slice->advance<PapyrusFragmentFlags>();
+            if (!try_continue_current_indent()) {
+                break;
+            }
 
-                        passthrough_custom_field<WString>(slice, "Fragment Script File Name");
+            switch (current_record_type) {
+                case RecordType::INFO: {
+                    slice->write_constant<uint16_t>(2); // version?
+                    const auto flags = slice->advance<PapyrusFragmentFlags>();
 
-                        *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
-                        *flags |= read_papyrus_info_record_fragment(slice, "End Fragment", PapyrusFragmentFlags::HasEndScript);
-                    } break;
+                    passthrough_custom_field<WString>(slice, "Fragment Script File Name");
 
-                    case RecordType::QUST: {
-                        slice->write_constant<uint16_t>(2); // version?
+                    *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
+                    *flags |= read_papyrus_info_record_fragment(slice, "End Fragment", PapyrusFragmentFlags::HasEndScript);
+                } break;
 
-                        const auto fragment_count = slice->advance<uint16_t>();
-                        passthrough_custom_field<WString>(slice, "File Name");
+                case RecordType::QUST: {
+                    slice->write_constant<uint16_t>(2); // version?
 
-                        while (try_begin_custom_struct("Fragment")) {
-                            defer(end_custom_struct());
-                            *fragment_count += 1;
+                    const auto fragment_count = slice->advance<uint16_t>();
+                    passthrough_custom_field<WString>(slice, "File Name");
 
-                            passthrough_custom_field<uint16_t>(slice, "Index");
-                            slice->write_constant<uint16_t>(0);
-                            passthrough_custom_field<uint16_t>(slice, "Log Entry");
-                            slice->write_constant<uint8_t>(1);
-                            passthrough_custom_field<WString>(slice, "Script Name");
-                            passthrough_custom_field<WString>(slice, "Function Name");
-                        }
+                    while (try_begin_custom_struct("Fragment")) {
+                        defer(end_custom_struct());
+                        *fragment_count += 1;
 
-                        const auto alias_count = slice->advance<uint16_t>();
-                        while (try_begin_custom_struct("Alias")) {
-                            defer(end_custom_struct());
-                            *alias_count += 1;
+                        passthrough_custom_field<uint16_t>(slice, "Index");
+                        slice->write_constant<uint16_t>(0);
+                        passthrough_custom_field<uint16_t>(slice, "Log Entry");
+                        slice->write_constant<uint8_t>(1);
+                        passthrough_custom_field<WString>(slice, "Script Name");
+                        passthrough_custom_field<WString>(slice, "Function Name");
+                    }
 
-                            read_papyrus_object(slice, header, PapyrusPropertyType::Object);
-                            slice->write_constant<uint16_t>(header->version);
-                            slice->write_constant<uint16_t>(header->object_format);
+                    const auto alias_count = slice->advance<uint16_t>();
+                    while (try_begin_custom_struct("Alias")) {
+                        defer(end_custom_struct());
+                        *alias_count += 1;
 
-                            const auto script_count = slice->advance<uint16_t>();
-                            *script_count = read_papyrus_scripts(slice, header);
-                        }
-                    } break;
-                }
-            } else {
-                verify(indents < indent);
+                        read_papyrus_object(slice, header, PapyrusPropertyType::Object);
+                        slice->write_constant<uint16_t>(header->version);
+                        slice->write_constant<uint16_t>(header->object_format);
+
+                        const auto script_count = slice->advance<uint16_t>();
+                        *script_count = read_papyrus_scripts(slice, header);
+                    }
+                } break;
             }
         } break;
 
@@ -918,9 +883,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 }
 
 bool TextRecordReader::try_begin_custom_struct(const char* header_name) {
-    const auto indents = peek_indents();
-    if (indents == indent) {
-        const auto start = &now[indents * 2];
+    if (try_continue_current_indent()) {
+        const auto start = &now[indent * 2];
         const auto line_end = peek_end_of_current_line();
         const auto count = line_end - start;
         if (count == strlen(header_name) && memory_equals(start, header_name, count)) {
@@ -1008,6 +972,15 @@ int TextRecordReader::expect_int() {
     verify(1 == _snscanf_s(now, end - now, "%d%n", &value, &nread));
     now += nread;
     return value;
+}
+
+bool TextRecordReader::try_continue_current_indent() {
+    const auto current_indent = peek_indents();
+    if (current_indent == indent) {
+        return true;
+    }
+    verify(current_indent < indent);
+    return false;
 }
 
 int TextRecordReader::peek_indents() {
