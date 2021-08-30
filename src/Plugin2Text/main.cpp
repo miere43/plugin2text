@@ -13,6 +13,10 @@ static void print_usage(const char* hint) {
         "       <source file>         file to convert (*.esp, *.esm, *.esl, *.txt)\n"
         "       [destination file]    output path\n"
         "\n"
+        "Options:\n"
+        "\n"
+        "      --time                 output elapsed time in stdout\n"
+        "\n"
         "Text serialization options:\n"
         "\n"
         "      --export-timestamp     write timestamps for records\n"
@@ -58,6 +62,7 @@ struct Args {
     const wchar_t* source_file = nullptr;
     const wchar_t* destination_file = nullptr;
     ProgramOptions options = ProgramOptions::None;
+    bool time = false;
 
     void parse() {
         int argc = 0;
@@ -69,6 +74,8 @@ struct Args {
                 arg += 2;
                 if (string_equals(arg, L"export-timestamp") || string_equals(arg, L"export-timestamps")) {
                     options |= ProgramOptions::ExportTimestamp;
+                } else if (string_equals(arg, L"time")) {
+                    time = true;
                 } else {
                     wprintf(L"warning: unknown option \"--%s\"\n", arg);
                 }
@@ -98,6 +105,8 @@ int main() {
     const auto source_file_extension = get_file_extension(source_file);
     const auto destination_file = args.destination_file ? args.destination_file : replace_destination_file_extension(source_file, source_file_extension);
 
+    const auto start = args.time ? get_current_timestamp() : 0;
+
     if (string_equals(source_file_extension, L".txt")) {
         text_to_esp(source_file, destination_file);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
@@ -113,6 +122,10 @@ int main() {
         esp_to_text(args.options, parser.model, destination_file);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);
+    }
+
+    if (args.time) {
+        printf("Time elapsed: %f seconds\n", timestamp_to_seconds(start, get_current_timestamp()));
     }
     
     return 0;

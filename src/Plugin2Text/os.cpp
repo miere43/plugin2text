@@ -54,3 +54,17 @@ wchar_t* const* get_command_line_args(int* argc) {
     verify(result);
     return result;
 }
+
+static int64_t tick_frequency = 0;
+int64_t get_current_timestamp() {
+    if (!tick_frequency) {
+        QueryPerformanceFrequency((LARGE_INTEGER*)&tick_frequency);
+    }
+    int64_t result = 0;
+    QueryPerformanceCounter((LARGE_INTEGER*)&result);
+    return result;
+}
+
+double timestamp_to_seconds(int64_t start, int64_t end) {
+    return (end - start) / (double)tick_frequency;
+}

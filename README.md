@@ -8,6 +8,10 @@ Usage: plugin2text.exe <source file> [destination file]
         <source file>         file to convert (*.esp, *.esm, *.esl, *.txt)
         [destination file]    output path
 
+Options:
+
+        --time                 output elapsed time in stdout
+
 Text serialization options:
 
         --export-timestamp     write timestamps for records
