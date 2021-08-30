@@ -383,7 +383,7 @@ void TextRecordReader::read_formid_line(Slice* slice) {
     now = line_end + 1; // +1 for '\n'.
 }
 
-void TextRecordReader::read_byte_array(size_t count, Slice* slice) {
+void TextRecordReader::read_byte_array(Slice* slice, size_t count) {
     verify(slice->remaining_size() >= count);
 
     for (int i = 0; i < count; ++i) {
@@ -520,7 +520,7 @@ void TextRecordReader::read_string(Slice* slice) {
     now = line_end + 1; // +1 for '\n'.
 }
 
-size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: make "slice" be first argument EVERYWHERE
+size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
     ++indent;
 
     if (!has_custom_indent_rules(type->kind)) {
@@ -536,7 +536,7 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: m
             const auto count = line_end - now;
             verify((count % 2) == 0);
 
-            read_byte_array(count / 2, slice);
+            read_byte_array(slice, count / 2);
                 
             now = line_end + 1; // +1 for '\n'.
         } break;
@@ -572,7 +572,7 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: m
             verify(((line_end - now) % 2) == 0);
             verify(count == type->size);
 
-            read_byte_array(count, slice);
+            read_byte_array(slice, count);
 
             now = line_end + 1; // +1 for '\n'.
         } break;
@@ -681,7 +681,7 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: m
                 expect_indent();
                 verify(expect(field.name));
                 verify(expect("\n"));
-                read_type(field.type, slice);
+                read_type(slice, field.type);
             }
         } break;
 
@@ -837,15 +837,15 @@ size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: m
         case TypeKind::Filter: {
             const auto filter_type = (const TypeFilter*)type;
             --indent;
-            read_type(filter_type->inner_type, slice);
+            read_type(slice, filter_type->inner_type);
             ++indent;
         } break;
 
         case TypeKind::Vector3: {
             --indent;
-            read_type(&Type_float, slice);
-            read_type(&Type_float, slice);
-            read_type(&Type_float, slice);
+            read_type(slice, &Type_float);
+            read_type(slice, &Type_float);
+            read_type(slice, &Type_float);
             ++indent;
         } break;
 
@@ -887,7 +887,7 @@ void TextRecordReader::read_custom_field(Slice* slice, const char* field_name, c
     verify(expect(field_name));
     verify(expect("\n"));
 
-    read_type(type, slice);
+    read_type(slice, type);
 }
 
 void TextRecordReader::read_field(const RecordFieldDef* field_def) {
@@ -898,7 +898,7 @@ void TextRecordReader::read_field(const RecordFieldDef* field_def) {
     
     skip_to_next_line();
 
-    read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
+    read_type(buffer, field_def ? field_def->data_type : &Type_ByteArray);
 
     const auto size = buffer->now - reinterpret_cast<const uint8_t*>(field) - sizeof(*field);
     verify(size <= 0xffff);

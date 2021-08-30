@@ -37,12 +37,12 @@ struct TextRecordReader {
     RawRecord* read_record();
     FormID read_formid();
     void read_formid_line(Slice* slice);
-    void read_byte_array(size_t count, Slice* slice);
+    void read_byte_array(Slice* slice, size_t count);
     void read_papyrus_object(Slice* slice, const VMAD_Header* header);
     uint16_t read_papyrus_scripts(Slice* slice, const VMAD_Header* header);
     PapyrusFragmentFlags read_papyrus_info_record_fragment(Slice* slice, const char* fragment, PapyrusFragmentFlags flags);
     void read_string(Slice* slice);
-    size_t read_type(const Type* type, Slice* slice);
+    size_t read_type(Slice* slice, const Type* type);
     bool try_begin_custom_struct(const char* header_name);
 
     void end_custom_struct();
