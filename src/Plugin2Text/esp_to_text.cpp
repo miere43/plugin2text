@@ -1,6 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
 #include "esp_to_text.hpp"
 #include "os.hpp"
 #include "base64.hpp"
@@ -713,15 +710,8 @@ void TextRecordWriter::write_custom_field(const char* field_name, const Type* ty
 void esp_to_text(ProgramOptions options, const EspObjectModel& model, const wchar_t* text_path) {
     TextRecordWriter writer;
     writer.init(options);
+    defer(writer.dispose());
+
     writer.write_records(model.records);
-
-    const auto file = CreateFileW(text_path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    verify(file != INVALID_HANDLE_VALUE);
-
-    DWORD written = 0;
-    verify(WriteFile(file, writer.output_buffer.start, static_cast<uint32_t>(writer.output_buffer.size()), &written, nullptr));
-    verify(written == writer.output_buffer.size());
-
-    CloseHandle(file);
-    writer.dispose();
+    write_file(text_path, { writer.output_buffer.start, writer.output_buffer.size() });
 }

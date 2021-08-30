@@ -1,7 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#include <shellapi.h>
 #include "esp_to_text.hpp"
 #include "text_to_esp.hpp"
 #include "common.hpp"
@@ -65,8 +61,7 @@ struct Args {
 
     void parse() {
         int argc = 0;
-        const auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-        verify(argv);
+        const auto argv = get_command_line_args(&argc);
 
         for (int i = 1; i < argc; ++i) {
             auto arg = argv[i];

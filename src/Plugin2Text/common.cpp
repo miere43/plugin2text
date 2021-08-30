@@ -3,9 +3,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
 #include <exception>
 
 #ifdef _DEBUG

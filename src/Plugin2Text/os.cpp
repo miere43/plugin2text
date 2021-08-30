@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#include <shellapi.h>
 #include "common.hpp"
 #include "os.hpp"
 
@@ -34,4 +35,22 @@ void free_virtual_memory(Slice* slice) {
     verify(slice);
     verify(VirtualFree(slice->start, 0, MEM_RELEASE));
     *slice = Slice();
+}
+
+void write_file(const wchar_t* path, const StaticArray<uint8_t>& data) {
+    auto handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    verify(handle != INVALID_HANDLE_VALUE);
+    verify(data.count <= 0xffffffff);
+
+    DWORD written = 0;
+    verify(WriteFile(handle, data.data, (DWORD)data.count, &written, nullptr));
+    verify(written == (DWORD)data.count);
+
+    CloseHandle(handle);
+}
+
+wchar_t* const* get_command_line_args(int* argc) {
+    auto result = CommandLineToArgvW(GetCommandLineW(), argc);
+    verify(result);
+    return result;
 }

@@ -1,6 +1,3 @@
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
 #include "text_to_esp.hpp"
 #include "os.hpp"
 #include "common.hpp"
@@ -1005,13 +1002,5 @@ void text_to_esp(const wchar_t* text_path, const wchar_t* esp_path) {
     const auto text = read_file(text_path);
     reader.read_records((const char*)text.data, (const char*)text.data + text.count);
 
-    auto output_handle = CreateFileW(esp_path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    verify(output_handle != INVALID_HANDLE_VALUE);
-
-    auto esp_size = (uint32_t)(reader.buffer->now - reader.buffer->start);
-    DWORD written = 0;
-    verify(WriteFile(output_handle, reader.buffer->start, esp_size, &written, nullptr));
-    verify(written == esp_size);
-
-    CloseHandle(output_handle);
+    write_file(esp_path, { reader.buffer->start, reader.buffer->size() });
 }
