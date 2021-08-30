@@ -773,7 +773,7 @@ RECORD(NPC_, "Non-Player Character",
 RECORD(NAVI, "Navigation",
     record_fields(
         rf_uint32("NVER", "Version"),
-        rf_bytes("NVMI", "NavMesh Data"),
+        rf_bytes_rle("NVMI", "NavMesh Data"),
         rf_compressed("NVPP", "Preferred Pathing Data"),
     ),
 );
