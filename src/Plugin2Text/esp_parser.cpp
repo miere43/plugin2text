@@ -2,6 +2,7 @@
 #include "os.hpp"
 #include "array.hpp"
 #include <stdlib.h>
+#include <zlib.h>
 
 void EspParser::init() {
     buffer = allocate_virtual_memory(1024 * 1024 * 128);
@@ -70,7 +71,7 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         const uint8_t* end;
         if (record->is_compressed()) {
             uint32_t size = 0;
-            now = record->uncompress(&size);
+            now = uncompress_record((RawRecordCompressed*)record, &size);
             end = now + size;
         } else {
             now = (uint8_t*)record + sizeof(RawRecord);
@@ -106,4 +107,16 @@ void EspParser::process_records(const uint8_t* start, const uint8_t* end) {
         model.records.push(process_record(record));
         now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(RawRecord));
     }
+}
+
+uint8_t* EspParser::uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size) {
+    uLongf uncompressed_data_size = record->uncompressed_data_size;
+    uint8_t* compressed_data = (uint8_t*)(record + 1);
+
+    auto uncompressed_data = buffer.advance(uncompressed_data_size);
+    auto result = ::uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, record->data_size - sizeof(record->uncompressed_data_size));
+    verify(result == Z_OK);
+
+    *out_uncompressed_data_size = uncompressed_data_size;
+    return (uint8_t*)uncompressed_data;
 }

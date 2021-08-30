@@ -1,24 +1,10 @@
 #include "tes.hpp"
 #include "common.hpp"
-#include <zlib.h>
 #include <string.h>
 #include <stdlib.h>
 
 bool RawRecord::is_compressed() const {
     return is_bit_set(flags, RecordFlags::Compressed);
-}
-
-uint8_t* RawRecord::uncompress(uint32_t* out_uncompressed_data_size) const {
-    verify(is_compressed());
-    uLongf uncompressed_data_size = *(uint32_t*)((uint8_t*)this + sizeof(RawRecord));
-    uint8_t* compressed_data = (uint8_t*)this + sizeof(RawRecord) + sizeof(uint32_t);
-
-    auto uncompressed_data = new uint8_t[uncompressed_data_size];
-    auto result = ::uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, data_size - sizeof(uint32_t));
-    verify(result == Z_OK);
-
-    *out_uncompressed_data_size = uncompressed_data_size;
-    return (uint8_t*)uncompressed_data;
 }
 
 const char* record_group_type_to_string(RecordGroupType type) {

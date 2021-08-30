@@ -55,4 +55,5 @@ private:
     RecordField* process_field(Record* record, const RawRecordField* field);
     RecordBase* process_record(const RawRecord* record);
     void process_records(const uint8_t* start, const uint8_t* end);
+    uint8_t* uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size);
 };

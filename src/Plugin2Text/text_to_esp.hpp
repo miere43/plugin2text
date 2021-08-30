@@ -12,7 +12,7 @@ struct TextRecordReader {
     // Buffer for writing compressed data. Content from this buffer will be blitted into "esp_buffer" after compression.
     // @NOTE: It's possible to compress data inplace, but code for that is very annoying.
     // Looks like more trouble than worth.
-    // Used as scratch buffer when decompressing base64-encoded fields.
+    // Used as scratch buffer when uncompressing base64-encoded fields.
     Slice compression_buffer;
 
     bool inside_compressed_record = false;

@@ -43,9 +43,13 @@ struct RawRecord {
     uint16_t unknown = 0;
 
     bool is_compressed() const;
-    uint8_t* uncompress(uint32_t* out_uncompressed_data_size) const;
 };
 static_assert(sizeof(RawRecord) == 24, "sizeof(Record) == 24");
+
+struct RawRecordCompressed : RawRecord {
+    uint32_t uncompressed_data_size;
+};
+static_assert(sizeof(RawRecordCompressed) == 28, "sizeof(RawRecordCompressed) == 28");
 
 enum class RecordGroupType : uint32_t {
     Top = 0,

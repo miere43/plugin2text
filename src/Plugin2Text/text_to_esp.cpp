@@ -325,21 +325,16 @@ RawRecord* TextRecordReader::read_record() {
     if (use_compression_buffer) {
         constexpr int SkyrimZLibCompressionLevel = 7;
 
-        auto decompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
-        verify(decompressed_data_size > 0);
-
-        struct RawRecordCompressed : RawRecord {
-            uint32_t decompressed_data_size;
-        };
-        static_assert(sizeof(RawRecordCompressed) == 28, "invalid RawRecordCompressed size");
+        auto uncompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
+        verify(uncompressed_data_size > 0);
 
         const auto record_compressed = (RawRecordCompressed*)record;
 
         auto compressed_size = static_cast<uLongf>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-        const auto result = ::compress2((uint8_t*)(record_compressed + 1), &compressed_size, buffer->start, decompressed_data_size, SkyrimZLibCompressionLevel);
+        const auto result = ::compress2((uint8_t*)(record_compressed + 1), &compressed_size, buffer->start, uncompressed_data_size, SkyrimZLibCompressionLevel);
         verify(result == Z_OK);
 
-        record_compressed->decompressed_data_size = decompressed_data_size;
+        record_compressed->uncompressed_data_size = uncompressed_data_size;
         record_compressed->data_size = compressed_size + sizeof(uint32_t);
         
         buffer = &esp_buffer;
@@ -545,9 +540,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             const auto line_end = peek_end_of_current_line();
             const auto count = line_end - now;
 
-            uint32_t decompressed_size = 0;
+            uint32_t uncompressed_size = 0;
             int nread = 0;
-            verify(1 == _snscanf_s(now, count, "%X%n", &decompressed_size, &nread));
+            verify(1 == _snscanf_s(now, count, "%X%n", &uncompressed_size, &nread));
             now += nread;
             verify(expect(" "));
 
@@ -555,13 +550,13 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             auto base64_size = (uLong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
             compression_buffer.advance(base64_size);
                
-            auto result_size = (uLongf)decompressed_size;
-            const auto decompressed_buffer = compression_buffer.advance(result_size);
-            const auto result = ::uncompress(decompressed_buffer, &result_size, base64_buffer, base64_size);
+            auto result_size = (uLongf)uncompressed_size;
+            const auto uncompressed_buffer = compression_buffer.advance(result_size);
+            const auto result = ::uncompress(uncompressed_buffer, &result_size, base64_buffer, base64_size);
             verify(result == Z_OK);
 
             compression_buffer.now = base64_buffer; // This line must be before slice->write_bytes, because slice can point to &compression_buffer
-            slice->write_bytes(decompressed_buffer, result_size);
+            slice->write_bytes(uncompressed_buffer, result_size);
                 
             now = line_end + 1; // +1 for '\n'.
         } break;
