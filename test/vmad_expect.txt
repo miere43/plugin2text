@@ -1,0 +1,219 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.7
+    Number Of Records
+      2
+    Next Object ID
+      [00000D63]
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  INTV - Tagified Strings
+    1
+GRUP
+  30 Aug 2021
+  QUST [01000D62] - Quest
+    30 Aug 2021
+    EDID - Editor ID
+      "Quest"
+    VMAD - Script
+      Version
+        5
+      Object Format
+        2
+      Script
+        Name
+          "papyrustempscript"
+        Status
+          0
+        Property
+          Name
+            "IntPropValue"
+          Status
+            1
+          Int
+            1234
+        Property
+          Name
+            "BoolProp"
+          Status
+            1
+          Bool
+            True
+        Property
+          Name
+            "IntArray"
+          Status
+            1
+          Int[]
+            Int
+              3
+            Int
+              66
+            Int
+              3
+        Property
+          Name
+            "LeveledActorArr"
+          Status
+            1
+          Object[]
+            Object
+              Form ID
+                [00064A90]
+              Alias
+                -1
+            Object
+              Form ID
+                [00064A73]
+              Alias
+                -1
+        Property
+          Name
+            "StringArray"
+          Status
+            1
+          String[]
+            String
+              "first"
+            String
+              "Second"
+        Property
+          Name
+            "FloatVal"
+          Status
+            1
+          Float
+            3333
+        Property
+          Name
+            "FloatArray"
+          Status
+            1
+          Float[]
+            Float
+              0.123
+            Float
+              0.38329613
+    DNAM - Quest Data
+      Flags
+        + Start Game Enabled
+        + Run Once
+      Priority
+        0
+      Unknown
+        255
+      Type
+        None
+    NEXT
+      
+    ANAM - Next Alias ID
+      12
+    ALST - Alias ID
+      0
+    ALID - Alias Name
+      "specific reference"
+    FNAM - Objective Flags
+      0
+    ALFR - Alias Forced Reference
+      [000E9405]
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      
+    ALST - Alias ID
+      1
+    ALID - Alias Name
+      "unique actor"
+    FNAM - Objective Flags
+      0
+    ALUA - Alias Unique Actor
+      [0008774F]
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      
+    ALLS - Location Alias ID
+      3
+    ALID - Alias Name
+      "specific location"
+    FNAM - Objective Flags
+      0
+    ALFL
+      4ccf0e00
+    ALED
+      
+    ALLS - Location Alias ID
+      4
+    ALID - Alias Name
+      "reference alias location"
+    FNAM - Objective Flags
+      0
+    ALFA
+      00000000
+    KNAM
+      adde0600
+    ALED
+      
+    ALLS - Location Alias ID
+      5
+    ALID - Alias Name
+      "external alias location"
+    FNAM - Objective Flags
+      65800
+    ALED
+      
+    ALST - Alias ID
+      7
+    ALID - Alias Name
+      "location alias reference"
+    FNAM - Objective Flags
+      0
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      
+    ALST - Alias ID
+      8
+    ALID - Alias Name
+      "external alias reference2"
+    FNAM - Objective Flags
+      0
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      
+    ALST - Alias ID
+      9
+    ALID - Alias Name
+      "create reference to object"
+    FNAM - Objective Flags
+      0
+    ALCO
+      f5f20200
+    ALCA
+      01000000
+    ALCL
+      03000000
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      
+    ALST - Alias ID
+      11
+    ALID - Alias Name
+      "find near"
+    FNAM - Objective Flags
+      0
+    ALNA
+      09000000
+    ALNT
+      00000000
+    VTCK - Voice Type
+      [00000000]
+    ALED
+      

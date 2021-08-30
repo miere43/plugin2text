@@ -398,22 +398,28 @@ static bool has_custom_indent_rules(TypeKind kind) {
     return false;
 }
 
-void TextRecordReader::read_papyrus_object(Slice* slice, const VMAD_Header* header, PapyrusPropertyType expect_type) {
+PapyrusPropertyType TextRecordReader::read_papyrus_object(Slice* slice, const VMAD_Header* header, PapyrusPropertyType expect_type) {
     verify(header->object_format == 2);
 
-    PapyrusPropertyType type;
-    if (try_begin_custom_struct("Object Value")) {
-        type = PapyrusPropertyType::Object;
-    } else {
-        verify(false);
-    }
-
+    auto type = PapyrusPropertyType::None;
     if (expect_type == PapyrusPropertyType::None) {
-        slice->write_struct(&type);
+        for (size_t i = 0; i < Type_PapyrusPropertyType.field_count; ++i) {
+            const auto& field = Type_PapyrusPropertyType.fields[i];
+            if (try_begin_custom_struct(field.name)) {
+                type = (PapyrusPropertyType)field.value;
+                break;
+            }
+        }
     } else {
-        verify(type == expect_type);
+        const auto field = Type_PapyrusPropertyType.get_field_by_value((uint32_t)expect_type);
+        verify(field);
+        verify(try_begin_custom_struct(field->name));
+        type = expect_type;
     }
 
+    verify(type != PapyrusPropertyType::None);
+    defer(end_custom_struct());
+    
     switch (type) {
         case PapyrusPropertyType::Object: {
             const auto property = slice->advance<VMAD_PropertyObjectV2>();
@@ -421,12 +427,56 @@ void TextRecordReader::read_papyrus_object(Slice* slice, const VMAD_Header* head
             property->alias = read_custom_field<uint16_t>("Alias");
         } break;
 
+        case PapyrusPropertyType::String: {
+            --indent;
+            read_type<WString>(slice);
+            ++indent;
+        } break;
+
+        case PapyrusPropertyType::Int: {
+            --indent;
+            read_type<int>(slice);
+            ++indent;
+        } break;
+
+        case PapyrusPropertyType::Float: {
+            --indent;
+            read_type<float>(slice);
+            ++indent;
+        } break;
+
+        case PapyrusPropertyType::Bool: {
+            --indent;
+            read_type<bool>(slice);
+            ++indent;
+        } break;
+
+        case PapyrusPropertyType::ObjectArray:
+        case PapyrusPropertyType::StringArray:
+        case PapyrusPropertyType::IntArray:
+        case PapyrusPropertyType::FloatArray:
+        case PapyrusPropertyType::BoolArray: {
+            verify(expect_type == PapyrusPropertyType::None);
+            const auto inner_type = (PapyrusPropertyType)((uint32_t)type - 10);
+            auto count = slice->advance<uint32_t>();
+            while (true) {
+                const auto indents = peek_indents();
+                if (indents == indent) {
+                    *count += 1;
+                    read_papyrus_object(slice, header, inner_type);
+                } else {
+                    verify(indents < indent);
+                    break;
+                }
+            }
+        } break;
+
         default: {
             verify(false);
         } break;
     }
 
-    end_custom_struct();
+    return type;
 }
 
 uint16_t TextRecordReader::read_papyrus_scripts(Slice* slice, const VMAD_Header* header) {
@@ -448,11 +498,12 @@ uint16_t TextRecordReader::read_papyrus_scripts(Slice* slice, const VMAD_Header*
             *property_count += 1;
 
             passthrough_custom_field<WString>(slice, "Name");
+            auto type = slice->advance<PapyrusPropertyType>();
             if (header->version >= 4) {
                 passthrough_custom_field<uint8_t>(slice, "Status");
             }
 
-            read_papyrus_object(slice, header);
+            *type = read_papyrus_object(slice, header);
         }
     }
 
@@ -613,8 +664,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::WString: {
-            const auto string_start = slice->now;
             auto count_small = slice->advance<uint16_t>();
+            const auto string_start = slice->now;
             read_string(slice);
             const auto count = slice->now - string_start;
             verify(count >= 0 && count <= 0xffff);
@@ -787,48 +838,53 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
             header->script_count = read_papyrus_scripts(slice, header);
 
-            switch (current_record_type) {
-                case RecordType::INFO: {
-                    slice->write_constant<uint16_t>(2); // version?
-                    const auto flags = slice->advance<PapyrusFragmentFlags>();
-                        
-                    passthrough_custom_field<WString>(slice, "Fragment Script File Name");
-                    
-                    *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
-                    *flags |= read_papyrus_info_record_fragment(slice, "End Fragment", PapyrusFragmentFlags::HasEndScript);
-                } break;
+            const auto indents = peek_indents();
+            if (indents == indent) {
+                switch (current_record_type) {
+                    case RecordType::INFO: {
+                        slice->write_constant<uint16_t>(2); // version?
+                        const auto flags = slice->advance<PapyrusFragmentFlags>();
 
-                case RecordType::QUST: {
-                    slice->write_constant<uint16_t>(2); // version?
+                        passthrough_custom_field<WString>(slice, "Fragment Script File Name");
 
-                    const auto fragment_count = slice->advance<uint16_t>();
-                    passthrough_custom_field<WString>(slice, "File Name");
+                        *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
+                        *flags |= read_papyrus_info_record_fragment(slice, "End Fragment", PapyrusFragmentFlags::HasEndScript);
+                    } break;
 
-                    while (try_begin_custom_struct("Fragment")) {
-                        defer(end_custom_struct());
-                        *fragment_count += 1;
+                    case RecordType::QUST: {
+                        slice->write_constant<uint16_t>(2); // version?
 
-                        passthrough_custom_field<uint16_t>(slice, "Index");
-                        slice->write_constant<uint16_t>(0);
-                        passthrough_custom_field<uint16_t>(slice, "Log Entry");
-                        slice->write_constant<uint8_t>(1);
-                        passthrough_custom_field<WString>(slice, "Script Name");
-                        passthrough_custom_field<WString>(slice, "Function Name");
-                    }
+                        const auto fragment_count = slice->advance<uint16_t>();
+                        passthrough_custom_field<WString>(slice, "File Name");
 
-                    const auto alias_count = slice->advance<uint16_t>();
-                    while (try_begin_custom_struct("Alias")) {
-                        defer(end_custom_struct());
-                        *alias_count += 1;
+                        while (try_begin_custom_struct("Fragment")) {
+                            defer(end_custom_struct());
+                            *fragment_count += 1;
 
-                        read_papyrus_object(slice, header, PapyrusPropertyType::Object);
-                        slice->write_constant<uint16_t>(header->version);
-                        slice->write_constant<uint16_t>(header->object_format);
+                            passthrough_custom_field<uint16_t>(slice, "Index");
+                            slice->write_constant<uint16_t>(0);
+                            passthrough_custom_field<uint16_t>(slice, "Log Entry");
+                            slice->write_constant<uint8_t>(1);
+                            passthrough_custom_field<WString>(slice, "Script Name");
+                            passthrough_custom_field<WString>(slice, "Function Name");
+                        }
 
-                        const auto script_count = slice->advance<uint16_t>();
-                        *script_count = read_papyrus_scripts(slice, header);
-                    }
-                } break;
+                        const auto alias_count = slice->advance<uint16_t>();
+                        while (try_begin_custom_struct("Alias")) {
+                            defer(end_custom_struct());
+                            *alias_count += 1;
+
+                            read_papyrus_object(slice, header, PapyrusPropertyType::Object);
+                            slice->write_constant<uint16_t>(header->version);
+                            slice->write_constant<uint16_t>(header->object_format);
+
+                            const auto script_count = slice->advance<uint16_t>();
+                            *script_count = read_papyrus_scripts(slice, header);
+                        }
+                    } break;
+                }
+            } else {
+                verify(indents < indent);
             }
         } break;
 

@@ -55,5 +55,14 @@ public:
             nullptr
         );
     }
+
+    TEST_METHOD(TestVMAD) {
+        test_esps(
+            ProgramOptions::ExportTimestamp,
+            L"../../../../test/vmad.esp",
+            L"../../../../test/vmad_expect.txt",
+            nullptr
+        );
+    }
     };
 }

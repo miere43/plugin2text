@@ -1107,3 +1107,13 @@ RecordDef* get_record_def(RecordType type) {
     #undef CASE
     return nullptr;
 }
+
+const TypeEnumField* TypeEnum::get_field_by_value(uint32_t value) const {
+    for (size_t i = 0; i < field_count; ++i) {
+        const auto& field = fields[i];
+        if (field.value == value) {
+            return &field;
+        }
+    }
+    return nullptr;
+}

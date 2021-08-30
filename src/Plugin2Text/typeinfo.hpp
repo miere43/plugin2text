@@ -67,6 +67,8 @@ struct TypeEnum : Type {
 
     template<size_t N>
     constexpr TypeEnum(const char* name, size_t size, const TypeEnumField(&fields)[N], bool flags) : Type(TypeKind::Enum, name, size), field_count(N), fields(fields), flags(flags) { }
+
+    const TypeEnumField* get_field_by_value(uint32_t value) const;
 };
 
 struct TypeConstant : Type {
@@ -145,6 +147,8 @@ inline const Type* resolve_type() {
 }
 
 #define RESOLVE_TYPE(x) template<> inline const Type* resolve_type<x>() { return &Type_##x; }
+RESOLVE_TYPE(bool);
+RESOLVE_TYPE(float);
 RESOLVE_TYPE(int8_t);
 RESOLVE_TYPE(int16_t);
 RESOLVE_TYPE(int32_t);

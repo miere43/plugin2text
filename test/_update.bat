@@ -7,8 +7,10 @@
 
 ..\src\Plugin2Text\x64\Debug\Plugin2Text.exe --export-timestamp npc.esp npc_expect.txt
 
-..\src\Plugin2Text\x64\Debug\Plugin2Text.exe weap.esp weap_expect.esp
+..\src\Plugin2Text\x64\Debug\Plugin2Text.exe weap.esp weap_expect.txt
 ..\src\Plugin2Text\x64\Debug\Plugin2Text.exe weap_expect.txt weap_expect.esp
+
+..\src\Plugin2Text\x64\Debug\Plugin2Text.exe --export-timestamp vmad.esp vmad_expect.txt
 
 ..\src\Plugin2Text\x64\Debug\Plugin2Text.exe regression\text_to_esp_byte_array_compressed.esm regression\text_to_esp_byte_array_compressed_expect.txt
 ..\src\Plugin2Text\x64\Debug\Plugin2Text.exe regression\text_to_esp_byte_array_compressed_expect.txt regression\text_to_esp_byte_array_compressed_expect.esm

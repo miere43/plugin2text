@@ -227,16 +227,51 @@ static size_t count_bytes(const uint8_t* start, const uint8_t* end, uint8_t byte
 
 void TextRecordWriter::write_papyrus_object(BinaryReader& r, const VMAD_Header* header, PapyrusPropertyType type) {
     verify(header->object_format == 2);
+
+    const auto type_field = Type_PapyrusPropertyType.get_field_by_value((uint32_t)type);
+    verify(type_field);
+    const auto type_name = type_field->name;
     
     switch (type) {
         case PapyrusPropertyType::Object: {
-            begin_custom_struct("Object Value");
+            begin_custom_struct(type_name);
             defer(end_custom_struct());
 
             auto value = r.read<VMAD_PropertyObjectV2>();
             write_custom_field("Form ID", value.form_id);
             write_custom_field("Alias", value.alias);
             verify(value.unused == 0);
+        } break;
+
+        case PapyrusPropertyType::String: {
+            write_custom_field(type_name, r.advance_wstring());
+        } break;
+
+        case PapyrusPropertyType::Int: {
+            write_custom_field(type_name, r.read<int>());
+        } break;
+
+        case PapyrusPropertyType::Float: {
+            write_custom_field(type_name, r.read<float>());
+        } break;
+
+        case PapyrusPropertyType::Bool: {
+            write_custom_field(type_name, r.read<bool>());
+        } break;
+
+        case PapyrusPropertyType::ObjectArray:
+        case PapyrusPropertyType::StringArray:
+        case PapyrusPropertyType::IntArray:
+        case PapyrusPropertyType::FloatArray:
+        case PapyrusPropertyType::BoolArray: {
+            begin_custom_struct(type_name);
+            defer(end_custom_struct());
+
+            const auto inner_type = (PapyrusPropertyType)((uint32_t)type - 10);
+            const auto count = r.read<uint32_t>();
+            for (uint32_t i = 0; i < count; ++i) {
+                write_papyrus_object(r, header, inner_type);
+            }
         } break;
 
         default: {
@@ -568,48 +603,50 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             write_papyrus_scripts(r, header, header->script_count);
 
             // @NOTE: instead of using "current_record" we can make VMAD_INFO, VMAD_QUST, etc...
-            switch (current_record_type) {
-                case RecordType::INFO: {
-                    verify(r.read<uint8_t>() == 2); // version?
+            if (r.now != r.end) {
+                switch (current_record_type) {
+                    case RecordType::INFO: {
+                        verify(r.read<uint8_t>() == 2); // version?
 
-                    auto flags = r.read<PapyrusFragmentFlags>();
-                    write_custom_field("Fragment Script File Name", r.advance_wstring());
+                        auto flags = r.read<PapyrusFragmentFlags>();
+                        write_custom_field("Fragment Script File Name", r.advance_wstring());
 
-                    write_papyrus_info_record_fragment(r, flags, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
-                    write_papyrus_info_record_fragment(r, flags, "End Fragment", PapyrusFragmentFlags::HasEndScript);
-                } break;
+                        write_papyrus_info_record_fragment(r, flags, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
+                        write_papyrus_info_record_fragment(r, flags, "End Fragment", PapyrusFragmentFlags::HasEndScript);
+                    } break;
 
-                case RecordType::QUST: {
-                    verify(r.read<uint8_t>() == 2); // version?
+                    case RecordType::QUST: {
+                        verify(r.read<uint8_t>() == 2); // version?
 
-                    auto fragment_count = (int)r.read<uint16_t>();
-                    write_custom_field("File Name", r.advance_wstring());
+                        auto fragment_count = (int)r.read<uint16_t>();
+                        write_custom_field("File Name", r.advance_wstring());
 
-                    for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
-                        begin_custom_struct("Fragment");
-                        defer(end_custom_struct());
+                        for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
+                            begin_custom_struct("Fragment");
+                            defer(end_custom_struct());
 
-                        write_custom_field("Index", r.read<uint16_t>());
-                        verify(0 == r.read<uint16_t>());
-                        write_custom_field("Log Entry", r.read<uint32_t>());
-                        verify(1 == r.read<uint8_t>());
-                        write_custom_field("Script Name", r.advance_wstring());
-                        write_custom_field("Function Name", r.advance_wstring());
-                    };
+                            write_custom_field("Index", r.read<uint16_t>());
+                            verify(0 == r.read<uint16_t>());
+                            write_custom_field("Log Entry", r.read<uint32_t>());
+                            verify(1 == r.read<uint8_t>());
+                            write_custom_field("Script Name", r.advance_wstring());
+                            write_custom_field("Function Name", r.advance_wstring());
+                        };
 
-                    auto alias_count = (int)r.read<uint16_t>();
-                    for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
-                        begin_custom_struct("Alias");
-                        defer(end_custom_struct());
+                        auto alias_count = (int)r.read<uint16_t>();
+                        for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
+                            begin_custom_struct("Alias");
+                            defer(end_custom_struct());
 
-                        write_papyrus_object(r, header, PapyrusPropertyType::Object);
-                        verify(r.read<uint16_t>() == header->version);
-                        verify(r.read<uint16_t>() == header->object_format);
+                            write_papyrus_object(r, header, PapyrusPropertyType::Object);
+                            verify(r.read<uint16_t>() == header->version);
+                            verify(r.read<uint16_t>() == header->object_format);
 
-                        const auto script_count = r.read<uint16_t>();
-                        write_papyrus_scripts(r, header, script_count);
-                    }
-                } break;
+                            const auto script_count = r.read<uint16_t>();
+                            write_papyrus_scripts(r, header, script_count);
+                        }
+                    } break;
+                }
             }
 
             verify(r.now == r.end);
