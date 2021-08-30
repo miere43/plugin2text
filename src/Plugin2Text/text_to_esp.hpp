@@ -32,7 +32,7 @@ struct TextRecordReader {
     RecordGroupType expect_record_group_type();
     uint16_t read_record_timestamp();
     uint32_t read_record_unknown();
-    RawGrupRecord* read_grup_record();
+    void read_grup_record(RawGrupRecord* group);
     RecordFlags read_record_flags(RecordDef* def);
     RawRecord* read_record();
     FormID read_formid();

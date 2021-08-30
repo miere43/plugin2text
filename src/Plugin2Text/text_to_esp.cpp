@@ -93,31 +93,24 @@ uint32_t TextRecordReader::read_record_unknown() {
     return 0;
 }
 
-RawGrupRecord* TextRecordReader::read_grup_record() {
-    auto record_start_offset = buffer->now;
-
-    RawGrupRecord group;
-    group.type = RecordType::GRUP;
-    
-    buffer->now += sizeof(RawGrupRecord);
-
+void TextRecordReader::read_grup_record(RawGrupRecord* group) {
     if (expect(" - ")) {
         auto line_end = peek_end_of_current_line();
-        group.group_type = expect_record_group_type();
+        group->group_type = expect_record_group_type();
 
-        switch (group.group_type) {
+        switch (group->group_type) {
             case RecordGroupType::InteriorCellBlock:
             case RecordGroupType::InteriorCellSubBlock: {
                 verify(expect(" "));
-                group.label = expect_int();
+                group->label = expect_int();
             } break;
                 
             case RecordGroupType::ExteriorCellBlock:
             case RecordGroupType::ExteriorCellSubBlock: {
                 verify(expect(" ("));
-                group.grid_x = expect_int();
+                group->grid_x = expect_int();
                 verify(expect("; "));
-                group.grid_y = expect_int();
+                group->grid_y = expect_int();
                 verify(expect(")"));
             } break;
 
@@ -126,9 +119,9 @@ RawGrupRecord* TextRecordReader::read_grup_record() {
             case RecordGroupType::CellTemporaryChildren: 
             case RecordGroupType::WorldChildren:
             case RecordGroupType::TopicChildren: {
-                // @TODO: It's possible to infer "group.value" by looking at previous record.
+                // @TODO: It's possible to infer "group->value" by looking at previous record.
                 verify(expect(" "));
-                group.label = read_formid().value;
+                group->label = read_formid().value;
             } break;
 
             default: {
@@ -136,30 +129,30 @@ RawGrupRecord* TextRecordReader::read_grup_record() {
             } break;
         }
     } else {
-        group.group_type = RecordGroupType::Top;
+        group->group_type = RecordGroupType::Top;
     }
 
     skip_to_next_line();
 
-    group.timestamp = read_record_timestamp();
-    group.unknown = read_record_unknown();
+    group->timestamp = read_record_timestamp();
+    group->unknown = read_record_unknown();
 
     ++indent;
     while (true) {
         auto indents = peek_indents();
         if (indents == indent) {
             auto record = read_record();
-            if (group.group_type == RecordGroupType::Top) {
+            if (group->group_type == RecordGroupType::Top) {
                 if (record->type == RecordType::GRUP) {
-                    if (!group.label) {
+                    if (!group->label) {
                         auto record_as_group = (RawGrupRecord*)record;
                         switch (record_as_group->group_type) {
                             case RecordGroupType::InteriorCellBlock: {
-                                group.label = fourcc("CELL");
+                                group->label = fourcc("CELL");
                             } break;
 
                             case RecordGroupType::WorldChildren: {
-                                group.label = fourcc("WRLD");
+                                group->label = fourcc("WRLD");
                             } break;
 
                             default: {
@@ -167,10 +160,10 @@ RawGrupRecord* TextRecordReader::read_grup_record() {
                             } break;
                         }
                     }
-                } else if (group.label == 0) {
-                    group.label = (uint32_t)record->type;
+                } else if (group->label == 0) {
+                    group->label = (uint32_t)record->type;
                 } else {
-                    verify(group.label == (uint32_t)record->type);
+                    verify(group->label == (uint32_t)record->type);
                 }
             }
         } else {
@@ -181,18 +174,15 @@ RawGrupRecord* TextRecordReader::read_grup_record() {
     --indent;
 
     // validate
-    switch (group.group_type) {
+    switch (group->group_type) {
         case RecordGroupType::Top: {
-            verify(group.label);
+            verify(group->label);
         } break;
 
         // @TODO: validate other group_type's
     }
 
-    group.group_size = (uint32_t)(buffer->now - record_start_offset);
-    buffer->write_struct_at(record_start_offset, &group);
-
-    return (RawGrupRecord*)record_start_offset;
+    group->group_size = static_cast<uint32_t>(buffer->now - reinterpret_cast<const uint8_t*>(group));
 }
 
 RecordFlags TextRecordReader::read_record_flags(RecordDef* def) {
@@ -256,49 +246,49 @@ RecordFlags TextRecordReader::read_record_flags(RecordDef* def) {
 }
 
 RawRecord* TextRecordReader::read_record() {
-    const auto record_start_offset = buffer->now;
-
-    RawRecord record;
     expect_indent();
-    record.type = read_record_type();
-    current_record_type = record.type;
+    
+    static_assert(sizeof(RawRecord) == sizeof(RawGrupRecord), "invalid raw record sizes");
 
-    if (record.type == RecordType::GRUP) {
-        return (RawRecord*)read_grup_record();
+    const auto record = buffer->advance<RawRecord>();
+    record->type = read_record_type();
+    current_record_type = record->type;
+
+    if (record->type == RecordType::GRUP) {
+        read_grup_record((RawGrupRecord*)record);
+        return record;
     }
 
-    buffer->now += sizeof(record);
-
     verify(expect(" "));
-    record.id = read_formid();
+    record->id = read_formid();
 
     {
         const auto line_end = peek_end_of_current_line();
         if (expect(",v")) {
             int version = 0;
-            verify(1 == _snscanf_s(now, line_end - now, "%d%n", &version));
+            verify(1 == _snscanf_s(now, line_end - now, "%d", &version));
             verify(version >= 1 && version <= 44);
-            record.version = static_cast<uint16_t>(version);
+            record->version = static_cast<uint16_t>(version);
         } else {
-            record.version = 44;
+            record->version = 44;
         }
         now = line_end + 1; // skip \n
     }
 
-    record.timestamp = read_record_timestamp();
+    record->timestamp = read_record_timestamp();
     {
         auto unknown = read_record_unknown();
         verify(unknown <= 0xffff);
-        record.unknown = static_cast<uint16_t>(unknown);
+        record->unknown = static_cast<uint16_t>(unknown);
     }
 
-    auto def = get_record_def(record.type);
-    record.flags = read_record_flags(def);
+    auto def = get_record_def(record->type);
+    record->flags = read_record_flags(def);
     if (!def) {
         def = &Record_Common;
     }
 
-    const bool use_compression_buffer = record.is_compressed();
+    const bool use_compression_buffer = record->is_compressed();
     if (use_compression_buffer) {
         verify(!inside_compressed_record);
         inside_compressed_record = true;
@@ -335,27 +325,33 @@ RawRecord* TextRecordReader::read_record() {
     if (use_compression_buffer) {
         constexpr int SkyrimZLibCompressionLevel = 7;
 
-        auto uncompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
-        verify(uncompressed_data_size > 0);
+        auto decompressed_data_size = static_cast<uLong>(compression_buffer.now - compression_buffer.start);
+        verify(decompressed_data_size > 0);
+
+        struct RawRecordCompressed : RawRecord {
+            uint32_t decompressed_data_size;
+        };
+        static_assert(sizeof(RawRecordCompressed) == 28, "invalid RawRecordCompressed size");
+
+        const auto record_compressed = (RawRecordCompressed*)record;
 
         auto compressed_size = static_cast<uLongf>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-        auto result = ::compress2(&record_start_offset[sizeof(record)] + sizeof(uint32_t), &compressed_size, buffer->start, uncompressed_data_size, SkyrimZLibCompressionLevel);
+        const auto result = ::compress2((uint8_t*)(record_compressed + 1), &compressed_size, buffer->start, decompressed_data_size, SkyrimZLibCompressionLevel);
         verify(result == Z_OK);
 
-        *(uint32_t*)&record_start_offset[sizeof(record)] = uncompressed_data_size;
-
-        record.data_size = compressed_size + sizeof(uint32_t);
+        record_compressed->decompressed_data_size = decompressed_data_size;
+        record_compressed->data_size = compressed_size + sizeof(uint32_t);
+        
         buffer = &esp_buffer;
-        buffer->now += record.data_size;
+        buffer->now += record_compressed->data_size;
         compression_buffer.now = compression_buffer.start;
 
         inside_compressed_record = false;
     } else {
-        record.data_size = (uint32_t)(buffer->now - record_start_offset - sizeof(record));
+        record->data_size = (uint32_t)(buffer->now - (uint8_t*)record - sizeof(*record));
     }
-    buffer->write_struct_at(record_start_offset, &record);
 
-    return (RawRecord*)record_start_offset;
+    return record;
 }
 
 static uint8_t parse_hex_char(char c) {
@@ -524,7 +520,7 @@ void TextRecordReader::read_string(Slice* slice) {
     now = line_end + 1; // +1 for '\n'.
 }
 
-size_t TextRecordReader::read_type(const Type* type, Slice* slice) {
+size_t TextRecordReader::read_type(const Type* type, Slice* slice) { // @TODO: make "slice" be first argument EVERYWHERE
     ++indent;
 
     if (!has_custom_indent_rules(type->kind)) {
@@ -895,22 +891,18 @@ void TextRecordReader::read_custom_field(Slice* slice, const char* field_name, c
 }
 
 void TextRecordReader::read_field(const RecordFieldDef* field_def) {
-    const auto field_start_offset = buffer->now;
-
-    RawRecordField field;
     expect_indent();
-    field.type = read_record_field_type();
-
-    buffer->now += sizeof(field);
-        
+    
+    const auto field = buffer->advance<RawRecordField>();
+    field->type = read_record_field_type();
+    
     skip_to_next_line();
 
     read_type(field_def ? field_def->data_type : &Type_ByteArray, buffer);
 
-    const auto size = buffer->now - field_start_offset - sizeof(field);
+    const auto size = buffer->now - reinterpret_cast<const uint8_t*>(field) - sizeof(*field);
     verify(size <= 0xffff);
-    field.size = static_cast<uint16_t>(size);
-    buffer->write_struct_at(field_start_offset, &field);
+    field->size = static_cast<uint16_t>(size);
 }
 
 void TextRecordReader::read_subrecord_fields(const RecordFieldDefSubrecord* field_def) {
