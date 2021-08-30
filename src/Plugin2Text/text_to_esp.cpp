@@ -537,18 +537,12 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             const auto line_end = peek_end_of_current_line();
             const auto count = line_end - now;
 
-            uint32_t uncompressed_size = 0;
-            int nread = 0;
-            verify(1 == _snscanf_s(now, count, "%X%n", &uncompressed_size, &nread));
-            now += nread;
-            verify(expect(" "));
-
             auto base64_buffer = compression_buffer.now;
             auto base64_size = (uLong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
-            compression_buffer.advance(base64_size);
+            compression_buffer.now += base64_size;
                
-            auto result_size = (uLongf)uncompressed_size;
-            const auto uncompressed_buffer = compression_buffer.advance(result_size);
+            auto result_size = (uLongf)compression_buffer.remaining_size();
+            const auto uncompressed_buffer = compression_buffer.now;
             const auto result = ::uncompress(uncompressed_buffer, &result_size, base64_buffer, base64_size);
             verify(result == Z_OK);
 

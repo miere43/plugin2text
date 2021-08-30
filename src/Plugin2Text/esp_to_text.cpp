@@ -372,7 +372,6 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
             scratch_buffer.now += compressed_size;
 
-            write_format("%X ", (uint32_t)size);
             auto output_size = base64_encode(buffer, compressed_size, (char*)scratch_buffer.now, scratch_buffer.end - scratch_buffer.now);
             write_bytes(scratch_buffer.now, output_size);
                 
