@@ -111,5 +111,6 @@ enum class ProgramOptions : uint32_t {
     ExportTimestamp = 0x1,
     PreserveRecordOrder = 0x2,
     PreserveJunk = 0x4,
+    DebugZLib = 0x8,
 };
 ENUM_BIT_OPS(uint32_t, ProgramOptions);

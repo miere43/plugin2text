@@ -44,6 +44,7 @@ struct EspObjectModel {
 
 struct EspParser {
     Slice buffer;
+    const uint8_t* source_data_start = nullptr;
 
     EspObjectModel model;
     ProgramOptions options;
@@ -57,4 +58,5 @@ private:
     RecordBase* process_record(const RawRecord* record);
     void process_records(const uint8_t* start, const uint8_t* end);
     uint8_t* uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size);
+    void export_zlib_chunk(const RawRecordCompressed* record) const;
 };

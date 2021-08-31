@@ -3,6 +3,7 @@
 #include "array.hpp"
 #include <stdlib.h>
 #include <zlib.h>
+#include <stdio.h>
 
 void EspParser::init(ProgramOptions options) {
     this->options = options;
@@ -77,6 +78,10 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
             uint32_t size = 0;
             now = uncompress_record((RawRecordCompressed*)record, &size);
             end = now + size;
+
+            if (is_bit_set(options, ProgramOptions::DebugZLib)) {
+                export_zlib_chunk((RawRecordCompressed*)record);
+            }
         } else {
             now = (uint8_t*)record + sizeof(RawRecord);
             end = now + record->data_size;
@@ -105,6 +110,8 @@ RecordField* EspParser::process_field(Record* record, const RawRecordField* fiel
 }
 
 void EspParser::process_records(const uint8_t* start, const uint8_t* end) {
+    source_data_start = start;
+
     const uint8_t* now = start;
     while (now < end) {
         auto record = (RawRecord*)now;
@@ -123,4 +130,13 @@ uint8_t* EspParser::uncompress_record(const RawRecordCompressed* record, uint32_
 
     *out_uncompressed_data_size = uncompressed_data_size;
     return (uint8_t*)uncompressed_data;
+}
+
+void EspParser::export_zlib_chunk(const RawRecordCompressed* record) const {
+    wchar_t file_path[2048];
+    const auto count = swprintf_s(file_path, L"zlib_debug_%08X_%08X.bin", record->id.value, (uint32_t)((uint8_t*)record - source_data_start));
+    verify(count > 0);
+
+    write_file(file_path, { (uint8_t*)(record + 1), record->data_size - sizeof(record->uncompressed_data_size) });
+    wprintf(L">>> exported %s\n", file_path);
 }

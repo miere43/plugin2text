@@ -82,6 +82,8 @@ struct Args {
                     options |= ProgramOptions::PreserveRecordOrder;
                 } else if (string_equals(arg, L"preserve-junk")) {
                     options |= ProgramOptions::PreserveJunk;
+                } else if (string_equals(arg, L"debug-zlib")) {
+                    options |= ProgramOptions::DebugZLib;
                 } else {
                     wprintf(L"warning: unknown option \"--%s\"\n", arg);
                 }
