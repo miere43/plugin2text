@@ -24,7 +24,7 @@ void test_esps(ProgramOptions options, const wchar_t* esp_path, const wchar_t* e
     });
 
     EspParser parser;
-    parser.init();
+    parser.init(options);
     defer(parser.dispose());
     parser.parse(empty_esp);
 
