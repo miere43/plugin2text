@@ -4,11 +4,13 @@
 #include <stdlib.h>
 #include <zlib.h>
 
-void EspParser::init() {
+void EspParser::init(ProgramOptions options) {
+    this->options = options;
     buffer = allocate_virtual_memory(1024 * 1024 * 128);
 }
 
 void EspParser::dispose() {
+    // @TODO: free records (for tests)
     free_virtual_memory(&buffer);
 }
 
@@ -47,16 +49,18 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         switch (result->group_type) {
             case RecordGroupType::CellPersistentChildren:
             case RecordGroupType::CellTemporaryChildren: {
-                qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
-                    const Record* a = *(const Record**)aa;
-                    const Record* b = *(const Record**)bb;
+                if (!is_bit_set(options, ProgramOptions::PreserveRecordOrder)) {
+                    qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
+                        const Record* a = *(const Record**)aa;
+                        const Record* b = *(const Record**)bb;
 
-                    verify(a->type != RecordType::GRUP);
-                    verify(b->type != RecordType::GRUP);
+                        verify(a->type != RecordType::GRUP);
+                        verify(b->type != RecordType::GRUP);
 
-                    verify(a->id.value != b->id.value);
-                    return a->id.value > b->id.value ? 1 : -1;
-                });
+                        verify(a->id.value != b->id.value);
+                        return a->id.value > b->id.value ? 1 : -1;
+                    });
+                }
             } break;
         }
     } else {

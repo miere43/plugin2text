@@ -10,16 +10,17 @@ static void print_usage(const char* hint) {
     puts(
         "Usage: plugin2text.exe <source file> [destination file]\n"
         "\n"
-        "       <source file>         file to convert (*.esp, *.esm, *.esl, *.txt)\n"
-        "       [destination file]    output path\n"
+        "    <source file>              file to convert (*.esp, *.esm, *.esl, *.txt)\n"
+        "    [destination file]         output path\n"
         "\n"
         "Options:\n"
         "\n"
-        "      --time                 output elapsed time in stdout\n"
+        "    --time                     output elapsed time in stdout\n"
         "\n"
         "Text serialization options:\n"
         "\n"
-        "      --export-timestamp     write timestamps for records\n"
+        "    --export-timestamp         write timestamps for records\n"
+        "    --preserve-record-order    always write records in the same order as in ESP\n"
         "\n"
         "If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted\n"
         "to text format. If <source file> has TXT extension, then <source file> will be converted\n"
@@ -29,11 +30,11 @@ static void print_usage(const char* hint) {
         "changed to plugin or text format.\n"
         "\n"
         "Examples:\n"
-        "       plugin2text.exe Skyrim.esm Skyrim.txt\n"
-        "           convert Skyrim.esm to text format and write resulting file to Skyrim.txt\n"
+        "    plugin2text.exe Skyrim.esm Skyrim.txt\n"
+        "        convert Skyrim.esm to text format and write resulting file to Skyrim.txt\n"
         "\n"
-        "       plugin2text.exe Dawnguard.txt Dawnguard.esm\n"
-        "           convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm\n"
+        "    plugin2text.exe Dawnguard.txt Dawnguard.esm\n"
+        "        convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm\n"
     );
 }
 
@@ -76,6 +77,8 @@ struct Args {
                     options |= ProgramOptions::ExportTimestamp;
                 } else if (string_equals(arg, L"time")) {
                     time = true;
+                } else if (string_equals(arg, L"preserve-record-order")) {
+                    options |= ProgramOptions::PreserveRecordOrder;
                 } else {
                     wprintf(L"warning: unknown option \"--%s\"\n", arg);
                 }
@@ -111,7 +114,7 @@ int main() {
         text_to_esp(source_file, destination_file);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
         EspParser parser;
-        parser.init();
+        parser.init(args.options);
         defer(parser.dispose());
         
         const auto file = read_file(source_file);

@@ -105,8 +105,10 @@ inline bool is_bit_set(const T& obj, const T& bit) {
     return (obj & bit) != (T)0;
 }
 
+// @TODO: split into EspParserOptions, TextToEspOptions, etc.
 enum class ProgramOptions : uint32_t {
     None = 0,
     ExportTimestamp = 0x1,
+    PreserveRecordOrder = 0x2,
 };
 ENUM_BIT_OPS(uint32_t, ProgramOptions);

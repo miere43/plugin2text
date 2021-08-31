@@ -46,8 +46,9 @@ struct EspParser {
     Slice buffer;
 
     EspObjectModel model;
+    ProgramOptions options;
 
-    void init();
+    void init(ProgramOptions options);
     void dispose();
 
     void parse(const StaticArray<uint8_t> data);
