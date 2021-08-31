@@ -810,9 +810,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
             switch (current_record_type) {
                 case RecordType::INFO: {
-                    slice->write_constant<uint16_t>(2); // version?
-                    const auto flags = slice->advance<PapyrusFragmentFlags>();
+                    slice->write_constant<uint8_t>(2); // version?
 
+                    const auto flags = slice->advance<PapyrusFragmentFlags>();
                     passthrough_custom_field<WString>(slice, "Fragment Script File Name");
 
                     *flags |= read_papyrus_info_record_fragment(slice, "Start Fragment", PapyrusFragmentFlags::HasBeginScript);
@@ -820,7 +820,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                 } break;
 
                 case RecordType::QUST: {
-                    slice->write_constant<uint16_t>(2); // version?
+                    slice->write_constant<uint8_t>(2); // version?
 
                     const auto fragment_count = slice->advance<uint16_t>();
                     passthrough_custom_field<WString>(slice, "File Name");
@@ -831,7 +831,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
                         passthrough_custom_field<uint16_t>(slice, "Index");
                         slice->write_constant<uint16_t>(0);
-                        passthrough_custom_field<uint16_t>(slice, "Log Entry");
+                        passthrough_custom_field<uint32_t>(slice, "Log Entry");
                         slice->write_constant<uint8_t>(1);
                         passthrough_custom_field<WString>(slice, "Script Name");
                         passthrough_custom_field<WString>(slice, "Function Name");
