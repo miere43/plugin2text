@@ -110,5 +110,6 @@ enum class ProgramOptions : uint32_t {
     None = 0,
     ExportTimestamp = 0x1,
     PreserveRecordOrder = 0x2,
+    PreserveJunk = 0x4,
 };
 ENUM_BIT_OPS(uint32_t, ProgramOptions);

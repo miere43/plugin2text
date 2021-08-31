@@ -263,6 +263,7 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
 TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     { (uint32_t)ProgramOptions::ExportTimestamp, "Export Timestamp" },
     { (uint32_t)ProgramOptions::PreserveRecordOrder, "Preserve Record Order" },
+    { (uint32_t)ProgramOptions::PreserveJunk, "Preserve Junk" },
 );
 
 #define RECORD(m_type, m_name, ...)  \

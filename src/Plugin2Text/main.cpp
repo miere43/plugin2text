@@ -21,6 +21,7 @@ static void print_usage(const char* hint) {
         "\n"
         "    --export-timestamp         write timestamps for records\n"
         "    --preserve-record-order    always write records in the same order as in ESP\n"
+        "    --preserve-junk            do not clear fields that may contain junk data\n"
         "\n"
         "If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted\n"
         "to text format. If <source file> has TXT extension, then <source file> will be converted\n"
@@ -79,6 +80,8 @@ struct Args {
                     time = true;
                 } else if (string_equals(arg, L"preserve-record-order")) {
                     options |= ProgramOptions::PreserveRecordOrder;
+                } else if (string_equals(arg, L"preserve-junk")) {
+                    options |= ProgramOptions::PreserveJunk;
                 } else {
                     wprintf(L"warning: unknown option \"--%s\"\n", arg);
                 }

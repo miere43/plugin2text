@@ -660,16 +660,21 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
         case TypeKind::Filter: {
             const auto filter_type = (const TypeFilter*)type;
-            auto highwater = scratch_buffer.now;
-            auto preprocessed_value = scratch_buffer.advance(size);
-            memcpy(preprocessed_value, value, size);
 
-            filter_type->preprocess(preprocessed_value, size);
             --indent;
-            write_type(filter_type->inner_type, preprocessed_value, size);
-            ++indent;
+            if (is_bit_set(options, ProgramOptions::PreserveJunk)) {
+                write_type(filter_type->inner_type, value, size);
+            } else {
+                const auto highwater = scratch_buffer.now;
+                const auto preprocessed_value = scratch_buffer.advance(size);
+                memcpy(preprocessed_value, value, size);
 
-            scratch_buffer.now = highwater;
+                filter_type->preprocess(preprocessed_value, size);
+                write_type(filter_type->inner_type, preprocessed_value, size);
+
+                scratch_buffer.now = highwater;
+            }
+            ++indent;
         } break;
 
         case TypeKind::Vector3: {
