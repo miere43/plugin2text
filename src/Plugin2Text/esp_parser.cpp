@@ -58,7 +58,7 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
                         verify(b->type != RecordType::GRUP);
 
                         verify(a->id.value != b->id.value);
-                        return a->id.value > b->id.value ? 1 : -1;
+                        return static_cast<int>(a->id.value) - static_cast<int>(b->id.value);
                     });
                 }
             } break;
