@@ -5,13 +5,30 @@
 #include <zlib.h>
 #include <stdio.h>
 
+static void free_record(RecordBase* record_base) {
+    if (record_base->type == RecordType::GRUP) {
+        const auto group = (GrupRecord*)record_base;
+        for (const auto record : group->records) {
+            free_record(record);
+        }
+        group->records.free();
+    } else {
+        const auto record = (Record*)record_base;
+        record->fields.free();
+    }
+}
+
 void EspParser::init(ProgramOptions options) {
     this->options = options;
     buffer = allocate_virtual_memory(1024 * 1024 * 128);
 }
 
 void EspParser::dispose() {
-    // @TODO: free records (for tests)
+    for (const auto record : model.records) {
+        free_record(record);
+    }
+    model.records.free();
+
     free_virtual_memory(&buffer);
 }
 
