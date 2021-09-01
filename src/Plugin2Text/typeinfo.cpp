@@ -456,6 +456,15 @@ RECORD(QUST, "Quest",
         rf_formid("ALFR", "Alias Forced Reference"),
         rf_formid("ALUA", "Alias Unique Actor"),
         rf_formid("VTCK", "Voice Type"),
+        rf_formid("ALCO", "Alias Created Object"),
+        rf_uint32("ALCA", "Create At/In"), // @TODO high-low bit thing
+        rf_enum_uint32("ALCL", "Create Level",
+            { 0, "Easy" },
+            { 1, "Medium" },
+            { 2, "Hard" },
+            { 3, "Very Hard" },
+            { 4, "None" },
+        ),
     )
 );
 
