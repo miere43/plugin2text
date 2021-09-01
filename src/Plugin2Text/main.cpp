@@ -103,8 +103,8 @@ struct Args {
     ProgramOptions options = ProgramOptions::None;
     bool time = false;
 
-    const wchar_t* data_folder = L"";
-    const wchar_t* export_folder = L"";
+    const wchar_t* data_folder = nullptr;
+    const wchar_t* export_folder = nullptr;
 
     void parse() {
         ArgParser p;
@@ -183,6 +183,7 @@ static void push_if_not_duplicate(Array<const WString*>& paths, const WString* s
 
 static void export_related_files(const Args& args, const wchar_t* esp_name, const Array<RecordBase*>& records) {
     auto data_path = args.data_folder ? args.data_folder : path_append(get_skyrim_se_install_path(), L"Data");
+    // @TODO: if export_folder == NULL, replace with GetCurrentDirectoryW()
 
     Array<FormID> facegens;
     Array<FormID> seq_formids;
@@ -310,6 +311,7 @@ int main() {
         parser.parse(file);
 
         if (is_bit_set(args.options, ProgramOptions::ExportRelatedFiles)) {
+            // @TODO: remove hardcoded value
             export_related_files(args, L"FrostMawCave_miere.esp", parser.model.records);
         }
 

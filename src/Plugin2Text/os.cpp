@@ -74,8 +74,6 @@ double timestamp_to_seconds(int64_t start, int64_t end) {
 }
 
 wchar_t* get_skyrim_se_install_path() {
-    HKEY hkey_sse = 0;
-
     wchar_t path[512];
     DWORD path_size = sizeof(path);
 

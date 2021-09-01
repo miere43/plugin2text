@@ -193,12 +193,12 @@ GRUP
       "create reference to object"
     FNAM - Objective Flags
       0
-    ALCO
-      f5f20200
-    ALCA
-      01000000
-    ALCL
-      03000000
+    ALCO - Alias Created Object
+      [0002F2F5]
+    ALCA - Create At/In
+      1
+    ALCL - Create Level
+      Very Hard
     VTCK - Voice Type
       [00000000]
     ALED
