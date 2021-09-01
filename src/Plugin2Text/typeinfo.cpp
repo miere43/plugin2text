@@ -1074,6 +1074,76 @@ RECORD(NAVM, "NavMesh",
     ),
 );
 
+RECORD(PACK, "Package",
+    record_fields(
+        rf_struct("PKDT", "Data", 12,
+            sf_flags_uint32("Misc Flags",
+                { 0x00000004, "Must Complete" },
+                { 0x00000008, "Maintain Speed at Goal" },
+                { 0x00000040, "At Package Start Unlock Doors" },
+                { 0x00000080, "On Package Change Unlock Doors" },
+                { 0x00000400, "Once Per Day" },
+                { 0x00002000, "Preferred Speed" },
+                { 0x00020000, "Always Sneak" },
+                { 0x00040000, "Allow Swimming" },
+                { 0x00100000, "Ignore Combat" },
+                { 0x00200000, "Weapons Unequipped" },
+                { 0x00800000, "Weapon Drawn" },
+                { 0x08000000, "No Combat Alert" },
+                { 0x20000000, "Wear Sleep Outfit" },
+            ),
+            sf_flags_uint8("Package Type",
+                { 0x1, "Package Template" }
+            ),
+            sf_enum_uint8("Interrupt Override",
+                { 0, "None" },
+                { 4, "Combat" },
+            ),
+            sf_enum_uint8("Preferred Speed",
+                { 0, "Walk" },
+                { 1, "Jog" },
+                { 2, "Run" },
+                { 3, "Fast Walk" },
+            ),
+            sf_uint8("Unknown"),
+            sf_flags_uint32("Interrupt Flags", 
+                { 0x001, "Hellos to Player" },
+                { 0x002, "Random Conversations" },
+                { 0x004, "Observe Combat Behavior" },
+                { 0x008, "Greet Corpse Behavior" },
+                { 0x010, "Reaction to Player Actions" },
+                { 0x020, "Friendly Fire Comments" },
+                { 0x040, "Aggro Radius Behavior" },
+                { 0x080, "Allow Idle Chatter" },
+                { 0x200, "World Interactions" },
+            ),
+        ),
+        rf_struct("PSDT", "Schedule", 12, 
+            sf_constant(int8_t, -1),
+            sf_int8("Day Of Week"),
+            sf_int8("Date"),
+            sf_int8("Hour"),
+            sf_int8("Minute"),
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+            sf_uint8("Unknown"),
+            sf_uint32("Duration"),
+        ),
+        rf_flags_uint8("IDLF", "Idle Flags", 
+            { 0x01, "Run In Sequence" },
+            { 0x04, "Do Once" },
+        ),
+        rf_float("IDLT", "Idle Time"),
+        rf_uint8("IDLC", "Idle Count"),
+        rf_formid_array("IDLA", "Idle"),
+        rf_struct("PKCU", "PKCU", 12,
+            sf_uint32("Unknown"),
+            sf_formid("Package Template"),
+            sf_uint32("Unknown"),
+        ),
+    ),
+);
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -1105,6 +1175,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(LAND);
         CASE(LCTN);
         CASE(NAVM);
+        CASE(PACK);
     }
     #undef CASE
     return nullptr;
