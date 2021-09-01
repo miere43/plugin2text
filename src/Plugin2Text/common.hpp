@@ -27,11 +27,13 @@ bool string_equals(const wchar_t* a, const wchar_t* b);
 bool memory_equals(const void* a, const void* b, size_t size);
 int string_last_index_of(const wchar_t* str, char c);
 bool string_starts_with(const wchar_t* a, const wchar_t* b);
+int string_index_of(const wchar_t* str, wchar_t c);
+wchar_t* substring(const wchar_t* start, const wchar_t* end);
 
 #pragma pack(push, 1)
 struct WString {
     uint16_t count;
-    uint8_t data[1];
+    char data[1];
 };
 #pragma pack(pop)
 
@@ -112,5 +114,6 @@ enum class ProgramOptions : uint32_t {
     PreserveRecordOrder = 0x2,
     PreserveJunk = 0x4,
     DebugZLib = 0x8,
+    ExportRelatedFiles = 0x10,
 };
 ENUM_BIT_OPS(uint32_t, ProgramOptions);

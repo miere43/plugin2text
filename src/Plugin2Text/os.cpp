@@ -2,8 +2,12 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <shellapi.h>
+#include <ShlObj_core.h>
 #include "common.hpp"
 #include "os.hpp"
+#include <PathCch.h>
+
+#pragma comment(lib, "pathcch.lib")
 
 StaticArray<uint8_t> read_file(const wchar_t* path) {
     auto handle = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
@@ -67,4 +71,50 @@ int64_t get_current_timestamp() {
 
 double timestamp_to_seconds(int64_t start, int64_t end) {
     return (end - start) / (double)tick_frequency;
+}
+
+wchar_t* get_skyrim_se_install_path() {
+    HKEY hkey_sse = 0;
+
+    wchar_t path[512];
+    DWORD path_size = sizeof(path);
+
+    auto result = RegGetValueW(
+        HKEY_LOCAL_MACHINE,
+        L"SOFTWARE\\Bethesda Softworks\\Skyrim Special Edition",
+        L"Installed Path",
+        RRF_RT_REG_EXPAND_SZ | RRF_RT_REG_SZ | RRF_SUBKEY_WOW6432KEY,
+        nullptr,
+        path,
+        &path_size);
+    auto err = GetLastError();
+    verify(result == ERROR_SUCCESS);
+
+    wchar_t* normalized_path = nullptr;;
+    auto hr = PathAllocCanonicalize(path, 0, &normalized_path);
+    verify(SUCCEEDED(hr));
+
+    return normalized_path;
+}
+
+bool copy_file(const wchar_t* src, const wchar_t* dst) {
+    return !!CopyFileW(src, dst, false);
+}
+
+void create_folder(const wchar_t* folder) {
+    SHCreateDirectory(0, folder);
+}
+
+wchar_t* get_last_error() {
+    wchar_t* err = nullptr;
+    auto count = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, 0, GetLastError(), 0, (wchar_t*)&err, 1, nullptr);
+    verify(count > 0);
+    return err;
+}
+
+wchar_t* path_append(const wchar_t* a, const wchar_t* b) {
+    wchar_t* out = nullptr;
+    auto hr = PathAllocCombine(a, b, 0, &out);
+    verify(SUCCEEDED(hr));
+    return out;
 }

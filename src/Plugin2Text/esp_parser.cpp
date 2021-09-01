@@ -157,3 +157,12 @@ void EspParser::export_zlib_chunk(const RawRecordCompressed* record) const {
     write_file(file_path, { (uint8_t*)(record + 1), record->data_size - sizeof(record->uncompressed_data_size) });
     wprintf(L">>> exported %s\n", file_path);
 }
+
+RecordField* Record::find_field(RecordFieldType type) const {
+    for (const auto field : fields) {
+        if (field->type == type) {
+            return field;
+        }
+    }
+    return nullptr;
+}

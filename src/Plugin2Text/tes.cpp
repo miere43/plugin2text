@@ -1,5 +1,7 @@
 #include "tes.hpp"
 #include "common.hpp"
+#include "typeinfo.hpp"
+#include "array.hpp"
 #include <string.h>
 #include <stdlib.h>
 
@@ -44,4 +46,162 @@ int short_string_to_month(const char* str) {
     }
     verify(false);
     return 0; 
+}
+
+Array<VMAD_Script> VMAD_Field::parse_scripts(BinaryReader& r, uint16_t script_count) {
+    Array<VMAD_Script> scripts;
+    for (int i = 0; i < script_count; ++i) {
+        VMAD_Script script;
+        script.parse(r, this);
+        scripts.push(script);
+    }
+    return scripts;
+}
+
+void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type) {
+    BinaryReader r;
+    r.start = value;
+    r.now = r.start;
+    r.end = r.start + size;
+
+    const auto header = r.advance<VMAD_Header>();
+    verify(header->version >= 2 && header->version <= 5);
+    verify(header->object_format >= 1 && header->object_format <= 2);
+
+    this->version = header->version;
+    this->object_format = header->object_format;
+    this->scripts = parse_scripts(r, header->script_count);
+
+    if (r.now != r.end) {
+        switch (record_type) {
+            case RecordType::INFO: {
+                verify(r.read<uint8_t>() == 2); // version?
+
+                info.flags = r.read<PapyrusFragmentFlags>();
+                info.script_name = r.advance_wstring();
+
+                if (is_bit_set(info.flags, PapyrusFragmentFlags::HasBeginScript)) {
+                    info.start_fragment.parse(r);
+                }
+                if (is_bit_set(info.flags, PapyrusFragmentFlags::HasEndScript)) {
+                    info.end_fragment.parse(r);
+                }
+            } break;
+
+            case RecordType::QUST: {
+                verify(r.read<uint8_t>() == 2); // version?
+
+                auto fragment_count = (int)r.read<uint16_t>();
+                qust.file_name = r.advance_wstring();
+
+                qust.fragments = Array<VMAD_QUST_Fragment>();
+                for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
+                    VMAD_QUST_Fragment fragment;
+                    fragment.parse(r);
+                    qust.fragments.push(fragment);
+                };
+
+                auto alias_count = (int)r.read<uint16_t>();
+                qust.aliases = Array<VMAD_QUST_Alias>();
+                for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
+                    VMAD_QUST_Alias alias;
+                    
+                    VMAD_ScriptPropertyValue value;
+                    value.parse(r, this, PapyrusPropertyType::Object);
+                    alias.object = value.as_object;
+                    
+                    verify(r.read<uint16_t>() == header->version);
+                    verify(r.read<uint16_t>() == header->object_format);
+
+                    const auto script_count = r.read<uint16_t>();
+                    alias.scripts = parse_scripts(r, script_count);
+                }
+            } break;
+        }
+    }
+
+    verify(r.now == r.end);
+}
+
+void VMAD_Script::parse(BinaryReader& r, const VMAD_Field* vmad) {
+    name = r.advance_wstring();
+    if (vmad->version >= 4) {
+        status = r.read<uint8_t>();
+    }
+
+    auto property_count = r.read<uint16_t>();
+    for (int prop_index = 0; prop_index < property_count; ++prop_index) {
+        VMAD_ScriptProperty property;
+        property.parse(r, vmad);
+        properties.push(property);
+    }
+}
+
+void VMAD_ScriptProperty::parse(BinaryReader& r, const VMAD_Field* vmad) {
+    name = r.advance_wstring();
+    type = r.read<PapyrusPropertyType>();
+    if (vmad->version >= 4) {
+        status = r.read<uint8_t>();
+    }
+    value.parse(r, vmad, type);
+}
+
+void VMAD_ScriptPropertyValue::parse(BinaryReader& r, const VMAD_Field* vmad, PapyrusPropertyType type) {
+    verify(vmad->object_format == 2);
+    switch (type) {
+        case PapyrusPropertyType::Object: {
+            auto value = r.read<VMAD_PropertyObjectV2>();
+            as_object.form_id = value.form_id;
+            as_object.alias = value.alias;
+            verify(value.unused == 0);
+        } break;
+
+        case PapyrusPropertyType::String: {
+            as_string = r.advance_wstring();
+        } break;
+
+        case PapyrusPropertyType::Int: {
+            as_int = r.read<int>();
+        } break;
+
+        case PapyrusPropertyType::Float: {
+            as_float = r.read<float>();
+        } break;
+
+        case PapyrusPropertyType::Bool: {
+            as_bool = r.read<bool>();
+        } break;
+
+        case PapyrusPropertyType::ObjectArray:
+        case PapyrusPropertyType::StringArray:
+        case PapyrusPropertyType::IntArray:
+        case PapyrusPropertyType::FloatArray:
+        case PapyrusPropertyType::BoolArray: {
+            const auto inner_type = (PapyrusPropertyType)((uint32_t)type - 10);
+            as_array.count = r.read<uint32_t>();
+            as_array.values = new VMAD_ScriptPropertyValue[as_array.count];
+            for (uint32_t i = 0; i < as_array.count; ++i) {
+                as_array.values[i].parse(r, vmad, inner_type);
+            }
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
+}
+
+void VMAD_INFO_Fragment::parse(BinaryReader& r) {
+    verify(1 == r.read<uint8_t>());
+    script_name = r.advance_wstring();
+    fragment_name = r.advance_wstring();
+}
+
+void VMAD_QUST_Fragment::parse(BinaryReader& r) {
+    index = r.read<uint16_t>();
+    verify(0 == r.read<uint16_t>());
+    log_entry = r.read<uint32_t>();
+    verify(1 == r.read<uint8_t>());
+    script_name = r.advance_wstring();
+    function_name = r.advance_wstring();
 }

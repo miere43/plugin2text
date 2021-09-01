@@ -117,28 +117,7 @@ extern TypeInteger Type_uint32_t;
 extern TypeInteger Type_uint64_t;
 extern Type Type_Vector3;
 
-enum class PapyrusPropertyType : uint8_t {
-    None = 0,
-    Object = 1,
-    String = 2,
-    Int = 3,
-    Float = 4,
-    Bool = 5,
-    ObjectArray = 11,
-    StringArray = 12,
-    IntArray = 13,
-    FloatArray = 14,
-    BoolArray = 15,
-};
 extern TypeEnum Type_PapyrusPropertyType;
-
-enum class PapyrusFragmentFlags : uint8_t {
-    None = 0,
-    HasBeginScript = 0x1,
-    HasEndScript = 0x2,
-};
-ENUM_BIT_OPS(uint8_t, PapyrusFragmentFlags);
-
 extern TypeEnum Type_PapyrusFragmentFlags;
 
 template<typename T>

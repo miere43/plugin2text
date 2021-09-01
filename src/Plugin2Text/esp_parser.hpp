@@ -21,6 +21,8 @@ struct Record : RecordBase {
     Array<RecordField*> fields;
     uint16_t version = 0;
     uint16_t unknown = 0;
+
+    RecordField* find_field(RecordFieldType type) const;
 };
 
 struct GrupRecord : RecordBase {
@@ -60,3 +62,15 @@ private:
     uint8_t* uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size);
     void export_zlib_chunk(const RawRecordCompressed* record) const;
 };
+
+template<typename Func>
+void foreach_record(const Array<RecordBase*>& records, Func func) {
+    for (const auto record : records) {
+        if (record->type == RecordType::GRUP) {
+            const auto group = (GrupRecord*)record;
+            foreach_record(group->records, func);
+        } else {
+            func((Record*)record);
+        }
+    }
+}

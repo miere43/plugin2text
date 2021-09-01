@@ -11,6 +11,7 @@ enum class RecordType : uint32_t {
     CELL = fourcc("CELL"),
     INFO = fourcc("INFO"),
     QUST = fourcc("QUST"),
+    NPC_ = fourcc("NPC_"),
 };
 
 enum class RecordFlags : uint32_t {
@@ -87,6 +88,8 @@ struct RawGrupRecord {
 static_assert(sizeof(RawGrupRecord) == 24, "sizeof(GrupRecord) == 24");
 
 enum class RecordFieldType : uint32_t {
+    DNAM = fourcc("DNAM"),
+    VMAD = fourcc("VMAD"),
 };
 
 #pragma pack(push, 1)
@@ -117,3 +120,114 @@ struct VMAD_PropertyObjectV2 {
 
 const char* month_to_short_string(int month);
 int short_string_to_month(const char* str);
+
+enum class PapyrusPropertyType : uint8_t {
+    None = 0,
+    Object = 1,
+    String = 2,
+    Int = 3,
+    Float = 4,
+    Bool = 5,
+    ObjectArray = 11,
+    StringArray = 12,
+    IntArray = 13,
+    FloatArray = 14,
+    BoolArray = 15,
+};
+
+enum class PapyrusFragmentFlags : uint8_t {
+    None = 0,
+    HasBeginScript = 0x1,
+    HasEndScript = 0x2,
+};
+ENUM_BIT_OPS(uint8_t, PapyrusFragmentFlags);
+
+struct VMAD_Field;
+
+struct VMAD_Object {
+    FormID form_id;
+    int16_t alias = 0;
+};
+
+union VMAD_ScriptPropertyValue {
+    VMAD_Object as_object;
+    const WString* as_string;
+    int as_int;
+    float as_float;
+    bool as_bool;
+    struct {
+        uint32_t count;
+        VMAD_ScriptPropertyValue* values;
+    } as_array;
+
+    inline VMAD_ScriptPropertyValue() { }
+
+    void parse(BinaryReader& r, const VMAD_Field* vmad, PapyrusPropertyType type);
+};
+
+struct VMAD_ScriptProperty {
+    const WString* name = nullptr;
+    uint8_t status = 0;
+    PapyrusPropertyType type = PapyrusPropertyType::None;
+    VMAD_ScriptPropertyValue value;
+
+    void parse(BinaryReader& r, const VMAD_Field* vmad);
+};
+
+struct VMAD_Script {
+    const WString* name = nullptr;
+    uint8_t status = 0;
+
+    Array<VMAD_ScriptProperty> properties;
+
+    void parse(BinaryReader& r, const VMAD_Field* vmad);
+};
+
+struct VMAD_INFO_Fragment {
+    const WString* script_name;
+    const WString* fragment_name;
+
+    void parse(BinaryReader& r);
+};
+
+struct VMAD_QUST_Fragment {
+    uint16_t index;
+    uint32_t log_entry;
+    const WString* script_name;
+    const WString* function_name;
+
+    void parse(BinaryReader& r);
+};
+
+struct VMAD_QUST_Alias {
+    VMAD_Object object;
+    Array<VMAD_Script> scripts;
+};
+
+struct VMAD_Field {
+    int16_t version = 0;
+    int16_t object_format = 0;
+
+    Array<VMAD_Script> scripts;
+
+    union {
+        struct {
+            PapyrusFragmentFlags flags;
+            const WString* script_name;
+            VMAD_INFO_Fragment start_fragment;
+            VMAD_INFO_Fragment end_fragment;
+        } info;
+
+        struct {
+            const WString* file_name;
+            Array<VMAD_QUST_Fragment> fragments;
+            Array<VMAD_QUST_Alias> aliases;
+        } qust;
+    };
+
+    inline VMAD_Field() { }
+    
+    void parse(const uint8_t* value, size_t size, RecordType record_type);
+private:
+    Array<VMAD_Script> parse_scripts(BinaryReader& r, uint16_t script_count);
+};

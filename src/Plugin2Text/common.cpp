@@ -57,6 +57,24 @@ bool string_starts_with(const wchar_t* a, const wchar_t* b) {
     }
 }
 
+int string_index_of(const wchar_t* str, wchar_t c) {
+    for (int i = 0; str[i]; ++i) {
+        if (str[i] == c) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+wchar_t* substring(const wchar_t* start, const wchar_t* end) {
+    auto count = end - start;
+    verify(count >= 0);
+    auto buffer = new wchar_t[count + 1];
+    memcpy(buffer, start, count * sizeof(wchar_t));
+    buffer[count] = L'\0';
+    return buffer;
+}
+
 void BinaryReader::read(void* out, size_t size) {
     verify(now + size <= end);
     memcpy(out, now, size);
