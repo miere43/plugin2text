@@ -58,7 +58,7 @@ public:
 
     TEST_METHOD(TestVMAD) {
         test_esps(
-            ProgramOptions::ExportTimestamp,
+            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveRecordOrder,
             L"../../../../test/vmad.esp",
             L"../../../../test/vmad_expect.txt",
             nullptr

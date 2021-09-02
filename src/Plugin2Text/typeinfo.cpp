@@ -476,8 +476,6 @@ RECORD(QUST, "Quest",
     )
 );
 
-typedef int(__cdecl* _CoreCrtNonSecureSearchSortCompareFunction)(void const*, void const*);
-
 static void sort_formid_array(void* data, size_t size) {
     verify((size % sizeof(FormID)) == 0);
     qsort(data, size / sizeof(FormID), sizeof(FormID), [](void const* aa, void const* bb) -> int {
