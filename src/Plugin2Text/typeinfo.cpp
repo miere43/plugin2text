@@ -67,6 +67,14 @@
         return &field;                                                                             \
     })()
 
+
+#define rf_filter(m_type, m_name, m_inner, m_preprocess)      \
+    ([]() -> const RecordFieldDef* {                          \
+        static TypeFilter type{ m_inner, m_preprocess };      \
+        static RecordFieldDef field{ m_type, &type, m_name }; \
+        return &field;                                        \
+    })()
+
 constexpr TypeStructField sf_int8(const char* name) {
     return { &Type_int8_t, name };
 }
@@ -163,7 +171,7 @@ constexpr TypeStructField sf_fixed_bytes(const char* name) {
 #define sf_flags_uint16(m_name, ...) sf_enum(m_name, 2, true,  __VA_ARGS__)
 #define sf_flags_uint32(m_name, ...) sf_enum(m_name, 4, true,  __VA_ARGS__)
 
-#define sf_filter(m_name, m_inner, m_preprocess, ...)    \
+#define sf_filter(m_name, m_inner, m_preprocess)         \
     ([]() -> TypeStructField {                           \
         static TypeFilter type{ m_inner, m_preprocess }; \
         return { &type, m_name };                        \
@@ -468,6 +476,17 @@ RECORD(QUST, "Quest",
     )
 );
 
+typedef int(__cdecl* _CoreCrtNonSecureSearchSortCompareFunction)(void const*, void const*);
+
+static void sort_formid_array(void* data, size_t size) {
+    verify((size % sizeof(FormID)) == 0);
+    qsort(data, size / sizeof(FormID), sizeof(FormID), [](void const* aa, void const* bb) -> int {
+        FormID a = *(FormID*)aa;
+        FormID b = *(FormID*)bb;
+        return a.value - b.value;
+    });
+}
+
 RECORD(CELL, "Cell",
     record_fields(
         rf_flags_uint16("DATA", "Flags",
@@ -494,11 +513,14 @@ RECORD(CELL, "Cell",
                     verify(size == 4);
                     uint32_t* flags = (uint32_t*)data;
                     *flags &= 0b00000000'00000000'00000000'00001111;
-                },
+                }
             ),
         ),
         rf_formid("LTMP", "Lighting Template"),
-        rf_formid_array("XCLR", "Regions Containing Cell"),
+        rf_filter("XCLR", "Regions Containing Cell",
+            &Type_FormIDArray,
+            sort_formid_array
+        ),
         rf_formid("XLCN", "Location"),
         rf_formid("XCWT", "Water"),
         rf_compressed("TVDT", "Occlusion Data"),
