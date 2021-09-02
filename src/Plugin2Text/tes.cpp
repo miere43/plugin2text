@@ -71,8 +71,9 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
     this->version = header->version;
     this->object_format = header->object_format;
     this->scripts = parse_scripts(r, header->script_count);
+    this->contains_record_specific_info = r.now != r.end;
 
-    if (r.now != r.end) {
+    if (contains_record_specific_info) {
         switch (record_type) {
             case RecordType::INFO: {
                 verify(r.read<uint8_t>() == 2); // version?

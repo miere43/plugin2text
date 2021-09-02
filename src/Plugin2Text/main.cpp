@@ -182,7 +182,7 @@ static void push_if_not_duplicate(Array<const WString*>& paths, const WString* s
 }
 
 static void export_related_files(const Args& args, const wchar_t* esp_name, const Array<RecordBase*>& records) {
-    auto data_path = args.data_folder ? args.data_folder : path_append(get_skyrim_se_install_path(), L"Data");
+    auto data_path = args.data_folder && wcslen(args.data_folder) ? args.data_folder : path_append(get_skyrim_se_install_path(), L"Data");
     // @TODO: if export_folder == NULL, replace with GetCurrentDirectoryW()
 
     Array<FormID> facegens;
@@ -202,7 +202,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                     StartGameEnabled = 0x1,
                 };
 
-                if (dnam && dnam->data.count > sizeof(Flags)) {
+                if (dnam && dnam->data.count >= sizeof(Flags)) {
                     auto flags = *(Flags*)dnam->data.data;
                     if ((uint16_t)flags & (uint16_t)Flags::StartGameEnabled) {
                         seq_formids.push(record->id);
@@ -220,29 +220,29 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                 push_if_not_duplicate(script_paths, script.name);
             }
 
-            switch (record->type) {
-                case RecordType::INFO: {
-                    if (is_bit_set(vmad.info.flags, PapyrusFragmentFlags::HasBeginScript)) {
-                        push_if_not_duplicate(script_paths, vmad.info.start_fragment.script_name);
-                    }
-                    if (is_bit_set(vmad.info.flags, PapyrusFragmentFlags::HasEndScript)) {
-                        push_if_not_duplicate(script_paths, vmad.info.end_fragment.script_name);
-                    }
-                } break;
-
-                case RecordType::QUST: {
-                    for (const auto& fragment : vmad.qust.fragments) {
-                        push_if_not_duplicate(script_paths, fragment.script_name);
-                    }
-                    for (const auto& alias : vmad.qust.aliases) {
-                        for (const auto& script : alias.scripts) {
-                            push_if_not_duplicate(script_paths, script.name);
+            if (vmad.contains_record_specific_info) {
+                switch (record->type) {
+                    case RecordType::INFO: {
+                        if (is_bit_set(vmad.info.flags, PapyrusFragmentFlags::HasBeginScript)) {
+                            push_if_not_duplicate(script_paths, vmad.info.start_fragment.script_name);
                         }
-                    }
-                } break;
+                        if (is_bit_set(vmad.info.flags, PapyrusFragmentFlags::HasEndScript)) {
+                            push_if_not_duplicate(script_paths, vmad.info.end_fragment.script_name);
+                        }
+                    } break;
+
+                    case RecordType::QUST: {
+                        for (const auto& fragment : vmad.qust.fragments) {
+                            push_if_not_duplicate(script_paths, fragment.script_name);
+                        }
+                        for (const auto& alias : vmad.qust.aliases) {
+                            for (const auto& script : alias.scripts) {
+                                push_if_not_duplicate(script_paths, script.name);
+                            }
+                        }
+                    } break;
+                }
             }
-        
-            int amogus = 1;
         }
     });
 

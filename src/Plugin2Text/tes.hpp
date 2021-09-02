@@ -209,6 +209,7 @@ struct VMAD_Field {
     int16_t object_format = 0;
 
     Array<VMAD_Script> scripts;
+    bool contains_record_specific_info = false;
 
     union {
         struct {
