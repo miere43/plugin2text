@@ -48,17 +48,17 @@ int short_string_to_month(const char* str) {
     return 0; 
 }
 
-Array<VMAD_Script> VMAD_Field::parse_scripts(BinaryReader& r, uint16_t script_count) {
+Array<VMAD_Script> VMAD_Field::parse_scripts(BinaryReader& r, uint16_t script_count, bool preserve_property_order) {
     Array<VMAD_Script> scripts;
     for (int i = 0; i < script_count; ++i) {
         VMAD_Script script;
-        script.parse(r, this);
+        script.parse(r, this, preserve_property_order);
         scripts.push(script);
     }
     return scripts;
 }
 
-void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type) {
+void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type, bool preserve_property_order) {
     BinaryReader r;
     r.start = value;
     r.now = r.start;
@@ -70,7 +70,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
 
     this->version = header->version;
     this->object_format = header->object_format;
-    this->scripts = parse_scripts(r, header->script_count);
+    this->scripts = parse_scripts(r, header->script_count, preserve_property_order);
     this->contains_record_specific_info = r.now != r.end;
 
     if (contains_record_specific_info) {
@@ -115,7 +115,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                     verify(r.read<uint16_t>() == header->object_format);
 
                     const auto script_count = r.read<uint16_t>();
-                    alias.scripts = parse_scripts(r, script_count);
+                    alias.scripts = parse_scripts(r, script_count, preserve_property_order);
                 }
             } break;
         }
@@ -124,7 +124,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
     verify(r.now == r.end);
 }
 
-void VMAD_Script::parse(BinaryReader& r, const VMAD_Field* vmad) {
+void VMAD_Script::parse(BinaryReader& r, const VMAD_Field* vmad, bool preserve_property_order) {
     name = r.advance_wstring();
     if (vmad->version >= 4) {
         status = r.read<uint8_t>();
@@ -135,6 +135,16 @@ void VMAD_Script::parse(BinaryReader& r, const VMAD_Field* vmad) {
         VMAD_ScriptProperty property;
         property.parse(r, vmad);
         properties.push(property);
+    }
+
+    if (!preserve_property_order) {
+        qsort(properties.data, properties.count, sizeof(properties.data[0]), [](void const* aa, void const* bb) -> int {
+            auto a = ((VMAD_ScriptProperty*)aa)->name;
+            auto b = ((VMAD_ScriptProperty*)bb)->name;
+            auto min_count = a->count > b->count ? b->count : a->count;
+            int cmp = strncmp(a->data, b->data, min_count);
+            return cmp == 0 ? a->count - b->count : cmp;
+        });
     }
 }
 

@@ -578,7 +578,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
         case TypeKind::VMAD: {
             VMAD_Field vmad;
-            vmad.parse(static_cast<const uint8_t*>(value), size, current_record_type);
+            vmad.parse(static_cast<const uint8_t*>(value), size, current_record_type, is_bit_set(options, ProgramOptions::PreserveRecordOrder));
 
             write_custom_field("Version", vmad.version);
             write_custom_field("Object Format", vmad.object_format);

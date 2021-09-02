@@ -214,7 +214,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         const auto vmad_field = record->find_field(RecordFieldType::VMAD);
         if (vmad_field) {
             VMAD_Field vmad;
-            vmad.parse(vmad_field->data.data, vmad_field->data.count, record->type);
+            vmad.parse(vmad_field->data.data, vmad_field->data.count, record->type, true);
 
             for (const auto& script : vmad.scripts) {
                 push_if_not_duplicate(script_paths, script.name);

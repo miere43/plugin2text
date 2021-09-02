@@ -180,7 +180,7 @@ struct VMAD_Script {
 
     Array<VMAD_ScriptProperty> properties;
 
-    void parse(BinaryReader& r, const VMAD_Field* vmad);
+    void parse(BinaryReader& r, const VMAD_Field* vmad, bool preserve_property_order);
 };
 
 struct VMAD_INFO_Fragment {
@@ -228,7 +228,7 @@ struct VMAD_Field {
 
     inline VMAD_Field() { }
     
-    void parse(const uint8_t* value, size_t size, RecordType record_type);
+    void parse(const uint8_t* value, size_t size, RecordType record_type, bool preserve_property_order);
 private:
-    Array<VMAD_Script> parse_scripts(BinaryReader& r, uint16_t script_count);
+    Array<VMAD_Script> parse_scripts(BinaryReader& r, uint16_t script_count, bool preserve_property_order);
 };
