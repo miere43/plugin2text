@@ -188,6 +188,7 @@ Type Type_FormID{ TypeKind::FormID, "Form ID", sizeof(int) };
 Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
 Type Type_bool{ TypeKind::Boolean, "bool", sizeof(bool) };
 Type Type_VMAD{ TypeKind::VMAD, "VMAD", 0 };
+Type Type_NVPP{ TypeKind::NVPP, "NVPP", 0 };
 TypeInteger Type_int8_t{ "int8", sizeof(int8_t), false };
 TypeInteger Type_int16_t{ "int16", sizeof(int16_t), false };
 TypeInteger Type_int32_t{ "int32", sizeof(int32_t), false };
@@ -810,13 +811,44 @@ static RecordDef Record_NPC_{
     ),
 };
 
+static void sort_nvpp(void* data, size_t size) {
+    BinaryReader r{ (uint8_t*)data, size };
+
+    const auto path_count = r.read<uint32_t>();
+    for (uint32_t i = 0; i < path_count; ++i) {
+        const auto formid_count = r.read<uint32_t>();
+        r.advance(sizeof(FormID) * formid_count);
+    }
+
+    const auto node_count = r.read<uint32_t>();
+    struct Node {
+        FormID formid;
+        uint32_t index;
+    };
+    static_assert(sizeof(Node) == 8, "invalid Node size");
+    
+    auto nodes = (Node*)r.advance(sizeof(Node) * node_count);
+    qsort(nodes, node_count, sizeof(nodes[0]), [](void const* aa, void const* bb) -> int {
+        Node* a = (Node*)aa;
+        Node* b = (Node*)bb;
+        return a->index - b->index;
+    });
+
+    verify(r.now == r.end);
+}
+
 static RecordDef Record_NAVI{
     .type = record_type("NAVI"),
     .comment = "Navigation",
     .fields = record_fields(
         rf_uint32("NVER", "Version"),
         rf_bytes_rle("NVMI", "NavMesh Data"),
-        rf_compressed("NVPP", "Preferred Pathing Data"),
+        rf_filter("NVPP", "Preferred Pathing Data",
+            &Type_ByteArrayCompressed,
+            sort_nvpp
+        )
+        // This is for debugging.
+        //rf_field("NVPP", "Preferred Pathing Data", &Type_NVPP),
     ),
 };
 

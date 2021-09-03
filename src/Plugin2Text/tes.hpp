@@ -232,3 +232,19 @@ struct VMAD_Field {
 private:
     Array<VMAD_Script> parse_scripts(BinaryReader& r, uint16_t script_count, bool preserve_property_order);
 };
+
+struct NVPP_Path {
+    Array<FormID> formids;
+};
+
+struct NVPP_Node {
+    uint32_t index;
+    FormID formid;
+};
+
+struct NVPP_Field {
+    Array<NVPP_Path> paths;
+    Array<NVPP_Node> nodes;
+
+    void parse(const uint8_t* value, size_t size);
+};

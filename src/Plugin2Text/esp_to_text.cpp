@@ -209,6 +209,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::Filter:
         case TypeKind::Vector3:
         case TypeKind::VMAD:
+        case TypeKind::NVPP:
             return true;
     }
     return false;
@@ -661,6 +662,23 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             write_type(&Type_float, &vector->y, sizeof(vector->y));
             write_type(&Type_float, &vector->z, sizeof(vector->z));
             ++indent;
+        } break;
+
+        case TypeKind::NVPP: {
+            NVPP_Field nvpp;
+            nvpp.parse(static_cast<const uint8_t*>(value), size);
+
+            for (const auto& path : nvpp.paths) {
+                write_custom_field("Path", &Type_FormIDArray, path.formids.data, path.formids.count * sizeof(path.formids.data[0]));
+            }
+
+            for (const auto& node : nvpp.nodes) {
+                begin_custom_struct("Node");
+                defer(end_custom_struct());
+
+                write_custom_field("Form ID", node.formid);
+                write_custom_field("Index", node.index);
+            }
         } break;
 
         default: {

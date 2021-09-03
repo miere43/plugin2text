@@ -23,6 +23,7 @@ enum class TypeKind {
     Constant,
     Filter,
     Vector3,
+    NVPP,
 };
 
 struct Type {
@@ -107,6 +108,7 @@ extern Type Type_FormID;
 extern Type Type_FormIDArray;
 extern Type Type_bool;
 extern Type Type_VMAD;
+extern Type Type_NVPP;
 extern TypeInteger Type_int8_t;
 extern TypeInteger Type_int16_t;
 extern TypeInteger Type_int32_t;

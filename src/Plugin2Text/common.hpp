@@ -42,6 +42,9 @@ struct BinaryReader {
     const uint8_t* now = nullptr;
     const uint8_t* end = nullptr;
 
+    inline BinaryReader() { }
+    inline BinaryReader(const uint8_t* data, size_t size) : start(data), now(data), end(data + size) { }
+
     void read(void* out, size_t size);
 
     template<typename T>

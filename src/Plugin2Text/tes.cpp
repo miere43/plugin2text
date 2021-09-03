@@ -216,3 +216,39 @@ void VMAD_QUST_Fragment::parse(BinaryReader& r) {
     script_name = r.advance_wstring();
     function_name = r.advance_wstring();
 }
+
+void NVPP_Field::parse(const uint8_t* value, size_t size) {
+    BinaryReader r{ value, size };
+
+    const auto path_count = r.read<uint32_t>();
+    grow(&paths, path_count);
+    for (uint32_t i = 0; i < path_count; ++i) {
+        NVPP_Path path;
+
+        auto formid_count = r.read<uint32_t>();
+        grow(&path.formids, formid_count); // @TODO: reserve instead of grow
+        auto formids_start = r.advance(sizeof(FormID) * formid_count);
+        memcpy(path.formids.data, formids_start, sizeof(FormID) * formid_count);
+        path.formids.count = formid_count;
+        
+        paths.push(path);
+    }
+
+    const auto node_count = r.read<uint32_t>();
+    grow(&nodes, node_count);
+    for (uint32_t i = 0; i < node_count; ++i) {
+        NVPP_Node node;
+        node.formid.value = r.read<uint32_t>();
+        node.index = r.read<uint32_t>();
+        nodes.push(node);
+    }
+
+    qsort(nodes.data, nodes.count, sizeof(nodes.data[0]), [](void const* aa, void const* bb) -> int {
+        NVPP_Node* a = (NVPP_Node*)aa;
+        NVPP_Node* b = (NVPP_Node*)bb;
+
+        return a->index - b->index;
+    });
+
+    verify(r.now == r.end);
+}
