@@ -274,12 +274,9 @@ TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     { (uint32_t)ProgramOptions::PreserveJunk, "Preserve Junk" },
 );
 
-#define RECORD(m_type, m_name, ...)  \
-    static RecordDef Record_##m_type{ \
-        #m_type,                      \
-        m_name,                       \
-        __VA_ARGS__                   \
-    }
+constexpr RecordType record_type(const char p[5]) {
+    return (RecordType)fourcc(p);
+}
 
 #define record_flags(...)                             \
     ([]() -> StaticArray<RecordFlagDef> {             \
@@ -294,9 +291,9 @@ TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     })()
 
 RecordDef Record_Common{
-    "0000",
-    "-- common --",
-    record_fields(
+    .type = (RecordType)0,
+    .comment = "-- common --",
+    .fields = record_fields(
         rf_zstring("EDID", "Editor ID"),
         rf_lstring("FULL", "Name"),
         rf_struct("OBND", "Object Bounds", 12,
@@ -314,7 +311,7 @@ RecordDef Record_Common{
         rf_formid_array("KWDA", "Keywords"),
         rf_zstring("FLTR", "Object Window Filter"),
     ),
-    record_flags(
+    .flags = record_flags(
         { 0x20, "Deleted" },
         { RecordFlags::Compressed, "Compressed" },
         { 0x800000, "Is Marker" },
@@ -322,14 +319,14 @@ RecordDef Record_Common{
     ),
 };
 
-RECORD(
-    TES4,
-    "File Header",
-    record_fields(
+static RecordDef Record_TES4{
+    .type = record_type("TES4"),
+    .comment = "File Header",
+    .fields = record_fields(
         rf_struct("HEDR", "Header", 12,
             sf_float("Version"),
             sf_int32("Number Of Records"),
-            sf_formid("Next Object ID"), 
+            sf_formid("Next Object ID"),
         ),
         rf_subrecord(
             rf_zstring("MAST", "Master File"),
@@ -340,15 +337,17 @@ RECORD(
         rf_zstring("SNAM", "Description"),
         rf_formid_array("ONAM", "Overriden Forms"),
     ),
-    record_flags(
+    .flags = record_flags(
         { RecordFlags::TES4_Master, "Master" },
         { RecordFlags::TES4_Localized, "Localized" },
         { 0x200, "Light Master" },
-    )
-);
+    ),
+};
 
-RECORD(WEAP, "Weapon",
-    record_fields(
+static RecordDef Record_WEAP{
+    .type = record_type("WEAP"),
+    .comment = "Weapon",
+    .fields = record_fields(
         rf_formid("ETYP", "Equipment Type"),
         rf_formid("BIDS", "Block Bash Impact Data Set"),
         rf_formid("BAMT", "Alternate Block Material"),
@@ -361,7 +360,7 @@ RECORD(WEAP, "Weapon",
         rf_struct("DATA", "Game Data", 10,
             sf_int32("Value"),
             sf_float("Weight"),
-            sf_int16("Damage"), 
+            sf_int16("Damage"),
         ),
         rf_struct("DNAM", "Weapon Data", 100,
             sf_uint8("Animation Type"),
@@ -391,7 +390,7 @@ RECORD(WEAP, "Weapon",
             sf_constant_array(uint32_t, 2, 0, 0),
             sf_int32("Resist"),
             sf_constant(uint32_t, 0),
-            sf_float("Stagger"), 
+            sf_float("Stagger"),
         ),
         rf_struct("CRDT", "Critical Data", 24,
             sf_uint16("Critical Damage"),
@@ -404,11 +403,13 @@ RECORD(WEAP, "Weapon",
         ),
         rf_int32("VNAM", "Detection Sound Level"),
         Field_MODL,
-    )
-);
+    ),
+};
 
-RECORD(QUST, "Quest",
-    record_fields(
+static RecordDef Record_QUST{
+    .type = record_type("QUST"),
+    .comment = "Quest",
+    .fields = record_fields(
         rf_struct("DNAM", "Quest Data", 12,
             sf_flags_uint16("Flags",
                 { 0x001, "Start Game Enabled" },
@@ -436,7 +437,7 @@ RECORD(QUST, "Quest",
                 { 0xB, "DLC02 - Dragonborn" },
             ),
         ),
-        rf_struct("INDX", "Index", 4, 
+        rf_struct("INDX", "Index", 4,
             sf_uint16("Journal Index"),
             sf_flags_uint8("Flags",
                 { 0x2, "Start Up Stage" },
@@ -473,8 +474,8 @@ RECORD(QUST, "Quest",
             { 3, "Very Hard" },
             { 4, "None" },
         ),
-    )
-);
+    ),
+};
 
 static void sort_formid_array(void* data, size_t size) {
     verify((size % sizeof(FormID)) == 0);
@@ -485,8 +486,10 @@ static void sort_formid_array(void* data, size_t size) {
     });
 }
 
-RECORD(CELL, "Cell",
-    record_fields(
+static RecordDef Record_CELL{
+    .type = record_type("CELL"),
+    .comment = "Cell",
+    .fields = record_fields(
         rf_flags_uint16("DATA", "Flags",
             { 0x001, "Interior" },
             { 0x002, "Has Water" },
@@ -560,20 +563,22 @@ RECORD(CELL, "Cell",
                 { 0x400, "Light Fade Distance" },
             ),
         ),
-        // XCLW
+        // @TODO: XCLW
     ),
-    record_flags(
+    .flags = record_flags(
         { 0x400, "Persistent" },
     ),
-);
+};
 
 auto Type_LocationData = rf_struct("DATA", "Data", 24,
     sf_vector3("Pos XYZ"),
     sf_vector3("Rot XYZ"),
 );
 
-RECORD(REFR, "Reference",
-    record_fields(
+static RecordDef Record_REFR{
+    .type = record_type("REFR"),
+    .comment = "Reference",
+    .fields = record_fields(
         rf_formid("NAME", "Base Form ID"),
         rf_float("XSCL", "Scale"),
         rf_flags_uint8("XAPD", "Activation Parent Flags",
@@ -609,24 +614,28 @@ RECORD(REFR, "Reference",
         rf_bytes("XRGD", "Ragdoll Data"),
         Type_LocationData,
     ),
-    record_flags(
+    .flags = record_flags(
         { 0x400, "Persistent" },
         { 0x800, "Initially Disabled" },
-    )
-);
+    ),
+};
 
-RECORD(CONT, "Container",
-    record_fields(
+static RecordDef Record_CONT{
+    .type = record_type("CONT"),
+    .comment = "Container",
+    .fields = record_fields(
         rf_struct("DATA", "Data", 5,
             sf_uint8("Flags"),
-            sf_float("Unknown"), 
+            sf_float("Unknown"),
         ),
         Field_MODL,
-    )
-);
+    ),
+};
 
-RECORD(NPC_, "Non-Player Character",
-    record_fields(
+static RecordDef Record_NPC_{
+    .type = record_type("NPC_"),
+    .comment = "Non-Player Character",
+    .fields = record_fields(
         rf_struct("ACBS", "Base Stats", 24,
             sf_flags_uint32("Flags",
                 { 0x00000001, "Female" },
@@ -711,13 +720,13 @@ RECORD(NPC_, "Non-Player Character",
             sf_float("Chin Up/Down"),
             sf_float("Chin Underbite/Overbite"),
             sf_float("Eyes Forward/Back"),
-            sf_uint32("Unknown"), 
+            sf_uint32("Unknown"),
         ),
         rf_formid("RNAM", "Race"),
         rf_uint32("PRKZ", "Perk Count"),
-        rf_struct("PRKR", "Perk", 8, 
+        rf_struct("PRKR", "Perk", 8,
             sf_formid("Perk"),
-            sf_uint32("Unknown"), 
+            sf_uint32("Unknown"),
         ),
         rf_struct("AIDT", "AI Data", 20,
             sf_uint8("Aggression"),
@@ -779,7 +788,7 @@ RECORD(NPC_, "Non-Player Character",
             sf_uint8("Geared Up Weapons"),
             sf_fixed_bytes<3>("Unknown"),
         ),
-        rf_struct("QNAM", "Skin Tone", 12, 
+        rf_struct("QNAM", "Skin Tone", 12,
             sf_float("Red"),
             sf_float("Green"),
             sf_float("Blue"),
@@ -799,37 +808,45 @@ RECORD(NPC_, "Non-Player Character",
         ),
         rf_int32("TINV", "Tint Value"),
     ),
-);
+};
 
-RECORD(NAVI, "Navigation",
-    record_fields(
+static RecordDef Record_NAVI{
+    .type = record_type("NAVI"),
+    .comment = "Navigation",
+    .fields = record_fields(
         rf_uint32("NVER", "Version"),
         rf_bytes_rle("NVMI", "NavMesh Data"),
         rf_compressed("NVPP", "Preferred Pathing Data"),
     ),
-);
+};
 
-RECORD(DLVW, "Dialogue View",
-    record_fields(
+static RecordDef Record_DLVW{
+    .type = record_type("DLVW"),
+    .comment = "Dialogue View",
+    .fields = record_fields(
         rf_formid("QNAM", "Parent Quest"),
         rf_formid("BNAM", "Branch"),
         rf_formid("TNAM", "Topic"),
         rf_uint32("ENAM", "Unknown"),
         rf_bool("DNAM", "Show All Text"),
     ),
-);
+};
 
-RECORD(DLBR, "Dialogue Branch",
-    record_fields(
+static RecordDef Record_DLBR{
+    .type = record_type("DLBR"),
+    .comment = "Dialogue Branch",
+    .fields = record_fields(
         rf_formid("QNAM", "Parent Quest"),
         rf_uint32("TNAM", "Unknown"),
         rf_uint32("DNAM", "Flags"),
         rf_formid("SNAM", "Start Dialogue"),
     ),
-);
+};
 
-RECORD(INFO, "Topic Info",
-    record_fields(
+static RecordDef Record_INFO{
+    .type = record_type("INFO"),
+    .comment = "Topic Info",
+    .fields = record_fields(
         rf_struct("ENAM", "Data", 4,
             sf_flags_uint16("Flags",
                 { 0x0001, "Goodbye" },
@@ -857,7 +874,7 @@ RECORD(INFO, "Topic Info",
         rf_zstring("NAM3", "Edits"),
         rf_lstring("RNAM", "Player Response"),
         rf_struct("TRDT", "Response", 24,
-            sf_enum_uint32("Emotion", 
+            sf_enum_uint32("Emotion",
                 { 0, "Neutral" },
                 { 1, "Anger" },
                 { 2, "Disgust" },
@@ -876,31 +893,37 @@ RECORD(INFO, "Topic Info",
             sf_constant_array(uint8_t, 3, 0x00, 0x00, 0x00),
         ),
     ),
-);
+};
 
-RECORD(ACHR, "Actor",
-    record_fields(
+static RecordDef Record_ACHR{
+    .type = record_type("ACHR"),
+    .comment = "Actor",
+    .fields = record_fields(
         rf_formid("NAME", "Base NPC"),
         rf_bytes("XRGD", "Ragdoll Data"),
         Type_LocationData,
     ),
-    record_flags(
+    .flags = record_flags(
         { 0x200, "Starts Dead" },
     ),
-);
+};
 
-RECORD(DIAL, "Dialogue Topic",
-    record_fields(
+static RecordDef Record_DIAL{
+    .type = record_type("DIAL"),
+    .comment = "Dialogue Topic",
+    .fields = record_fields(
         rf_float("PNAM", "Priority"),
         rf_formid("BNAM", "Owning Branch"),
         rf_formid("QNAM", "Owning Quest"),
         rf_uint32("TIFC", "Info Count"),
         // @TODO: SNAM = char[4]
     ),
-);
+};
 
-RECORD(KYWD, "Keyword",
-    record_fields(
+static RecordDef Record_KYWD{
+    .type = record_type("KYWD"),
+    .comment = "Keyword",
+    .fields = record_fields(
         rf_struct("CNAM", "Color", 4,
             sf_uint8("Red"),
             sf_uint8("Green"),
@@ -908,10 +931,12 @@ RECORD(KYWD, "Keyword",
             sf_constant(uint8_t, 0), // Alpha
         ),
     ),
-);
+};
 
-RECORD(TXST, "Texture Set",
-    record_fields(
+static RecordDef Record_TXST{
+    .type = record_type("TXST"),
+    .comment = "Texture Set",
+    .fields = record_fields(
         rf_zstring("TX00", "Color Map"),
         rf_zstring("TX01", "Normal Map"),
         rf_zstring("TX02", "Mask"),
@@ -919,15 +944,17 @@ RECORD(TXST, "Texture Set",
         rf_zstring("TX04", "Detail Map"),
         rf_zstring("TX05", "Environment Map"),
         rf_zstring("TX07", "Specularity Map"),
-        rf_flags_uint16("DNAM", "Flags", 
+        rf_flags_uint16("DNAM", "Flags",
             { 0x02, "Facegen Textures" },
             { 0x04, "Has Model Space Normal Map" },
         ),
     ),
-);
+};
 
-RECORD(GLOB, "Global",
-    record_fields(
+static RecordDef Record_GLOB{
+    .type = record_type("GLOB"),
+    .comment = "Global",
+    .fields = record_fields(
         rf_enum_uint8("FNAM", "Type",
             { 's', "Short" },
             { 'l', "Long" },
@@ -935,10 +962,12 @@ RECORD(GLOB, "Global",
         ),
         rf_float("FLTV", "Value"),
     ),
-);
+};
 
-RECORD(FACT, "Faction",
-    record_fields(
+static RecordDef Record_FACT{
+    .type = record_type("FACT"),
+    .comment = "Faction",
+    .fields = record_fields(
         rf_flags_uint32("DATA", "Flags",
             { 0x00001, "Hidden from PC" },
             { 0x00002, "Special Combat" },
@@ -958,22 +987,28 @@ RECORD(FACT, "Faction",
         rf_lstring("MNAM", "Male Rank Title"),
         rf_lstring("FNAM", "Female Rank Title"),
     ),
-);
+};
 
-RECORD(SOUN, "Sound",
-    record_fields(
+static RecordDef Record_SOUN{
+    .type = record_type("SOUN"),
+    .comment = "Sound",
+    .fields = record_fields(
         rf_formid("SDSC", "Sound Descriptor"),
     ),
-);
+};
 
-RECORD(MGEF, "Magic Effect",
-    record_fields(
+static RecordDef Record_MGEF{
+    .type = record_type("MGEF"),
+    .comment = "Magic Effect",
+    .fields = record_fields(
         rf_zstring("DNAM", "Description"),
     ),
-);
+};
 
-RECORD(SPEL, "Spell",
-    record_fields(
+static RecordDef Record_SPEL{
+    .type = record_type("SPEL"),
+    .comment = "Spell",
+    .fields = record_fields(
         rf_formid("ETYP", "Equipment Type"),
         rf_zstring("DESC", "Description"),
         rf_formid("EFID", "Magic Effect Form ID"),
@@ -983,40 +1018,50 @@ RECORD(SPEL, "Spell",
             sf_uint32("Duration"),
         ),
     ),
-);
+};
 
-RECORD(FLST, "Form List",
-    record_fields(
+static RecordDef Record_FLST{
+    .type = record_type("FLST"),
+    .comment = "Form List",
+    .fields = record_fields(
         rf_formid("LNAM", "Object"),
     ),
-);
+};
 
-RECORD(STAT, "Static",
-    record_fields(
-        rf_struct("DNAM", "Data", 12, 
+static RecordDef Record_STAT{
+    .type = record_type("STAT"),
+    .comment = "Static",
+    .fields = record_fields(
+        rf_struct("DNAM", "Data", 12,
             sf_float("Max Angle"),
             sf_formid("Directional Material"),
             sf_uint32("Unknown"),
         ),
         Field_MODL,
     ),
-);
+};
 
-RECORD(MISC, "Misc Item",
-    record_fields(
+static RecordDef Record_MISC{
+    .type = record_type("MISC"),
+    .comment = "Misc Item",
+    .fields = record_fields(
         Field_MODL,
     ),
-);
+};
 
-RECORD(FURN, "Furniture",
-    record_fields(
+static RecordDef Record_FURN{
+    .type = record_type("FURN"),
+    .comment = "Furniture",
+    .fields = record_fields(
         Field_MODL,
         rf_zstring("XMRK", "Marker Model File Name"),
     ),
-);
+};
 
-RECORD(WRLD, "Worldspace",
-    record_fields(
+static RecordDef Record_WRLD{
+    .type = record_type("WRLD"),
+    .comment = "Worldspace",
+    .fields = record_fields(
         rf_formid("CNAM", "Climate"),
         rf_formid("NAM2", "Water"),
         rf_formid("NAM3", "LOD Water Type"),
@@ -1025,7 +1070,7 @@ RECORD(WRLD, "Worldspace",
             sf_float("Default Land Level"),
             sf_float("Default Ocean Level"),
         ),
-        rf_flags_uint8("DATA", "Flags", 
+        rf_flags_uint8("DATA", "Flags",
             { 0x01, "Small World" },
             { 0x02, "Can't Fast Travel From Here" },
             { 0x08, "No LOD Water" },
@@ -1048,20 +1093,22 @@ RECORD(WRLD, "Worldspace",
         rf_compressed("MHDT", "MHDT"),
         Field_MODL,
     ),
-    record_flags(
+    .flags = record_flags(
         { 0x80000, "Can't Wait" },
     ),
-);
+};
 
-RECORD(LAND, "Landscape",
-    record_fields(
+static RecordDef Record_LAND{
+    .type = record_type("LAND"),
+    .comment = "Landscape",
+    .fields = record_fields(
         rf_bytes("VNML", "Vertex Normals"),
         rf_bytes("VHGT", "Vertex Height"),
         rf_compressed("VCLR", "Vertex Color"),
         // @TODO: Sort these
         rf_struct("BTXT", "Base Layer Header", 8,
             sf_formid("Land Texture"),
-            sf_enum_uint8("Quadrant", 
+            sf_enum_uint8("Quadrant",
                 { 0, "Bottom Left" },
                 { 1, "Bottom Right" },
                 { 2, "Upper Left" },
@@ -1082,10 +1129,12 @@ RECORD(LAND, "Landscape",
         ),
         rf_bytes_rle("VTXT", "Alpha Layer Data"),
     ),
-);
+};
 
-RECORD(LCTN, "Location",
-    record_fields(
+static RecordDef Record_LCTN{
+    .type = record_type("LCTN"),
+    .comment = "Location",
+    .fields = record_fields(
         rf_formid("PNAM", "Parent Location"),
         rf_formid("MNAM", "Marker"),
         rf_float("RNAM", "World Location Radius"),
@@ -1096,16 +1145,20 @@ RECORD(LCTN, "Location",
             sf_uint8("Alpha"),
         ),
     ),
-);
+};
 
-RECORD(NAVM, "NavMesh",
-    record_fields(
+static RecordDef Record_NAVM{
+    .type = record_type("NAVM"),
+    .comment = "NavMesh",
+    .fields = record_fields(
         rf_bytes_rle("NVNM", "Geometry"),
     ),
-);
+};
 
-RECORD(PACK, "Package",
-    record_fields(
+static RecordDef Record_PACK{
+    .type = record_type("PACK"),
+    .comment = "Package",
+    .fields = record_fields(
         rf_struct("PKDT", "Data", 12,
             sf_flags_uint32("Misc Flags",
                 { 0x00000004, "Must Complete" },
@@ -1136,7 +1189,7 @@ RECORD(PACK, "Package",
                 { 3, "Fast Walk" },
             ),
             sf_uint8("Unknown"),
-            sf_flags_uint32("Interrupt Flags", 
+            sf_flags_uint32("Interrupt Flags",
                 { 0x001, "Hellos to Player" },
                 { 0x002, "Random Conversations" },
                 { 0x004, "Observe Combat Behavior" },
@@ -1148,7 +1201,7 @@ RECORD(PACK, "Package",
                 { 0x200, "World Interactions" },
             ),
         ),
-        rf_struct("PSDT", "Schedule", 12, 
+        rf_struct("PSDT", "Schedule", 12,
             sf_constant(int8_t, -1),
             sf_int8("Day Of Week"),
             sf_int8("Date"),
@@ -1159,7 +1212,7 @@ RECORD(PACK, "Package",
             sf_uint8("Unknown"),
             sf_uint32("Duration"),
         ),
-        rf_flags_uint8("IDLF", "Idle Flags", 
+        rf_flags_uint8("IDLF", "Idle Flags",
             { 0x01, "Run In Sequence" },
             { 0x04, "Do Once" },
         ),
@@ -1172,7 +1225,7 @@ RECORD(PACK, "Package",
             sf_uint32("Unknown"),
         ),
     ),
-);
+};
 
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec

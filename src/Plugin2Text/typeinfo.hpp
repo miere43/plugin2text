@@ -182,26 +182,6 @@ struct RecordDef {
     StaticArray<const RecordFieldDefBase*> fields;
     StaticArray<RecordFlagDef> flags;
 
-    constexpr RecordDef(
-            char const type[5],
-            const char* comment,
-            StaticArray<const RecordFieldDefBase*> fields)
-        : type((RecordType)fourcc(type))
-        , comment(comment)
-        , fields(fields)
-    { }
-
-    constexpr RecordDef(
-            char const type[5],
-            const char* comment,
-            StaticArray<const RecordFieldDefBase*> fields,
-            StaticArray<RecordFlagDef> flags)
-        : type((RecordType)fourcc(type))
-        , comment(comment)
-        , fields(fields)
-        , flags(flags)
-    { }
-
     const RecordFieldDefBase* get_field_def(RecordFieldType type) const;
 };
 
