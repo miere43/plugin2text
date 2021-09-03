@@ -45,13 +45,13 @@ struct EspObjectModel {
 };
 
 struct EspParser {
-    Slice buffer;
+    Allocator* allocator = &stdalloc;
     const uint8_t* source_data_start = nullptr;
 
     EspObjectModel model;
     ProgramOptions options;
 
-    void init(ProgramOptions options);
+    void init(Allocator& allocator, ProgramOptions options);
     void dispose();
 
     void parse(const StaticArray<uint8_t> data);

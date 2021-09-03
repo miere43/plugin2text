@@ -31,9 +31,9 @@ static void print_usage(const char* hint) {
         "\n"
         "Export options (when using --export-related-files):\n"
         "\n"
-        "    --data-folder             path to Skyrim SE Data folder, by default tries to\n"
-        "                              find it from installation path\n"
-        "    --export-folder           path to folder where export files will be written\n"
+        "    --data-folder              path to Skyrim SE Data folder, by default tries to\n"
+        "                               find it from installation path\n"
+        "    --export-folder            path to folder where export files will be written\n"
         "\n"
         "If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted\n"
         "to text format. If <source file> has TXT extension, then <source file> will be converted\n"
@@ -299,6 +299,9 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
 }
 
 int main() {
+    void memory_init();
+    memory_init();
+    
     Args args;
     args.parse();
 
@@ -317,12 +320,10 @@ int main() {
         text_to_esp(source_file, destination_file);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
         EspParser parser;
-        parser.init(args.options);
+        parser.init(tmpalloc, args.options);
         defer(parser.dispose());
         
-        const auto file = read_file(source_file);
-        defer(delete[] file.data);
-
+        const auto file = read_file(tmpalloc, source_file);
         parser.parse(file);
 
         if (is_bit_set(args.options, ProgramOptions::ExportRelatedFiles)) {

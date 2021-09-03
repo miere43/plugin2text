@@ -18,9 +18,9 @@ static void free_record(RecordBase* record_base) {
     }
 }
 
-void EspParser::init(ProgramOptions options) {
+void EspParser::init(Allocator& allocator, ProgramOptions options) {
+    this->allocator = &allocator;
     this->options = options;
-    buffer = allocate_virtual_memory(1024 * 1024 * 128);
 }
 
 void EspParser::dispose() {
@@ -28,8 +28,6 @@ void EspParser::dispose() {
         free_record(record);
     }
     model.records.free();
-
-    free_virtual_memory(&buffer);
 }
 
 void EspParser::parse(const StaticArray<uint8_t> data) {
@@ -38,8 +36,8 @@ void EspParser::parse(const StaticArray<uint8_t> data) {
 
 RecordBase* EspParser::process_record(const RawRecord* record) {
     auto result_base = record->type == RecordType::GRUP
-        ? static_cast<RecordBase*>(buffer.advance<GrupRecord>())
-        : static_cast<RecordBase*>(buffer.advance<Record>());
+        ? static_cast<RecordBase*>(memnew(*allocator) GrupRecord())
+        : static_cast<RecordBase*>(memnew(*allocator) Record());
 
     result_base->type = record->type;
     result_base->flags = record->flags;
@@ -87,7 +85,7 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         result->id = record->id;
         result->version = record->version;
         result->unknown = record->unknown;
-        result->fields = Array<RecordField*>();
+        result->fields = Array<RecordField*>{ tmpalloc };
 
         const uint8_t* now;
         const uint8_t* end;
@@ -115,7 +113,7 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
 }
 
 RecordField* EspParser::process_field(Record* record, const RawRecordField* field) {
-    auto result = buffer.advance<RecordField>();
+    auto result = memnew(*allocator) RecordField();
 
     verify(record->type != RecordType::GRUP);
 
@@ -141,7 +139,7 @@ uint8_t* EspParser::uncompress_record(const RawRecordCompressed* record, uint32_
     uLongf uncompressed_data_size = record->uncompressed_data_size;
     uint8_t* compressed_data = (uint8_t*)(record + 1);
 
-    auto uncompressed_data = buffer.advance(uncompressed_data_size);
+    auto uncompressed_data = (Bytef*)memalloc(*allocator, uncompressed_data_size);
     auto result = ::uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, record->data_size - sizeof(record->uncompressed_data_size));
     verify(result == Z_OK);
 

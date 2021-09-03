@@ -1,6 +1,36 @@
 #pragma once
 #include <stdint.h>
 
+enum class MemoryOperation {
+    Allocate,
+    Free,
+};
+
+struct Allocator {
+    void* (*exec)(Allocator& self, MemoryOperation op, void* ptr, size_t size);
+};
+
+struct LinearAllocator : Allocator {
+    uint8_t* start = nullptr;
+    uint8_t* now = nullptr;
+    const uint8_t* end = nullptr;
+};
+
+extern Allocator stdalloc;
+extern LinearAllocator tmpalloc;
+
+void* operator new(size_t size, Allocator& allocator);
+void* operator new[](size_t size, Allocator& allocator);
+void operator delete(void* block, Allocator& allocator);
+void operator delete[](void* block, Allocator& allocator);
+
+#define memnew(allocator) new(allocator)
+#define memalloc(allocator, size) ::operator new(size, allocator)
+#define memdelete(allocator, block) ::operator delete(block, allocator)
+#define stdnew new(stdalloc)
+#define tmpnew new(tmpalloc)
+#define stddelete(block) ::operator delete(block, stdalloc)
+
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line);
 
 #define verify(cond) do { if (!(cond)) { verify_impl(#cond, __FILE__, __LINE__); } } while (0)
@@ -67,6 +97,10 @@ struct Array {
     T* data = nullptr;
     int count = 0;
     int capacity = 0;
+    Allocator* allocator = nullptr;
+
+    inline Array() : data(nullptr), count(0), capacity(0), allocator(&stdalloc) { }
+    inline Array(Allocator& allocator) : data(nullptr), count(0), capacity(0), allocator(&allocator) { }
 
     T& operator[](size_t index) {
         verify((int)index < count);
@@ -121,3 +155,17 @@ enum class ProgramOptions : uint32_t {
     ExportRelatedFiles = 0x10,
 };
 ENUM_BIT_OPS(uint32_t, ProgramOptions);
+
+struct TempScope {
+    uint8_t* scope_start;
+    
+    inline TempScope() {
+        scope_start = tmpalloc.now;
+    }
+
+    inline ~TempScope() {
+        tmpalloc.now = scope_start;
+    }
+};
+
+#define TEMP_SCOPE() auto _tmpscope = TempScope()

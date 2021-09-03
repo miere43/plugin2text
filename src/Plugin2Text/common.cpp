@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "os.hpp"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,6 +11,55 @@
 #else
 #pragma comment(lib, "zlibstatic.lib")
 #endif
+
+__declspec(allocator) void* tmpalloc_exec(Allocator& self_, MemoryOperation op, void* ptr, size_t size) {
+    auto& self = (LinearAllocator&)self_;
+    switch (op) {
+        case MemoryOperation::Allocate: {
+            verify(self.now + size <= self.end);
+            auto result = self.now;
+            self.now += size;// +(size % 16);
+            return result;
+        } break;
+
+        case MemoryOperation::Free: {
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
+
+    return nullptr;
+}
+
+__declspec(allocator) void* stdalloc_exec(Allocator& self, MemoryOperation op, void* ptr, size_t size) {
+    switch (op) {
+        case MemoryOperation::Allocate: {
+            return ::operator new(size);
+        } break;
+
+        case MemoryOperation::Free: {
+            ::operator delete(ptr);
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
+
+    return nullptr;
+};
+
+LinearAllocator tmpalloc{ tmpalloc_exec };
+Allocator stdalloc{ stdalloc_exec };
+
+void memory_init() {
+    auto data = allocate_virtual_memory(1024 * 1024 * 128);
+    tmpalloc.start = data.start;
+    tmpalloc.now = data.now;
+    tmpalloc.end = data.end;
+}
 
 __declspec(noreturn) void verify_impl(const char* msg, const char* file, int line) {
     printf("error: assertion failed: condition \"%s\" is false (%s:%d)\n", msg, file, line);
@@ -107,4 +157,20 @@ const WString* BinaryReader::advance_wstring() {
     auto str = (const WString*)advance(sizeof(uint16_t));
     advance(str->count);
     return str;
+}
+
+void* operator new(size_t size, Allocator& allocator) {
+    return allocator.exec(allocator, MemoryOperation::Allocate, nullptr, size);
+}
+
+void operator delete(void* block, Allocator& allocator) {
+    allocator.exec(allocator, MemoryOperation::Free, block, 0);
+}
+
+void* operator new[](size_t size, Allocator& allocator) {
+    return allocator.exec(allocator, MemoryOperation::Allocate, nullptr, size);
+}
+
+void operator delete[](void* block, Allocator& allocator) {
+    allocator.exec(allocator, MemoryOperation::Free, block, 0);
 }

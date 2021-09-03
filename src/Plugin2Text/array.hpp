@@ -9,9 +9,9 @@ void grow(Array<T>* arr, int increment) {
         if (new_capacity < needed_count) {
             new_capacity = needed_count;
         }
-        T* new_data = new T[new_capacity];
+        T* new_data = memnew(*arr->allocator) T[new_capacity];
         memcpy(new_data, arr->data, sizeof(T) * arr->count);
-        delete[] arr->data;
+        memdelete(*arr->allocator, arr->data);
         arr->data = new_data;
         arr->capacity = new_capacity;
     }
@@ -25,7 +25,7 @@ void Array<T>::push(const T& value) {
 
 template<typename T>
 void Array<T>::free() {
-    delete[] data;
+    memdelete(*allocator, data);
     data = nullptr;
     count = 0;
     capacity = 0;

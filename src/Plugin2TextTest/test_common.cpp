@@ -6,25 +6,25 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
+TEST_MODULE_INITIALIZE(global_test_init) {
+    void memory_init();
+    memory_init();
+}
+
 void assert_same_array_content(const StaticArray<uint8_t>& expected, const StaticArray<uint8_t>& actual) {
     Assert::AreEqual(expected.count, actual.count, L"array size mismatch");
     Assert::IsTrue(memory_equals(expected.data, actual.data, expected.count), L"invalid array contents");
 }
 
 void test_esps(ProgramOptions options, const wchar_t* esp_path, const wchar_t* expect_txt_path, const wchar_t* expect_esp_path) {
-    const auto empty_esp = read_file(esp_path);
-    const auto empty_expect_txt = read_file(expect_txt_path);
-    const auto empty_expect_esp = expect_esp_path ? read_file(expect_esp_path) : empty_esp;
-    defer({
-        delete[] empty_esp.data;
-        delete[] empty_expect_txt.data;
-        if (expect_esp_path) {
-            delete[] empty_expect_esp.data;
-        }
-    });
+    TEMP_SCOPE();
+
+    const auto empty_esp = read_file(tmpalloc, esp_path);
+    const auto empty_expect_txt = read_file(tmpalloc, expect_txt_path);
+    const auto empty_expect_esp = expect_esp_path ? read_file(tmpalloc, expect_esp_path) : empty_esp;
 
     EspParser parser;
-    parser.init(options);
+    parser.init(tmpalloc, options);
     defer(parser.dispose());
     parser.parse(empty_esp);
 

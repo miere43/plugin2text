@@ -1034,7 +1034,7 @@ void text_to_esp(const wchar_t* text_path, const wchar_t* esp_path) {
     reader.init();
     defer(reader.dispose());
 
-    const auto text = read_file(text_path);
+    const auto text = read_file(tmpalloc, text_path);
     reader.read_records((const char*)text.data, (const char*)text.data + text.count);
 
     write_file(esp_path, { reader.buffer->start, reader.buffer->size() });

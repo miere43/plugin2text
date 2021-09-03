@@ -23,9 +23,9 @@ Text serialization options:
 
 Export options (when using --export-related-files):
 
-    --data-folder             path to Skyrim SE Data folder, by default tries to
-                              find it from installation path
-    --export-folder           path to folder where export files will be written
+    --data-folder              path to Skyrim SE Data folder, by default tries to
+                               find it from installation path
+    --export-folder            path to folder where export files will be written
 
 If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted
 to text format. If <source file> has TXT extension, then <source file> will be converted

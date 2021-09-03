@@ -9,7 +9,7 @@
 
 #pragma comment(lib, "pathcch.lib")
 
-StaticArray<uint8_t> read_file(const wchar_t* path) {
+StaticArray<uint8_t> read_file(Allocator& allocator, const wchar_t* path) {
     auto handle = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     verify(handle != INVALID_HANDLE_VALUE);
 
@@ -17,7 +17,7 @@ StaticArray<uint8_t> read_file(const wchar_t* path) {
     verify(GetFileSizeEx(handle, (LARGE_INTEGER*)&size));
     verify(size > 0 && size <= 0xffffffff);
 
-    auto buffer = new uint8_t[size];
+    auto buffer = (uint8_t*)memalloc(allocator, size);
     DWORD read = 0;
     verify(ReadFile(handle, buffer, (uint32_t)size, &read, nullptr));
     verify(read == size);

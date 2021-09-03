@@ -11,6 +11,7 @@
     <Expand>
       <Item Name="Count">count</Item>
       <Item Name="Capacity">capacity</Item>
+      <Item Name="Allocator">allocator</Item>
       <ArrayItems>
         <Size>count</Size>
         <ValuePointer>data</ValuePointer>
