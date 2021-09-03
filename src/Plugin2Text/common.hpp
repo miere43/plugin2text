@@ -29,6 +29,7 @@ int string_last_index_of(const wchar_t* str, char c);
 bool string_starts_with(const wchar_t* a, const wchar_t* b);
 int string_index_of(const wchar_t* str, wchar_t c);
 wchar_t* substring(const wchar_t* start, const wchar_t* end);
+wchar_t* string_replace_extension(const wchar_t* path, const wchar_t* new_extension);
 
 #pragma pack(push, 1)
 struct WString {

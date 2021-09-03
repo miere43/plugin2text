@@ -278,7 +278,13 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         }
     }
 
-    // @TODO: Write SEQ.
+    if (seq_formids.count > 0) {
+        const auto seq_name = string_replace_extension(esp_name, L".seq");
+        const auto dst_path = path_append(args.export_folder, mwprintf(L"Seq\\%s", seq_name));
+        write_file(dst_path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
+        wprintf(L"> wrote SEQ file \"%s\"\n", dst_path);
+    }
+
     // @TODO: Export DialogueViews.
     // @TODO: ESP to text: replace VMAD parsing to use "VMAD_Field".
 }
