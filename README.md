@@ -5,16 +5,27 @@ Converts Skyrim SE *.esp to text format
 ```
 Usage: plugin2text.exe <source file> [destination file]
 
-        <source file>         file to convert (*.esp, *.esm, *.esl, *.txt)
-        [destination file]    output path
+    <source file>              file to convert (*.esp, *.esm, *.esl, *.txt)
+    [destination file]         output path
 
 Options:
 
-        --time                 output elapsed time in stdout
+    --time                     output elapsed time in stdout
 
 Text serialization options:
 
-        --export-timestamp     write timestamps for records
+    --export-timestamp         write timestamps for records
+    --preserve-record-order    always write records in the same order as in ESP
+    --preserve-junk            do not clear fields that may contain junk data
+    --export-related-files     export files required for mod to function (scripts,
+                               facegen textures, SEQ file). --data-folder and
+                               --export-folder options must be set
+
+Export options (when using --export-related-files):
+
+    --data-folder             path to Skyrim SE Data folder, by default tries to
+                              find it from installation path
+    --export-folder           path to folder where export files will be written
 
 If <source file> has ESP/ESM/ESL file extension, then <source file> will be converted
 to text format. If <source file> has TXT extension, then <source file> will be converted
@@ -24,11 +35,11 @@ If [destination file] is omitted, then [destination file] is <source file> with 
 changed to plugin or text format.
 
 Examples:
-        plugin2text.exe Skyrim.esm Skyrim.txt
-            convert Skyrim.esm to text format and write resulting file to Skyrim.txt
+    plugin2text.exe Skyrim.esm Skyrim.txt
+        convert Skyrim.esm to text format and write resulting file to Skyrim.txt
 
-        plugin2text.exe Dawnguard.txt Dawnguard.esm
-            convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm
+    plugin2text.exe Dawnguard.txt Dawnguard.esm
+        convert Dawnguard.txt to TES plugin and write resulting file to Dawnguard.esm
 ```
 
 ### Details
