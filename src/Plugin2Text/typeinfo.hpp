@@ -24,6 +24,7 @@ enum class TypeKind {
     Filter,
     Vector3,
     NVPP,
+    VTXT,
 };
 
 struct Type {

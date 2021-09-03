@@ -189,6 +189,7 @@ Type Type_FormIDArray{ TypeKind::FormIDArray, "Form ID Array", 0 };
 Type Type_bool{ TypeKind::Boolean, "bool", sizeof(bool) };
 Type Type_VMAD{ TypeKind::VMAD, "VMAD", 0 };
 Type Type_NVPP{ TypeKind::NVPP, "NVPP", 0 };
+Type Type_VTXT{ TypeKind::VTXT, "VTXT", 0 };
 TypeInteger Type_int8_t{ "int8", sizeof(int8_t), false };
 TypeInteger Type_int16_t{ "int16", sizeof(int16_t), false };
 TypeInteger Type_int32_t{ "int32", sizeof(int32_t), false };
@@ -1130,6 +1131,28 @@ static RecordDef Record_WRLD{
     ),
 };
 
+static void clear_vtxt_junk(void* data, size_t size) {
+    struct VTXT_Point {
+        uint16_t position;
+        uint8_t unk0;
+        uint8_t unk1;
+        float opacity;
+    };
+    static_assert(sizeof(VTXT_Point) == 8, "invalid Point size");
+
+    auto now = (VTXT_Point*)data;
+    auto end = (VTXT_Point*)((uint8_t*)data + size);
+    verify((size % sizeof(VTXT_Point)) == 0);
+
+    while (now < end) {
+        // @TODO: to be honest I don't know is is junk or not.
+        // Looks like junk though, it just randomly changes everytime you open CK and resave plugin.
+        now->unk0 = 0;
+        now->unk1 = 0;
+        ++now;
+    }
+}
+
 static RecordDef Record_LAND{
     .type = record_type("LAND"),
     .comment = "Landscape",
@@ -1137,7 +1160,6 @@ static RecordDef Record_LAND{
         rf_bytes("VNML", "Vertex Normals"),
         rf_bytes("VHGT", "Vertex Height"),
         rf_compressed("VCLR", "Vertex Color"),
-        // @TODO: Sort these
         rf_struct("BTXT", "Base Layer Header", 8,
             sf_formid("Land Texture"),
             sf_enum_uint8("Quadrant",
@@ -1159,7 +1181,10 @@ static RecordDef Record_LAND{
             sf_constant(uint8_t, 0),
             sf_uint16("Texture Layer"),
         ),
-        rf_bytes_rle("VTXT", "Alpha Layer Data"),
+        rf_filter("VTXT", "Alpha Layer Data",
+            &Type_ByteArrayRLE,
+            clear_vtxt_junk
+        ),
     ),
 };
 

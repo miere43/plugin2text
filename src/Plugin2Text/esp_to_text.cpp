@@ -210,6 +210,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::Vector3:
         case TypeKind::VMAD:
         case TypeKind::NVPP:
+        case TypeKind::VTXT:
             return true;
     }
     return false;
@@ -678,6 +679,31 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
                 write_custom_field("Form ID", node.formid);
                 write_custom_field("Index", node.index);
+            }
+        } break;
+
+        case TypeKind::VTXT: {
+            struct VTXT_Point {
+                uint16_t position;
+                uint8_t unk0;
+                uint8_t unk1;
+                float opacity;
+            };
+            static_assert(sizeof(VTXT_Point) == 8, "invalid VTXT_Point size");
+
+            const auto points = (const VTXT_Point*)value;
+            verify((size % sizeof(VTXT_Point)) == 0);
+            const auto count = size / sizeof(VTXT_Point);
+
+            for (int i = 0; i < count; ++i) {
+                begin_custom_struct("Point");
+                defer(end_custom_struct());
+
+                const auto& point = points[i];
+                write_custom_field("Position", point.position);
+                write_custom_field("Unk0", point.unk0);
+                write_custom_field("Unk1", point.unk1);
+                write_custom_field("Opacity", point.opacity);
             }
         } break;
 
