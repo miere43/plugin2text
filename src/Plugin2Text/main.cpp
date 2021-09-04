@@ -7,6 +7,7 @@
 #include "os.hpp"
 #include <stdarg.h>
 #include "array.hpp"
+#include "xml.hpp"
 
 static void print_usage(const char* hint) {
     puts(hint);
@@ -295,18 +296,6 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         }
     }
 
-    if (dialogue_views.count > 0) {
-        const auto folder_path = Path{
-            args.export_folder,
-            L"DialogueViews",
-        };
-        create_folder(folder_path.path);
-
-        for (const auto dialogue_view : dialogue_views) {
-            paths.push(twprintf(L"DialogueViews\\%08X.xml", dialogue_view.value));
-        }
-    }
-
     for (const auto path : paths) {
         const auto src_path = Path{ data_path.path, path };
         const auto dst_path = Path{ args.export_folder, path };
@@ -322,6 +311,29 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         const auto dst_path = Path{ args.export_folder, L"Seq", seq_name };
         write_file(dst_path.path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
         wprintf(L"> wrote SEQ file \"%s\"\n", dst_path.path);
+    }
+
+    if (dialogue_views.count > 0) {
+        const auto folder_path = Path{
+            args.export_folder,
+            L"DialogueViews",
+        };
+        create_folder(folder_path.path);
+
+        for (const auto dialogue_view : dialogue_views) {
+            const auto name = twprintf(L"DialogueViews\\%08X.xml", dialogue_view.value);
+            const auto src_path = Path{ data_path.path, name };
+            const auto dst_path = Path{ args.export_folder, name };
+            const auto xml_data = try_read_file(tmpalloc, src_path.path);
+            if (!xml_data.count) {
+                wprintf(L"> error reading dialogue view file \"%s\": \"%s\"\n", src_path.path, get_last_error());
+                continue;
+            }
+
+            auto formatted_xml_data = xml_format({ (char*)xml_data.data, xml_data.count });
+            write_file(dst_path.path, { (uint8_t*)formatted_xml_data.data, formatted_xml_data.count });
+            wprintf(L"> reformatted dialogue view \"%s\" -> \"%s\"\n", src_path.path, dst_path.path);
+        }
     }
 }
 

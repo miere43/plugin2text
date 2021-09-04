@@ -3,7 +3,9 @@
 #include "parseutils.hpp"
 #include <initializer_list>
 
+StaticArray<uint8_t> try_read_file(Allocator& allocator, const wchar_t* path);
 StaticArray<uint8_t> read_file(Allocator& allocator, const wchar_t* path);
+
 Slice allocate_virtual_memory(size_t size);
 void free_virtual_memory(Slice* slice);
 void write_file(const wchar_t* path, const StaticArray<uint8_t>& data);

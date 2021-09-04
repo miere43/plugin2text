@@ -9,21 +9,40 @@
 
 #pragma comment(lib, "pathcch.lib")
 
-StaticArray<uint8_t> read_file(Allocator& allocator, const wchar_t* path) {
+StaticArray<uint8_t> try_read_file(Allocator& allocator, const wchar_t* path) {
+    StaticArray<uint8_t> result;
+    
     auto handle = CreateFileW(path, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    verify(handle != INVALID_HANDLE_VALUE);
+    if (handle == INVALID_HANDLE_VALUE) {
+        return result;
+    }
+    defer(CloseHandle(handle));
 
     uint64_t size;
-    verify(GetFileSizeEx(handle, (LARGE_INTEGER*)&size));
-    verify(size > 0 && size <= 0xffffffff);
+    if (!GetFileSizeEx(handle, (LARGE_INTEGER*)&size)) {
+        return result;
+    } else if (size <= 0) {
+        return result;
+    } else if (size > 0xffffffff) {
+        SetLastError(ERROR_FILE_TOO_LARGE);
+        return result;
+    }
 
     auto buffer = (uint8_t*)memalloc(allocator, size);
     DWORD read = 0;
-    verify(ReadFile(handle, buffer, (uint32_t)size, &read, nullptr));
-    verify(read == size);
+    if (!ReadFile(handle, buffer, (uint32_t)size, &read, nullptr) || read != size) {
+        memdelete(allocator, buffer);
+        return result;
+    }
 
-    CloseHandle(handle);
-    return { buffer, read };
+    result = { buffer, read };
+    return result;
+}
+
+StaticArray<uint8_t> read_file(Allocator& allocator, const wchar_t* path) {
+    auto result = try_read_file(allocator, path);
+    verify(result.count);
+    return result;
 }
 
 Slice allocate_virtual_memory(size_t size) {
@@ -42,7 +61,8 @@ void free_virtual_memory(Slice* slice) {
 }
 
 void write_file(const wchar_t* path, const StaticArray<uint8_t>& data) {
-    auto handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    auto handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+    auto err = GetLastError();
     verify(handle != INVALID_HANDLE_VALUE);
     verify(data.count <= 0xffffffff);
 

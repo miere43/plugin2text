@@ -20,6 +20,7 @@
     <ClCompile Include="text_to_esp.cpp" />
     <ClCompile Include="typeinfo.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="xml.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="array.hpp" />
@@ -32,6 +33,7 @@
     <ClInclude Include="esp_to_text.hpp" />
     <ClInclude Include="text_to_esp.hpp" />
     <ClInclude Include="typeinfo.hpp" />
+    <ClInclude Include="xml.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Plugin2Text.natvis" />
