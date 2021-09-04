@@ -49,7 +49,7 @@ int short_string_to_month(const char* str) {
 }
 
 Array<VMAD_Script> VMAD_Field::parse_scripts(BinaryReader& r, uint16_t script_count, bool preserve_property_order) {
-    Array<VMAD_Script> scripts;
+    Array<VMAD_Script> scripts{ tmpalloc };
     for (int i = 0; i < script_count; ++i) {
         VMAD_Script script;
         script.parse(r, this, preserve_property_order);
@@ -95,7 +95,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                 auto fragment_count = (int)r.read<uint16_t>();
                 qust.file_name = r.advance_wstring();
 
-                qust.fragments = Array<VMAD_QUST_Fragment>();
+                qust.fragments = Array<VMAD_QUST_Fragment>{ tmpalloc };
                 for (int frag_index = 0; frag_index < fragment_count; ++frag_index) {
                     VMAD_QUST_Fragment fragment;
                     fragment.parse(r);
@@ -103,7 +103,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                 };
 
                 auto alias_count = (int)r.read<uint16_t>();
-                qust.aliases = Array<VMAD_QUST_Alias>();
+                qust.aliases = Array<VMAD_QUST_Alias>{ tmpalloc };
                 for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
                     VMAD_QUST_Alias alias;
                     

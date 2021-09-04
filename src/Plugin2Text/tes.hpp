@@ -178,7 +178,7 @@ struct VMAD_Script {
     const WString* name = nullptr;
     uint8_t status = 0;
 
-    Array<VMAD_ScriptProperty> properties;
+    Array<VMAD_ScriptProperty> properties{ tmpalloc };
 
     void parse(BinaryReader& r, const VMAD_Field* vmad, bool preserve_property_order);
 };
@@ -208,7 +208,7 @@ struct VMAD_Field {
     int16_t version = 0;
     int16_t object_format = 0;
 
-    Array<VMAD_Script> scripts;
+    Array<VMAD_Script> scripts{ tmpalloc };
     bool contains_record_specific_info = false;
 
     union {

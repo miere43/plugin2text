@@ -26,12 +26,12 @@ void test_esps(ProgramOptions options, const wchar_t* esp_path, const wchar_t* e
     EspParser parser;
     parser.init(tmpalloc, options);
     defer(parser.dispose());
-    parser.parse(empty_esp);
+    const auto model = parser.parse(empty_esp);
 
     TextRecordWriter writer;
     writer.init(options);
     defer(writer.dispose());
-    writer.write_records(parser.model.records);
+    writer.write_records(model.records);
 
     assert_same_array_content(empty_expect_txt, { writer.output_buffer.start, writer.output_buffer.size() });
 

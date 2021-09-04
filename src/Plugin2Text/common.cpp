@@ -116,23 +116,23 @@ int string_index_of(const wchar_t* str, wchar_t c) {
     return -1;
 }
 
-wchar_t* substring(const wchar_t* start, const wchar_t* end) {
+wchar_t* substring(Allocator& allocator, const wchar_t* start, const wchar_t* end) {
     auto count = end - start;
     verify(count >= 0);
-    auto buffer = new wchar_t[count + 1];
+    auto buffer = (wchar_t*)memalloc(allocator, sizeof(wchar_t) * (count + 1));
     memcpy(buffer, start, count * sizeof(wchar_t));
     buffer[count] = L'\0';
     return buffer;
 }
 
-wchar_t* string_replace_extension(const wchar_t* path, const wchar_t* new_extension) {
+wchar_t* string_replace_extension(Allocator& allocator, const wchar_t* path, const wchar_t* new_extension) {
     int count = string_last_index_of(path, '.');
     if (count == -1) {
         count = wcslen(path);
     }
 
     const auto extension_count = wcslen(new_extension);
-    const auto buffer = new wchar_t[count + extension_count + 1];
+    const auto buffer = (wchar_t*)memalloc(allocator, sizeof(wchar_t) * (count + extension_count + 1));
     memcpy(buffer, path, count * sizeof(wchar_t));
     memcpy(&buffer[count], new_extension, extension_count * sizeof(wchar_t));
     buffer[count + extension_count] = L'\0';

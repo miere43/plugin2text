@@ -5,39 +5,36 @@
 #include <zlib.h>
 #include <stdio.h>
 
-static void free_record(RecordBase* record_base) {
-    if (record_base->type == RecordType::GRUP) {
-        const auto group = (GrupRecord*)record_base;
-        for (const auto record : group->records) {
-            free_record(record);
-        }
-        group->records.free();
-    } else {
-        const auto record = (Record*)record_base;
-        record->fields.free();
-    }
-}
-
 void EspParser::init(Allocator& allocator, ProgramOptions options) {
     this->allocator = &allocator;
     this->options = options;
 }
 
 void EspParser::dispose() {
-    for (const auto record : model.records) {
-        free_record(record);
-    }
-    model.records.free();
 }
 
-void EspParser::parse(const StaticArray<uint8_t> data) {
-    process_records(data.data, data.data + data.count);
+EspObjectModel EspParser::parse(const StaticArray<uint8_t> data) {
+    source_data_start = data.data;
+
+    const uint8_t* now = data.data;
+    const uint8_t* end = data.data + data.count;
+    
+    EspObjectModel model;
+    model.records.allocator = allocator;
+    
+    while (now < end) {
+        auto record = (RawRecord*)now;
+        model.records.push(process_record(record));
+        now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(RawRecord));
+    }
+
+    return model;
 }
 
 RecordBase* EspParser::process_record(const RawRecord* record) {
     auto result_base = record->type == RecordType::GRUP
-        ? static_cast<RecordBase*>(memnew(*allocator) GrupRecord())
-        : static_cast<RecordBase*>(memnew(*allocator) Record());
+        ? static_cast<RecordBase*>(memnew(*allocator) GrupRecord(*allocator))
+        : static_cast<RecordBase*>(memnew(*allocator) Record(*allocator));
 
     result_base->type = record->type;
     result_base->flags = record->flags;
@@ -122,17 +119,6 @@ RecordField* EspParser::process_field(Record* record, const RawRecordField* fiel
     result->data.data = (uint8_t*)field + sizeof(*field);
 
     return result;
-}
-
-void EspParser::process_records(const uint8_t* start, const uint8_t* end) {
-    source_data_start = start;
-
-    const uint8_t* now = start;
-    while (now < end) {
-        auto record = (RawRecord*)now;
-        model.records.push(process_record(record));
-        now += record->data_size + (record->type == RecordType::GRUP ? 0 : sizeof(RawRecord));
-    }
 }
 
 uint8_t* EspParser::uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size) {

@@ -23,6 +23,10 @@ struct Record : RecordBase {
     uint16_t unknown = 0;
 
     RecordField* find_field(RecordFieldType type) const;
+
+    inline Record(Allocator& allocator) {
+        fields.allocator = &allocator;
+    }
 };
 
 struct GrupRecord : RecordBase {
@@ -37,7 +41,9 @@ struct GrupRecord : RecordBase {
     };
     uint32_t unknown;
 
-    inline GrupRecord() : group_type(RecordGroupType::Top), label(0), unknown(0) { }
+    inline GrupRecord(Allocator& allocator) : group_type(RecordGroupType::Top), label(0), unknown(0) {
+        records.allocator = &allocator;
+    }
 };
 
 struct EspObjectModel {
@@ -48,17 +54,15 @@ struct EspParser {
     Allocator* allocator = &stdalloc;
     const uint8_t* source_data_start = nullptr;
 
-    EspObjectModel model;
     ProgramOptions options;
 
     void init(Allocator& allocator, ProgramOptions options);
     void dispose();
 
-    void parse(const StaticArray<uint8_t> data);
+    EspObjectModel parse(const StaticArray<uint8_t> data);
 private:
     RecordField* process_field(Record* record, const RawRecordField* field);
     RecordBase* process_record(const RawRecord* record);
-    void process_records(const uint8_t* start, const uint8_t* end);
     uint8_t* uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size);
     void export_zlib_chunk(const RawRecordCompressed* record) const;
 };

@@ -4,7 +4,6 @@
 
 struct TextRecordWriter {
     Slice output_buffer;
-    Slice scratch_buffer;
 
     int indent = 0;
     bool localized_strings = false; // @TODO: load value from TES4 record

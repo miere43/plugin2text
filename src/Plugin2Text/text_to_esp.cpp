@@ -573,19 +573,21 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::ByteArrayCompressed: {
+            TEMP_SCOPE();
+
             const auto line_end = peek_end_of_current_line();
             const auto count = line_end - now;
 
-            auto base64_buffer = compression_buffer.now;
-            auto base64_size = (uLong)base64_decode(now, line_end - now, base64_buffer, compression_buffer.remaining_size());
-            compression_buffer.now += base64_size;
+            const auto base64_buffer = tmpalloc.now;
+            const auto base64_size = (uLong)base64_decode(now, line_end - now, base64_buffer, tmpalloc.remaining_size());
+            tmpalloc.now += base64_size;
                
-            auto result_size = (uLongf)compression_buffer.remaining_size();
-            const auto uncompressed_buffer = compression_buffer.now;
+            const auto uncompressed_buffer = tmpalloc.now;
+            auto result_size = (uLongf)tmpalloc.remaining_size();
+
             const auto result = ::uncompress(uncompressed_buffer, &result_size, base64_buffer, base64_size);
             verify(result == Z_OK);
 
-            compression_buffer.now = base64_buffer; // This line must be before slice->write_bytes, because slice can point to &compression_buffer
             slice->write_bytes(uncompressed_buffer, result_size);
                 
             now = line_end + 1; // +1 for '\n'.
@@ -603,6 +605,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::ByteArrayRLE: {
+            // @TODO: use tmpalloc
+            // It's not ported to it because of weird bug.
+
             const auto line_end = peek_end_of_current_line();
             const auto count = (line_end - now) / 2;
             verify(((line_end - now) % 2) == 0);

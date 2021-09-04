@@ -78,9 +78,9 @@ struct ArgParser {
         const wchar_t* value = L"";
     };
 
-    Array<wchar_t*> arguments;
-    Array<wchar_t*> flags;
-    Array<Option> options;
+    Array<wchar_t*> arguments{ tmpalloc };
+    Array<wchar_t*> flags{ tmpalloc };
+    Array<Option> options{ tmpalloc };
 
     void parse() {
         int argc = 0;
@@ -93,8 +93,8 @@ struct ArgParser {
                 auto assign_index = string_index_of(option_start, '=');
                 if (assign_index != -1) {
                     Option option;
-                    option.key = substring(option_start, option_start + assign_index);
-                    option.value = substring(option_start + assign_index + 1, option_start + assign_index + wcslen(option_start));
+                    option.key = substring(tmpalloc, option_start, option_start + assign_index);
+                    option.value = substring(tmpalloc, option_start + assign_index + 1, option_start + assign_index + wcslen(option_start));
                     options.push(option);
                 } else {
                     flags.push(option_start);
@@ -159,14 +159,14 @@ struct Args {
     }
 };
 
-static wchar_t* mwprintf(const wchar_t* format, ...) {
+static wchar_t* twprintf(const wchar_t* format, ...) {
     va_list args;
     va_start(args, format);
     int count = _vsnwprintf(nullptr, 0, format, args);
     verify(count >= 0);
     va_end(args);
 
-    auto buffer = new wchar_t[count + 1];
+    auto buffer = (wchar_t*)memalloc(tmpalloc, sizeof(wchar_t) * (count + 1));
 
     va_start(args, format);
     int new_count = _vsnwprintf(buffer, count + 1, format, args);
@@ -194,9 +194,9 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     auto data_path = args.data_folder && wcslen(args.data_folder) ? args.data_folder : path_append(get_skyrim_se_install_path(), L"Data");
     // @TODO: if export_folder == NULL, replace with GetCurrentDirectoryW()
 
-    Array<FormID> facegens;
-    Array<FormID> seq_formids;
-    Array<const WString*> script_paths; // @TODO: Remove built-in scripts.
+    Array<FormID> facegens{ tmpalloc };
+    Array<FormID> seq_formids{ tmpalloc };
+    Array<const WString*> script_paths{ tmpalloc }; // @TODO: Remove built-in scripts.
 
     foreach_record(records, [&facegens, esp_name, &seq_formids, &script_paths](Record* record) -> void {
         switch (record->type) {
@@ -255,7 +255,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         }
     });
 
-    Array<wchar_t*> paths;
+    Array<wchar_t*> paths{ tmpalloc };
     if (facegens.count > 0) {
         auto folder_path = path_append(args.export_folder, L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\");
         folder_path = path_append(folder_path, esp_name);
@@ -263,7 +263,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
 
         for (const auto facegen : facegens) {
             auto path = path_append(L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\", esp_name);
-            path = path_append(path, mwprintf(L"08X.dds", facegen.value));
+            path = path_append(path, twprintf(L"08X.dds", facegen.value));
             paths.push(path);
         }
     }
@@ -272,8 +272,8 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     if (script_paths.count > 0) {
         create_folder(path_append(args.export_folder, L"Scripts\\Source"));
         for (const auto script_path : script_paths) {
-            paths.push(mwprintf(L"Scripts\\Source\\%.*S.psc", script_path->count, script_path->data));
-            paths.push(mwprintf(L"Scripts\\%.*S.pex", script_path->count, script_path->data));
+            paths.push(twprintf(L"Scripts\\Source\\%.*S.psc", script_path->count, script_path->data));
+            paths.push(twprintf(L"Scripts\\%.*S.pex", script_path->count, script_path->data));
         }
     }
 
@@ -288,8 +288,8 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     }
 
     if (seq_formids.count > 0) {
-        const auto seq_name = string_replace_extension(esp_name, L".seq");
-        const auto dst_path = path_append(args.export_folder, mwprintf(L"Seq\\%s", seq_name));
+        const auto seq_name = string_replace_extension(tmpalloc, esp_name, L".seq");
+        const auto dst_path = path_append(args.export_folder, twprintf(L"Seq\\%s", seq_name));
         write_file(dst_path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
         wprintf(L"> wrote SEQ file \"%s\"\n", dst_path);
     }
@@ -324,14 +324,14 @@ int main() {
         defer(parser.dispose());
         
         const auto file = read_file(tmpalloc, source_file);
-        parser.parse(file);
+        const auto model = parser.parse(file);
 
         if (is_bit_set(args.options, ProgramOptions::ExportRelatedFiles)) {
             // @TODO: remove hardcoded value
-            export_related_files(args, L"FrostMawCave_miere.esp", parser.model.records);
+            export_related_files(args, L"FrostMawCave_miere.esp", model.records);
         }
 
-        esp_to_text(args.options, parser.model, destination_file);
+        esp_to_text(args.options, model, destination_file);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);
     }

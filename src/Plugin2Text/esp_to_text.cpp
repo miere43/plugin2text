@@ -7,14 +7,11 @@
 
 void TextRecordWriter::init(ProgramOptions options) {
     output_buffer = allocate_virtual_memory(1024 * 1024 * 64);
-    scratch_buffer = allocate_virtual_memory(1024 * 1024 * 32);
-    
     this->options = options;
 }
 
 void TextRecordWriter::dispose() {
     free_virtual_memory(&output_buffer);
-    free_virtual_memory(&scratch_buffer);
 }
 
 void TextRecordWriter::write_format(_Printf_format_string_ const char* format, ...) {
@@ -58,6 +55,8 @@ void TextRecordWriter::write_bytes(const void* data, size_t size) {
 }
 
 void TextRecordWriter::write_records(const Array<RecordBase*> records) {
+    TEMP_SCOPE();
+
     write_literal("plugin2text version 1.00\n---\n");
 
     for (const auto record : records) {
@@ -393,20 +392,20 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::ByteArrayCompressed: {
-            auto buffer = scratch_buffer.advance(size);
+            TEMP_SCOPE();
 
-            auto compressed_size = static_cast<uLongf>(scratch_buffer.remaining_size());
+            auto buffer = tmpalloc.now;
+
+            auto compressed_size = static_cast<uLongf>(tmpalloc.remaining_size());
             auto result = ::compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<uLong>(size));
             verify(result == Z_OK);
 
-            scratch_buffer.now += compressed_size;
+            tmpalloc.now += compressed_size;
 
-            auto output_size = base64_encode(buffer, compressed_size, (char*)scratch_buffer.now, scratch_buffer.end - scratch_buffer.now);
-            write_bytes(scratch_buffer.now, output_size);
-                
+            auto output_size = base64_encode(buffer, compressed_size, (char*)tmpalloc.now, tmpalloc.remaining_size());
+            write_bytes(tmpalloc.now, output_size);
+
             write_byte_array(buffer, compressed_size);
-
-            scratch_buffer.now = buffer;
         } break;
 
         case TypeKind::ByteArrayFixed: {
@@ -642,14 +641,13 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             if (is_bit_set(options, ProgramOptions::PreserveJunk)) {
                 write_type(filter_type->inner_type, value, size);
             } else {
-                const auto highwater = scratch_buffer.now;
-                const auto preprocessed_value = scratch_buffer.advance(size);
+                TEMP_SCOPE();
+
+                const auto preprocessed_value = memalloc(tmpalloc, size);
                 memcpy(preprocessed_value, value, size);
 
                 filter_type->preprocess(preprocessed_value, size);
                 write_type(filter_type->inner_type, preprocessed_value, size);
-
-                scratch_buffer.now = highwater;
             }
             ++indent;
         } break;
