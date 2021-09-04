@@ -16,6 +16,7 @@ wchar_t* get_skyrim_se_install_path();
 bool copy_file(const wchar_t* src, const wchar_t* dst);
 void create_folder(const wchar_t* folder);
 wchar_t* get_last_error();
+const wchar_t* get_current_directory();
 
 struct Path {
     wchar_t path[260]{ 0 };

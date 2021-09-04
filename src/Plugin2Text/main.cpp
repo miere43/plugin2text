@@ -200,10 +200,15 @@ static void push_if_not_duplicate(Array<const WString*>& paths, const WString* s
 }
 
 static void export_related_files(const Args& args, const wchar_t* esp_name, const Array<RecordBase*>& records) {
-    auto data_path = args.data_folder && wcslen(args.data_folder)
+    const auto data_path = args.data_folder && wcslen(args.data_folder)
         ? Path{ args.data_folder }
         : Path{ get_skyrim_se_install_path(), L"Data" };
-    // @TODO: if export_folder == NULL, replace with GetCurrentDirectoryW()
+    const auto export_path = args.export_folder && wcslen(args.export_folder)
+        ? Path{ args.export_folder }
+        : Path{ get_current_directory() };
+
+    wprintf(L"\nData Folder: %s\n", data_path.path);
+    wprintf(L"Export Folder: %s\n\n", export_path.path);
 
     Array<FormID> facegens{ tmpalloc };
     Array<FormID> seq_formids{ tmpalloc };
@@ -274,7 +279,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     Array<wchar_t*> paths{ tmpalloc };
     if (facegens.count > 0) {
         const auto folder_path = Path{
-            args.export_folder,
+            export_path.path,
             L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\",
             esp_name
         };
@@ -293,7 +298,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     // @TODO: Read paths from Creation Kit INI.
     if (script_paths.count > 0) {
         const auto folder_path = Path{
-            args.export_folder,
+            export_path.path,
             L"Scripts\\Source",
         };
         create_folder(folder_path.path);
@@ -306,24 +311,25 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
 
     for (const auto path : paths) {
         const auto src_path = Path{ data_path.path, path };
-        const auto dst_path = Path{ args.export_folder, path };
+        const auto dst_path = Path{ export_path.path, path };
         if (copy_file(src_path.path, dst_path.path)) {
-            wprintf(L"> copied \"%s\" -> \"%s\"\n", src_path.path, dst_path.path);
+            wprintf(L"[OK] \"%s\"\n", path);
         } else {
-            wprintf(L"> error copying \"%s\" -> \"%s\": %s\n", src_path.path, dst_path.path, get_last_error());
+            wprintf(L"[ERROR] \"%s\": %s\n", path, get_last_error());
         }
     }
 
     if (seq_formids.count > 0) {
         const auto seq_name = string_replace_extension(tmpalloc, esp_name, L".seq");
-        const auto dst_path = Path{ args.export_folder, L"Seq", seq_name };
+        const auto path = Path{ L"Seq", seq_name };
+        const auto dst_path = Path{ export_path.path, path.path };
         write_file(dst_path.path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
-        wprintf(L"> wrote SEQ file \"%s\"\n", dst_path.path);
+        wprintf(L"[OK] \"%s\"\n", path.path);
     }
 
     if (dialogue_views.count > 0) {
         const auto folder_path = Path{
-            args.export_folder,
+            export_path.path,
             L"DialogueViews",
         };
         create_folder(folder_path.path);
@@ -333,17 +339,17 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
 
             const auto name = twprintf(L"DialogueViews\\%08X.xml", dialogue_view.value);
             const auto src_path = Path{ data_path.path, name };
-            const auto dst_path = Path{ args.export_folder, name };
+            const auto dst_path = Path{ export_path.path, name };
             const auto xml_data = try_read_file(tmpalloc, src_path.path);
             if (!xml_data.count) {
-                wprintf(L"> error reading dialogue view file \"%s\": \"%s\"\n", src_path.path, get_last_error());
+                wprintf(L"[ERROR] \"%s\": %s\n", name, get_last_error());
                 continue;
             }
 
             XmlFormatter formatter;
             const auto formatted_xml_data = formatter.format({ (char*)xml_data.data, (int)xml_data.count });
             write_file(dst_path.path, { (uint8_t*)formatted_xml_data.chars, (size_t)formatted_xml_data.count });
-            wprintf(L"> reformatted dialogue view \"%s\" -> \"%s\"\n", src_path.path, dst_path.path);
+            wprintf(L"[OK] \"%s\"\n", name);
         }
     }
 }

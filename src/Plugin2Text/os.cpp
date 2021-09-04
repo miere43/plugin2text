@@ -139,3 +139,9 @@ void Path::append(std::initializer_list<const wchar_t*> append_paths) {
         verify(SUCCEEDED(hr));
     }
 }
+
+const wchar_t* get_current_directory() {
+    auto count = GetCurrentDirectoryW(tmpalloc.remaining_size(), (wchar_t*)tmpalloc.now);
+    verify(GetLastError() == NO_ERROR);
+    return (wchar_t*)memalloc(tmpalloc, count * sizeof(wchar_t));
+}
