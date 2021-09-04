@@ -276,7 +276,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
             const auto path = memnew(tmpalloc) Path{
                 L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\",
                 esp_name,
-                twprintf(L"08X.dds", facegen.value)
+                twprintf(L"%08X.dds", facegen.value)
             };
             paths.push(path->path);
         }
@@ -321,6 +321,8 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         create_folder(folder_path.path);
 
         for (const auto dialogue_view : dialogue_views) {
+            TEMP_SCOPE();
+
             const auto name = twprintf(L"DialogueViews\\%08X.xml", dialogue_view.value);
             const auto src_path = Path{ data_path.path, name };
             const auto dst_path = Path{ args.export_folder, name };
@@ -330,8 +332,9 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                 continue;
             }
 
-            auto formatted_xml_data = xml_format({ (char*)xml_data.data, xml_data.count });
-            write_file(dst_path.path, { (uint8_t*)formatted_xml_data.data, formatted_xml_data.count });
+            XmlFormatter formatter;
+            const auto formatted_xml_data = formatter.format({ (char*)xml_data.data, (int)xml_data.count });
+            write_file(dst_path.path, { (uint8_t*)formatted_xml_data.chars, (size_t)formatted_xml_data.count });
             wprintf(L"> reformatted dialogue view \"%s\" -> \"%s\"\n", src_path.path, dst_path.path);
         }
     }

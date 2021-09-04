@@ -173,3 +173,8 @@ struct TempScope {
 };
 
 #define TEMP_SCOPE() auto _tmpscope = TempScope()
+
+struct String {
+    char* chars = nullptr;
+    int count = 0;
+};

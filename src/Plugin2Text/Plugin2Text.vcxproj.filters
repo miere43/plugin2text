@@ -11,6 +11,7 @@
     <ClCompile Include="base64.cpp" />
     <ClCompile Include="esp_parser.cpp" />
     <ClCompile Include="xml.cpp" />
+    <ClCompile Include="string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typeinfo.hpp" />
@@ -24,6 +25,7 @@
     <ClInclude Include="array.hpp" />
     <ClInclude Include="parseutils.hpp" />
     <ClInclude Include="xml.hpp" />
+    <ClInclude Include="string.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Plugin2Text.natvis" />

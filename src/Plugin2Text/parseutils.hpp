@@ -83,6 +83,10 @@ struct Slice {
         }
     }
 
+    void write_string(const String& value) {
+        write_bytes(value.chars, value.count);
+    }
+
     size_t size() const {
         return now - start;
     }

@@ -16,6 +16,7 @@
     <ClCompile Include="esp_to_text.cpp" />
     <ClCompile Include="os.cpp" />
     <ClCompile Include="esp_parser.cpp" />
+    <ClCompile Include="string.cpp" />
     <ClCompile Include="tes.cpp" />
     <ClCompile Include="text_to_esp.cpp" />
     <ClCompile Include="typeinfo.cpp" />
@@ -29,6 +30,7 @@
     <ClInclude Include="os.hpp" />
     <ClInclude Include="esp_parser.hpp" />
     <ClInclude Include="parseutils.hpp" />
+    <ClInclude Include="string.hpp" />
     <ClInclude Include="tes.hpp" />
     <ClInclude Include="esp_to_text.hpp" />
     <ClInclude Include="text_to_esp.hpp" />
