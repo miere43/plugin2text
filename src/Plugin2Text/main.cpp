@@ -54,7 +54,15 @@ static void print_usage(const char* hint) {
 
 static const wchar_t* get_file_extension(const wchar_t* string) {
     int index = string_last_index_of(string, '.');
-    return index ? &string[index] : L"";
+    return index == -1 ? L"" : &string[index];
+}
+
+static const wchar_t* get_filespec(const wchar_t* string) {
+    int index = string_last_index_of(string, '\\');
+    if (index == -1) {
+        index = string_last_index_of(string, '/');
+    }
+    return index == -1 ? string : &string[index + 1];
 }
 
 static const wchar_t* replace_destination_file_extension(const wchar_t* source_file, const wchar_t* source_file_extension) {
@@ -352,28 +360,30 @@ int main() {
         return 1;
     }
 
-    const auto source_file = args.source_file;
-    const auto source_file_extension = get_file_extension(source_file);
-    const auto destination_file = args.destination_file ? args.destination_file : replace_destination_file_extension(source_file, source_file_extension);
+    const auto source_file = Path{ args.source_file };
+    const auto source_file_extension = get_file_extension(source_file.path);
+    const auto destination_file = args.destination_file
+        ? Path{ args.destination_file }
+        : Path{ replace_destination_file_extension(source_file.path, source_file_extension) };
 
     const auto start = args.time ? get_current_timestamp() : 0;
 
     if (string_equals(source_file_extension, L".txt")) {
-        text_to_esp(source_file, destination_file);
+        text_to_esp(source_file.path, destination_file.path);
     } else if (string_equals(source_file_extension, L".esp") || string_equals(source_file_extension, L".esm") || string_equals(source_file_extension, L".esl")) {
         EspParser parser;
         parser.init(tmpalloc, args.options);
         defer(parser.dispose());
         
-        const auto file = read_file(tmpalloc, source_file);
+        const auto file = read_file(tmpalloc, source_file.path);
         const auto model = parser.parse(file);
 
         if (is_bit_set(args.options, ProgramOptions::ExportRelatedFiles)) {
             // @TODO: remove hardcoded value
-            export_related_files(args, L"FrostMawCave_miere.esp", model.records);
+            export_related_files(args, get_filespec(source_file.path), model.records);
         }
 
-        esp_to_text(args.options, model, destination_file);
+        esp_to_text(args.options, model, destination_file.path);
     } else {
         exit_error(L"unrecognized source file extension \"%s\" (\"%s\")", source_file_extension, source_file);
     }

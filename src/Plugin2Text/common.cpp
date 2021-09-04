@@ -88,7 +88,7 @@ bool memory_equals(const void* a, const void* b, size_t size){
 int string_last_index_of(const wchar_t* str, char c) {
     const auto count = str ? (int)wcslen(str) : 0;
     for (int i = count - 1; i >= 0; --i) {
-        if (str[i] == '.') {
+        if (str[i] == c) {
             return i;
         }
     }

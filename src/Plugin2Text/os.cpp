@@ -62,7 +62,6 @@ void free_virtual_memory(Slice* slice) {
 
 void write_file(const wchar_t* path, const StaticArray<uint8_t>& data) {
     auto handle = CreateFileW(path, GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-    auto err = GetLastError();
     verify(handle != INVALID_HANDLE_VALUE);
     verify(data.count <= 0xffffffff);
 
@@ -105,7 +104,6 @@ wchar_t* get_skyrim_se_install_path() {
         nullptr,
         path,
         &path_size);
-    auto err = GetLastError();
     verify(result == ERROR_SUCCESS);
 
     wchar_t* normalized_path = nullptr;;

@@ -152,17 +152,17 @@ String XmlParser::parse_attribute_key() {
 String XmlParser::parse_attribute_value() {
     auto start = now;
     verify(now < end);
-    char quoteChar = 0;
+    char quote_char = 0;
     char c = *now;
     if (c == '"' || c == '\'') {
-        quoteChar = c;
+        quote_char = c;
         ++start;
         ++now;
     }
 
     while (now < end) {
         char c = *now;
-        if (quoteChar ? c == quoteChar : is_whitespace(c)) {
+        if (quote_char ? c == quote_char : is_whitespace(c)) {
             break;
         } else if (is_newline(c)) {
             verify(false);
@@ -171,8 +171,8 @@ String XmlParser::parse_attribute_value() {
         }
     }
     int count = (int)(now - start);
-    verify(quoteChar || count > 0);
-    if (quoteChar) ++now;
+    verify(quote_char || count > 0);
+    if (quote_char) ++now;
 
     return { start, count };
 }
