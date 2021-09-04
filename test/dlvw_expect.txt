@@ -1,0 +1,224 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.7
+    Number Of Records
+      17
+    Next Object ID
+      [00000D6C]
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  INTV - Tagified Strings
+    1
+GRUP
+  4 Sep 2021
+  DIAL [01000D65] - Dialogue Topic
+    4 Sep 2021
+    EDID - Editor ID
+      "DLVW_test_branchTopic"
+    PNAM - Priority
+      50
+    BNAM - Owning Branch
+      [01000D64]
+    QNAM - Owning Quest
+      [01000D62]
+    DATA
+      00000000
+    SNAM
+      43555354
+    TIFC - Info Count
+      1
+  GRUP - Topic [01000D65]
+    4 Sep 2021
+    INFO [01000D66] - Topic Info
+      4 Sep 2021
+      ENAM - Data
+        Flags
+          
+        Hours Until Reset
+          0
+      PNAM - Previous Info
+        [00000000]
+      CNAM - Favor Level
+        0
+      TCLT - Topic Links
+        [01000D69]
+      TRDT - Response
+        Emotion
+          Neutral
+        Emotion Value
+          50
+        Response Index
+          1
+        Sound
+          [00000000]
+        Use Emotion Animation
+          True
+      NAM1 - Response
+        "hello xd"
+      NAM2 - Notes
+        ""
+      NAM3 - Edits
+        ""
+  DIAL [01000D68] - Dialogue Topic
+    4 Sep 2021
+    EDID - Editor ID
+      "dlvwtest_test_branch_2Topic"
+    FULL - Name
+      "asfasdf"
+    PNAM - Priority
+      50
+    BNAM - Owning Branch
+      [01000D67]
+    QNAM - Owning Quest
+      [01000D62]
+    DATA
+      00000000
+    SNAM
+      43555354
+    TIFC - Info Count
+      1
+  GRUP - Topic [01000D68]
+    4 Sep 2021
+    INFO [01000D6B] - Topic Info
+      4 Sep 2021
+      ENAM - Data
+        Flags
+          
+        Hours Until Reset
+          0
+      PNAM - Previous Info
+        [00000000]
+      CNAM - Favor Level
+        0
+      TRDT - Response
+        Emotion
+          Neutral
+        Emotion Value
+          50
+        Response Index
+          1
+        Sound
+          [00000000]
+        Use Emotion Animation
+          True
+      NAM1 - Response
+        "sss"
+      NAM2 - Notes
+        ""
+      NAM3 - Edits
+        ""
+  DIAL [01000D69] - Dialogue Topic
+    4 Sep 2021
+    EDID - Editor ID
+      "dlvwtest_tocpi2"
+    PNAM - Priority
+      50
+    BNAM - Owning Branch
+      [01000D64]
+    QNAM - Owning Quest
+      [01000D62]
+    DATA
+      00000000
+    SNAM
+      43555354
+    TIFC - Info Count
+      1
+  GRUP - Topic [01000D69]
+    4 Sep 2021
+    INFO [01000D6A] - Topic Info
+      4 Sep 2021
+      ENAM - Data
+        Flags
+          
+        Hours Until Reset
+          0
+      PNAM - Previous Info
+        [00000000]
+      CNAM - Favor Level
+        0
+      TRDT - Response
+        Emotion
+          Neutral
+        Emotion Value
+          50
+        Response Index
+          1
+        Sound
+          [00000000]
+        Use Emotion Animation
+          True
+      NAM1 - Response
+        "resp"
+      NAM2 - Notes
+        ""
+      NAM3 - Edits
+        ""
+      RNAM - Player Response
+        "the prompt"
+GRUP
+  4 Sep 2021
+  QUST [01000D62] - Quest
+    4 Sep 2021
+    EDID - Editor ID
+      "dlvwtest"
+    DNAM - Quest Data
+      Flags
+        + Start Game Enabled
+        + Run Once
+      Priority
+        0
+      Unknown
+        18
+      Type
+        None
+    NEXT
+      
+    ANAM - Next Alias ID
+      0
+GRUP
+  4 Sep 2021
+  DLBR [01000D64] - Dialogue Branch
+    4 Sep 2021
+    EDID - Editor ID
+      "DLVW_test_branch"
+    QNAM - Parent Quest
+      [01000D62]
+    TNAM - Unknown
+      0
+    DNAM - Flags
+      1
+    SNAM - Start Dialogue
+      [01000D65]
+  DLBR [01000D67] - Dialogue Branch
+    4 Sep 2021
+    EDID - Editor ID
+      "dlvwtest_test_branch_2"
+    QNAM - Parent Quest
+      [01000D62]
+    TNAM - Unknown
+      0
+    DNAM - Flags
+      1
+    SNAM - Start Dialogue
+      [01000D68]
+GRUP
+  4 Sep 2021
+  DLVW [01000D63] - Dialogue View
+    4 Sep 2021
+    EDID - Editor ID
+      "DLVW_test"
+    QNAM - Parent Quest
+      [01000D62]
+    BNAM - Branch
+      [01000D64]
+    BNAM - Branch
+      [01000D67]
+    ENAM - Unknown
+      0
+    DNAM - Show All Text
+      True

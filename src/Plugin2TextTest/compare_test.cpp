@@ -3,6 +3,7 @@
 #include <os.hpp>
 #include <esp_to_text.hpp>
 #include <text_to_esp.hpp>
+#include <xml.hpp>
 #include "test_common.hpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -63,6 +64,25 @@ public:
             L"../../../../test/vmad_expect.txt",
             nullptr
         );
+    }
+
+    TEST_METHOD(TestDLVW) {
+        test_esps(
+            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveRecordOrder,
+            L"../../../../test/dlvw.esp",
+            L"../../../../test/dlvw_expect.txt",
+            nullptr
+        );
+    }
+
+    TEST_METHOD(TestDialogueViewFormatting) {
+        const auto dlvw = read_file(tmpalloc, L"../../../../test/dlvw.xml");
+        const auto dlvw_expect = read_file(tmpalloc, L"../../../../test/dlvw_expect.xml");
+
+        XmlFormatter formatter;
+        auto actual = formatter.format({ (char*)dlvw.data, (int)dlvw.count });
+
+        assert_same_array_content(dlvw_expect, { (uint8_t*)actual.chars, (size_t)actual.count });
     }
     };
 }

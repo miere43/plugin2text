@@ -70,7 +70,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\Plugin2Text\$(Platform)\$(Configuration)\esp_parser.obj;..\Plugin2Text\$(Platform)\$(Configuration)\os.obj;..\Plugin2Text\$(Platform)\$(Configuration)\common.obj;..\Plugin2Text\$(Platform)\$(Configuration)\tes.obj;..\Plugin2Text\$(Platform)\$(Configuration)\typeinfo.obj;..\Plugin2Text\$(Platform)\$(Configuration)\esp_to_text.obj;..\Plugin2Text\$(Platform)\$(Configuration)\text_to_esp.obj;..\Plugin2Text\$(Platform)\$(Configuration)\base64.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\Plugin2Text\$(Platform)\$(Configuration)\esp_parser.obj;..\Plugin2Text\$(Platform)\$(Configuration)\os.obj;..\Plugin2Text\$(Platform)\$(Configuration)\common.obj;..\Plugin2Text\$(Platform)\$(Configuration)\tes.obj;..\Plugin2Text\$(Platform)\$(Configuration)\typeinfo.obj;..\Plugin2Text\$(Platform)\$(Configuration)\esp_to_text.obj;..\Plugin2Text\$(Platform)\$(Configuration)\text_to_esp.obj;..\Plugin2Text\$(Platform)\$(Configuration)\base64.obj;..\Plugin2Text\$(Platform)\$(Configuration)\xml.obj;..\Plugin2Text\$(Platform)\$(Configuration)\string.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -91,7 +91,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\Plugin2Text\$(Platform)\$(Configuration)\esp_parser.obj;..\Plugin2Text\$(Platform)\$(Configuration)\os.obj;..\Plugin2Text\$(Platform)\$(Configuration)\common.obj;..\Plugin2Text\$(Platform)\$(Configuration)\tes.obj;..\Plugin2Text\$(Platform)\$(Configuration)\typeinfo.obj;..\Plugin2Text\$(Platform)\$(Configuration)\esp_to_text.obj;..\Plugin2Text\$(Platform)\$(Configuration)\text_to_esp.obj;..\Plugin2Text\$(Platform)\$(Configuration)\base64.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\Plugin2Text\$(Platform)\$(Configuration)\esp_parser.obj;..\Plugin2Text\$(Platform)\$(Configuration)\os.obj;..\Plugin2Text\$(Platform)\$(Configuration)\common.obj;..\Plugin2Text\$(Platform)\$(Configuration)\tes.obj;..\Plugin2Text\$(Platform)\$(Configuration)\typeinfo.obj;..\Plugin2Text\$(Platform)\$(Configuration)\esp_to_text.obj;..\Plugin2Text\$(Platform)\$(Configuration)\text_to_esp.obj;..\Plugin2Text\$(Platform)\$(Configuration)\base64.obj;..\Plugin2Text\$(Platform)\$(Configuration)\xml.obj;..\Plugin2Text\$(Platform)\$(Configuration)\string.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
