@@ -12,6 +12,7 @@ enum class RecordType : uint32_t {
     INFO = fourcc("INFO"),
     QUST = fourcc("QUST"),
     NPC_ = fourcc("NPC_"),
+    DLVW = fourcc("DLVW"),
 };
 
 enum class RecordFlags : uint32_t {

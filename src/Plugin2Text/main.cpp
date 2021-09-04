@@ -199,8 +199,9 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     Array<FormID> facegens{ tmpalloc };
     Array<FormID> seq_formids{ tmpalloc };
     Array<const WString*> script_paths{ tmpalloc }; // @TODO: Remove built-in scripts.
+    Array<FormID> dialogue_views{ tmpalloc };
 
-    foreach_record(records, [&facegens, esp_name, &seq_formids, &script_paths](Record* record) -> void {
+    foreach_record(records, [&facegens, &seq_formids, &script_paths, &dialogue_views](Record* record) -> void {
         switch (record->type) {
             case RecordType::NPC_: {
                 facegens.push(FormID{ record->id.value & 0x00ffffff });
@@ -219,6 +220,10 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                         seq_formids.push(record->id);
                     }
                 }
+            } break;
+
+            case RecordType::DLVW: {
+                dialogue_views.push(record->id);
             } break;
         }
 
@@ -290,6 +295,18 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         }
     }
 
+    if (dialogue_views.count > 0) {
+        const auto folder_path = Path{
+            args.export_folder,
+            L"DialogueViews",
+        };
+        create_folder(folder_path.path);
+
+        for (const auto dialogue_view : dialogue_views) {
+            paths.push(twprintf(L"DialogueViews\\%08X.xml", dialogue_view.value));
+        }
+    }
+
     for (const auto path : paths) {
         const auto src_path = Path{ data_path.path, path };
         const auto dst_path = Path{ args.export_folder, path };
@@ -306,9 +323,6 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         write_file(dst_path.path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
         wprintf(L"> wrote SEQ file \"%s\"\n", dst_path.path);
     }
-
-    // @TODO: Export DialogueViews.
-    // @TODO: ESP to text: replace VMAD parsing to use "VMAD_Field".
 }
 
 int main() {
