@@ -110,9 +110,14 @@ wchar_t* get_last_error() {
     return err;
 }
 
-wchar_t* path_append(const wchar_t* a, const wchar_t* b) {
-    wchar_t* out = nullptr;
-    auto hr = PathAllocCombine(a, b, 0, &out);
+void Path::append(const wchar_t* append_path) {
+    HRESULT hr = PathCchAppend(path, _countof(path), append_path);
     verify(SUCCEEDED(hr));
-    return out;
+}
+
+void Path::append(std::initializer_list<const wchar_t*> append_paths) {
+    for (const auto append_path : append_paths) {
+        HRESULT hr = PathCchAppend(path, _countof(path), append_path);
+        verify(SUCCEEDED(hr));
+    }
 }

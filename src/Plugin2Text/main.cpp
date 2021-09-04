@@ -191,7 +191,9 @@ static void push_if_not_duplicate(Array<const WString*>& paths, const WString* s
 }
 
 static void export_related_files(const Args& args, const wchar_t* esp_name, const Array<RecordBase*>& records) {
-    auto data_path = args.data_folder && wcslen(args.data_folder) ? args.data_folder : path_append(get_skyrim_se_install_path(), L"Data");
+    auto data_path = args.data_folder && wcslen(args.data_folder)
+        ? Path{ args.data_folder }
+        : Path{ get_skyrim_se_install_path(), L"Data" };
     // @TODO: if export_folder == NULL, replace with GetCurrentDirectoryW()
 
     Array<FormID> facegens{ tmpalloc };
@@ -257,20 +259,31 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
 
     Array<wchar_t*> paths{ tmpalloc };
     if (facegens.count > 0) {
-        auto folder_path = path_append(args.export_folder, L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\");
-        folder_path = path_append(folder_path, esp_name);
-        create_folder(folder_path);
+        const auto folder_path = Path{
+            args.export_folder,
+            L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\",
+            esp_name
+        };
+        create_folder(folder_path.path);
 
         for (const auto facegen : facegens) {
-            auto path = path_append(L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\", esp_name);
-            path = path_append(path, twprintf(L"08X.dds", facegen.value));
-            paths.push(path);
+            const auto path = memnew(tmpalloc) Path{
+                L"Textures\\Actors\\Character\\FaceGenData\\FaceTint\\",
+                esp_name,
+                twprintf(L"08X.dds", facegen.value)
+            };
+            paths.push(path->path);
         }
     }
 
     // @TODO: Read paths from Creation Kit INI.
     if (script_paths.count > 0) {
-        create_folder(path_append(args.export_folder, L"Scripts\\Source"));
+        const auto folder_path = Path{
+            args.export_folder,
+            L"Scripts\\Source",
+        };
+        create_folder(folder_path.path);
+
         for (const auto script_path : script_paths) {
             paths.push(twprintf(L"Scripts\\Source\\%.*S.psc", script_path->count, script_path->data));
             paths.push(twprintf(L"Scripts\\%.*S.pex", script_path->count, script_path->data));
@@ -278,20 +291,20 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     }
 
     for (const auto path : paths) {
-        auto src_path = path_append(data_path, path);
-        auto dst_path = path_append(args.export_folder, path);
-        if (copy_file(src_path, dst_path)) {
-            wprintf(L"> copied \"%s\" -> \"%s\"\n", src_path, dst_path);
+        const auto src_path = Path{ data_path.path, path };
+        const auto dst_path = Path{ args.export_folder, path };
+        if (copy_file(src_path.path, dst_path.path)) {
+            wprintf(L"> copied \"%s\" -> \"%s\"\n", src_path.path, dst_path.path);
         } else {
-            wprintf(L"> error copying \"%s\" -> \"%s\": %s\n", src_path, dst_path, get_last_error());
+            wprintf(L"> error copying \"%s\" -> \"%s\": %s\n", src_path.path, dst_path.path, get_last_error());
         }
     }
 
     if (seq_formids.count > 0) {
         const auto seq_name = string_replace_extension(tmpalloc, esp_name, L".seq");
-        const auto dst_path = path_append(args.export_folder, twprintf(L"Seq\\%s", seq_name));
-        write_file(dst_path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
-        wprintf(L"> wrote SEQ file \"%s\"\n", dst_path);
+        const auto dst_path = Path{ args.export_folder, L"Seq", seq_name };
+        write_file(dst_path.path, { (uint8_t*)seq_formids.data, seq_formids.count * sizeof(seq_formids.data[0]) });
+        wprintf(L"> wrote SEQ file \"%s\"\n", dst_path.path);
     }
 
     // @TODO: Export DialogueViews.

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "parseutils.hpp"
+#include <initializer_list>
 
 StaticArray<uint8_t> read_file(Allocator& allocator, const wchar_t* path);
 Slice allocate_virtual_memory(size_t size);
@@ -13,4 +14,14 @@ wchar_t* get_skyrim_se_install_path();
 bool copy_file(const wchar_t* src, const wchar_t* dst);
 void create_folder(const wchar_t* folder);
 wchar_t* get_last_error();
-wchar_t* path_append(const wchar_t* a, const wchar_t* b);
+
+struct Path {
+    wchar_t path[260]{ 0 };
+    void append(const wchar_t* append_path);
+    void append(std::initializer_list<const wchar_t*> append_paths);
+
+    inline Path() { }
+    inline Path(std::initializer_list<const wchar_t*> paths) {
+        append(paths);
+    }
+};
