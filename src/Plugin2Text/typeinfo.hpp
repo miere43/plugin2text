@@ -147,6 +147,8 @@ RESOLVE_TYPE(PapyrusPropertyType);
 RESOLVE_TYPE(PapyrusFragmentFlags);
 RESOLVE_TYPE(FormID);
 RESOLVE_TYPE(WString);
+RESOLVE_TYPE(CTDA_Flags);
+RESOLVE_TYPE(CTDA_RunOnType);
 
 enum class RecordFieldDefType {
     Field,
@@ -202,5 +204,3 @@ constexpr char ByteArrayRLE_SequenceMarker_00 = '?';
 constexpr char ByteArrayRLE_SequenceMarker_FF = '!';
 
 extern TypeEnum Type_ProgramOptions;
-
-constexpr bool CTDA_Enabled = true;

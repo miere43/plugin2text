@@ -340,13 +340,31 @@ static uint8_t parse_hex_char(char c) {
 }
 
 FormID TextRecordReader::read_formid() {
+    // @TODO: Use std::from_chars
     int nread = 0;
     FormID formid;
-    int count = sscanf_s(now, "[%08X]%n", &formid.value, &nread);
+    int count = _snscanf_s(now, end - now, "[%08X]%n", &formid.value, &nread);
     verify(count == 1);
     verify(nread == 1 + 8 + 1); // [DEADBEEF]
     now += 1 + 8 + 1;
     return formid;
+}
+
+int TextRecordReader::read_int32() {
+    // @TODO: Use std::from_chars
+    int value = 0;
+    int nread = 0;
+    verify(1 == _snscanf_s(now, end - now, "%d%n", &value, &nread));
+    now += nread;
+    return value;
+}
+
+float TextRecordReader::read_float() {
+    float value = 0;
+    const auto result = std::from_chars(now, end, value);
+    verify(result.ec == std::errc{});
+    now = result.ptr;
+    return value;
 }
 
 void TextRecordReader::read_formid_line(Slice* slice) {
@@ -376,6 +394,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::Vector3:
         case TypeKind::Filter:
         case TypeKind::XCLW:
+        case TypeKind::CTDA:
             return true;
     }
     return false;
@@ -660,10 +679,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                 
             switch (type->size) {
                 case sizeof(float): {
-                    float value;
-                    const auto result = std::from_chars(now, line_end, value);
-                    verify(result.ec == std::errc{});
-                    verify(result.ptr == line_end);
+                    const auto value = read_float();
+                    verify(now == line_end);
                     slice->write_struct(&value);
                 } break;
 
@@ -875,7 +892,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::XCLW: {
-            if (expect("No Water\n")) {
+            // @TODO @Test
+            if (expect_indented("No Water\n")) {
                 // @TODO: This also can be 0x4F7FFFC9, 0xCF000000.
                 slice->write_constant<uint32_t>(0x7F7FFFFF);
             } else {
@@ -886,14 +904,84 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::CTDA: {
-            if (!CTDA_Enabled) {
-                --indent;
-                read_type(slice, &Type_ByteArray);
-                ++indent;
-                break;
+            // @TODO @Test
+            const auto flags = read_custom_field<CTDA_Flags>("Flags");
+            const auto run_on_type = read_custom_field<CTDA_RunOnType>("Run On Type");
+            const auto unknown = read_custom_field<int>("Unknown");
+
+            verify(try_begin_custom_struct("Condition"));
+
+            FormID reference;
+            if (try_read_formid(&reference)) {
+                verify(expect("."));
             }
 
-            verify(false);
+            expect_indent();
+            const auto line_end = peek_end_of_current_line();
+                
+            const char* function_name = nullptr;
+            size_t function_name_count = 0;
+
+            {
+                // @TODO: Move this to helper method.
+                auto curr = now;
+                while (curr < line_end) {
+                    if (*curr == '(') {
+                        function_name = now;
+                        function_name_count = curr - now;
+                        now = curr + 1;
+                        break;
+                    } else {
+                        ++curr;
+                    }
+                }
+                verify(function_name);
+            }
+
+            const auto function = find_ctda_function(function_name, function_name_count);
+            verify(function);
+
+            CTDA_Argument arg1;
+            CTDA_Argument arg2;
+            if (function->arg1 != CTDA_ArgumentType::None) {
+                arg1 = read_ctda_argument(function->arg1);
+                if (function->arg2 != CTDA_ArgumentType::None) {
+                    verify(expect(", "));
+                    arg2 = read_ctda_argument(function->arg2);
+                }
+            }
+            verify(expect(") "));
+
+            const auto op = read_ctda_operator();
+            verify(expect(" "));
+            const auto comparison_value = read_float(); // @TODO: This can be FormID
+
+            const CTDA_OperatorFlagsUnion opflags{
+                .flags = flags,
+                .op = op,
+            };
+
+            slice->write_struct(&opflags);
+            slice->write_constant<uint16_t>(0); // Junk. @TODO: "write_zeros" method on Slice.
+            slice->write_constant<uint8_t>(0); // Junk.
+
+            slice->write_constant(comparison_value);
+            slice->write_constant(function->index);
+
+            slice->write_constant<uint16_t>(0); // Junk.
+
+            // @TODO: Handle GetEventData
+                
+            slice->write_struct(&arg1);
+            slice->write_struct(&arg2);
+
+            slice->write_constant(run_on_type);
+            slice->write_constant(reference);
+            slice->write_constant(unknown);
+
+            end_custom_struct();
+
+            now = line_end + 1; // Skip \n.
         } break;
 
         default: {
@@ -911,6 +999,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 }
 
 bool TextRecordReader::try_begin_custom_struct(const char* header_name) {
+    // @TODO: non-try begin_custom_struct version.
+
     if (try_continue_current_indent()) {
         const auto start = &now[indent * 2];
         const auto line_end = peek_end_of_current_line();
@@ -981,6 +1071,7 @@ RecordFieldType TextRecordReader::read_record_field_type() {
 }
 
 bool TextRecordReader::expect(const char* string) {
+    // @TODO: rename to consume, expect should crash if string is not expected.
     auto count = strlen(string);
     if (now + count > end) {
         return false;
@@ -1008,6 +1099,19 @@ bool TextRecordReader::try_continue_current_indent() {
         return true;
     }
     verify(current_indent < indent);
+    return false;
+}
+
+bool TextRecordReader::try_read_formid(FormID* formid) {
+    if (expect("[")) {
+        int value = 0;
+        int nread = 0;
+        verify(1 == _snscanf_s(now, end - now, "%08X%n", &value, &nread));
+        verify(nread == 1);
+        verify(expect("]"));
+        formid->value = static_cast<uint32_t>(value);
+        return true;
+    }
     return false;
 }
 
@@ -1055,6 +1159,48 @@ void TextRecordReader::skip_to_next_line() {
             ++now;
         }
     }
+}
+
+CTDA_Argument TextRecordReader::read_ctda_argument(CTDA_ArgumentType type) {
+    CTDA_Argument result;
+    switch (type) {
+        case CTDA_ArgumentType::FormID: {
+            result.formid = read_formid();
+        } break;
+
+        case CTDA_ArgumentType::Int: {
+            result.number = read_int32();
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
+    return result;
+}
+
+CTDA_Operator TextRecordReader::read_ctda_operator() {
+    if (expect("==")) return CTDA_Operator::Equal;
+    if (expect("!=")) return CTDA_Operator::NotEqual;
+    if (expect(">=")) return CTDA_Operator::GreaterOrEqual;
+    if (expect(">"))  return CTDA_Operator::Greater;
+    if (expect("<=")) return CTDA_Operator::LessOrEqual;
+    if (expect("<"))  return CTDA_Operator::Less;
+    
+    verify(false);
+    return (CTDA_Operator)0;
+}
+
+bool TextRecordReader::expect_indented(const char* str) {
+    const auto count = strlen(str);
+    if (try_continue_current_indent()) {
+        const auto curr = &now[indent * 2];
+        if (curr + count <= end && memory_equals(str, curr, count)) {
+            now = curr + count;
+            return true;
+        }
+    }
+    return false;
 }
 
 void text_to_esp(const wchar_t* text_path, const wchar_t* esp_path) {

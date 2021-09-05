@@ -290,13 +290,23 @@ enum class CTDA_ArgumentType {
 union CTDA_Argument {
     FormID formid;
     int number;
+
+    inline CTDA_Argument() : number(0) { }
 };
 static_assert(sizeof(CTDA_Argument) == 4, "invalid CTDA_Argument size");
 
 struct CTDA_Function {
+    uint16_t index = 0;
     const char* name = nullptr;
     CTDA_ArgumentType arg1 = CTDA_ArgumentType::FormID;
     CTDA_ArgumentType arg2 = CTDA_ArgumentType::FormID;
 };
 
 extern const CTDA_Function CTDA_Functions[727];
+const CTDA_Function* find_ctda_function(const char* name, size_t count);
+
+struct CTDA_OperatorFlagsUnion {
+    CTDA_Flags flags : 5;
+    CTDA_Operator op : 3;
+};
+static_assert(sizeof(CTDA_OperatorFlagsUnion) == 1, "invalid CTDA_OperatorFlagsUnion size");

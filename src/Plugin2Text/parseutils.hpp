@@ -32,6 +32,8 @@ struct Slice {
 
     template<typename T>
     void write_constant(const T& value) {
+        // @TODO: This method probably should be renamed to "write_struct",
+        // current "write_struct" is probably should be deleted.
         write_bytes(&value, sizeof(T));
     }
 

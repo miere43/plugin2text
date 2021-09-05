@@ -732,25 +732,14 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::CTDA: {
-            if (!CTDA_Enabled) {
-                --indent;
-                write_type(&Type_ByteArray, value, size);
-                ++indent;
-                break;
-            }
-
+            // @TODO @Test
             BinaryReader r{ (uint8_t*)value, size };
-            struct OperatorFlagsUnion {
-                CTDA_Flags flags : 5;
-                CTDA_Operator op : 3;
-            };
-            static_assert(sizeof(OperatorFlagsUnion) == 1, "invalid OperatorFlagsUnion size");
 
-            const auto val = r.read<OperatorFlagsUnion>();
+            const auto val = r.read<CTDA_OperatorFlagsUnion>();
             const auto op = val.op;
             const auto flags = val.flags;
 
-            r.advance(3); // junk
+            r.advance(3); // Junk.
 
             union ComparisonValue {
                 FormID formid;
@@ -766,51 +755,25 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
             r.advance(2); // junk
 
-            //verify(function_index != 576); // GetEventData
+            //verify(function_index != 576); // @TODO: GetEventData
             const auto arg1 = r.read<CTDA_Argument>();
             const auto arg2 = r.read<CTDA_Argument>();
 
             const auto run_on_type = r.read<CTDA_RunOnType>();
-            const auto formid = r.read<FormID>();
-            const auto unk = r.read<int>();
+            const auto reference = r.read<FormID>();
+            const auto unknown = r.read<int>();
 
-            {
-                begin_custom_struct("Flags");
-
-                --indent;
-                write_type(&Type_CTDA_Flags, &flags, sizeof(flags));
-                ++indent;
-
-                end_custom_struct();
-            }
-
-            {
-                begin_custom_struct("Run On Type");
-
-                --indent;
-                write_type(&Type_CTDA_RunOnType, &run_on_type, sizeof(run_on_type));
-                ++indent;
-
-                end_custom_struct();
-            }
-
-            {
-                begin_custom_struct("Unknown");
-
-                --indent;
-                write_type(&Type_int32_t, &unk, sizeof(unk));
-                ++indent;
-
-                end_custom_struct();
-            }
+            write_custom_field("Flags", flags);
+            write_custom_field("Run On Type", run_on_type);
+            write_custom_field("Unknown", unknown);
 
             {
                 begin_custom_struct("Condition");
 
                 write_indent();
 
-                if (formid.value) {
-                    write_format("[%08X].", formid.value);
+                if (reference.value) {
+                    write_format("[%08X].", reference.value);
                 }
 
                 write_string(function.name);
@@ -828,7 +791,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                 write_string(ctda_operator_string(op));
 
                 write_literal(" ");
-                write_float(cmpval.value);
+                write_float(cmpval.value); // @TODO: This can be FormID
 
                 write_newline();
 

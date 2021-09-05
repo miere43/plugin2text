@@ -35,6 +35,8 @@ struct TextRecordReader {
     RecordFlags read_record_flags(RecordDef* def);
     RawRecord* read_record();
     FormID read_formid();
+    int read_int32();
+    float read_float();
     void read_formid_line(Slice* slice);
     void read_byte_array(Slice* slice, size_t count);
     PapyrusPropertyType read_papyrus_object(Slice* slice, const VMAD_Header* header, PapyrusPropertyType expect_type = PapyrusPropertyType::None);
@@ -83,7 +85,10 @@ struct TextRecordReader {
     const char* peek_end_of_current_line();
     void expect_indent();
     void skip_to_next_line();
+    bool try_read_formid(FormID* formid);
+    CTDA_Argument read_ctda_argument(CTDA_ArgumentType type);
+    CTDA_Operator read_ctda_operator();
+    bool expect_indented(const char* str);
 };
-
 
 void text_to_esp(const wchar_t* text_path, const wchar_t* esp_path);
