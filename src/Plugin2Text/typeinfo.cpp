@@ -1303,6 +1303,47 @@ static RecordDef Record_PACK{
     ),
 };
 
+static RecordDef Record_LCRT{
+    .type = record_type("LCRT"),
+    .comment = "Location Ref Type",
+    .fields = record_fields(
+        rf_struct("CNAM", "Color", 4,
+            sf_uint8("Red"),
+            sf_uint8("Green"),
+            sf_uint8("Blue"),
+            sf_constant(uint8_t, 0),
+        ),
+    ),
+};
+
+static RecordDef Record_ACTI{
+    .type = record_type("ACTI"),
+    .comment = "Activator",
+    .fields = record_fields(
+        rf_struct("PNAM", "Color", 4,
+            sf_uint8("Red"),
+            sf_uint8("Green"),
+            sf_uint8("Blue"),
+            sf_constant(uint8_t, 0),
+        ),
+        rf_uint16("FNAM", "Flags"),
+    ),
+};
+
+static RecordDef Record_KEYM{
+    .type = record_type("KEYM"),
+    .comment = "Key",
+    .fields = record_fields(
+        Field_MODL,
+        rf_formid("YNAM", "Pick Up Sound"),
+        rf_formid("ZNAM", "Drop Sound"),
+        rf_struct("DATA", "Data", 8,
+            sf_uint32("Value"),
+            sf_float("Weight"),
+        ),
+    ),
+};
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -1335,6 +1376,9 @@ RecordDef* get_record_def(RecordType type) {
         CASE(LCTN);
         CASE(NAVM);
         CASE(PACK);
+        CASE(LCRT);
+        CASE(ACTI);
+        CASE(KEYM);
     }
     #undef CASE
     return nullptr;
