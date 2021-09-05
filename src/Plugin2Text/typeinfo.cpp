@@ -274,7 +274,7 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
 
 TYPE_FLAGS(CTDA_Flags, "CTDA_Flags", sizeof(CTDA_Flags),
     { (uint32_t)CTDA_Flags::Or, "Or" },
-    { (uint32_t)CTDA_Flags::Parameters, "Parameters" },
+    { (uint32_t)CTDA_Flags::ParametersUseAliases, "Parameters (Use Aliases)" },
     { (uint32_t)CTDA_Flags::UseGlobal, "Use Global" },
     { (uint32_t)CTDA_Flags::UsePackData, "Use Pack Data" },
     { (uint32_t)CTDA_Flags::SwapSubjectAndTarget, "Swap Subject And Target" },

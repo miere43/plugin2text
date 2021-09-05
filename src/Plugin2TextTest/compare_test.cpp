@@ -84,5 +84,14 @@ public:
 
         assert_same_array_content(dlvw_expect, { (uint8_t*)actual.chars, (size_t)actual.count });
     }
+
+    TEST_METHOD(TestCTDA) {
+        test_esps(
+            ProgramOptions::ExportTimestamp,
+            L"../../../../test/ctda.esp",
+            L"../../../../test/ctda_expect.txt",
+            nullptr
+        );
+    }
     };
 }

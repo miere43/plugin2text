@@ -263,7 +263,7 @@ const char* ctda_operator_string(CTDA_Operator op);
 
 enum class CTDA_Flags : uint8_t {
     Or = 0x01,
-    Parameters = 0x02,
+    ParametersUseAliases = 0x02,
     UseGlobal = 0x04,
     UsePackData = 0x08,
     SwapSubjectAndTarget = 0x10,
