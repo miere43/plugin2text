@@ -9,8 +9,8 @@ struct RecordField {
 };
 
 struct RecordBase {
-    RecordType type;
-    RecordFlags flags;
+    RecordType type = (RecordType)0;
+    RecordFlags flags = RecordFlags::None;
     uint16_t timestamp = 0;
     uint8_t last_user_id = 0;
     uint8_t current_user_id = 0;
@@ -54,7 +54,7 @@ struct EspParser {
     Allocator* allocator = &stdalloc;
     const uint8_t* source_data_start = nullptr;
 
-    ProgramOptions options;
+    ProgramOptions options = ProgramOptions::None;
 
     void init(Allocator& allocator, ProgramOptions options);
     void dispose();

@@ -1,7 +1,6 @@
 #pragma once
 #include "common.hpp"
-
-extern "C" size_t strlen(const char* s);
+#include <string.h>
 
 bool string_equals(const String& a, const String& b);
 bool string_equals(const char* a, size_t a_length, const char* b, size_t b_length);

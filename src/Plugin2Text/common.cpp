@@ -128,7 +128,7 @@ wchar_t* substring(Allocator& allocator, const wchar_t* start, const wchar_t* en
 wchar_t* string_replace_extension(Allocator& allocator, const wchar_t* path, const wchar_t* new_extension) {
     int count = string_last_index_of(path, '.');
     if (count == -1) {
-        count = wcslen(path);
+        count = static_cast<int>(wcslen(path));
     }
 
     const auto extension_count = wcslen(new_extension);

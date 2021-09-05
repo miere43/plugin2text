@@ -55,7 +55,7 @@ size_t base64_encode(const uint8_t* bytes_to_encode, size_t in_len, char* out_bu
     size_t len_encoded = (in_len + 2) / 3 * 4;
     verify(len_encoded <= out_buffer_size);
 
-    unsigned int pos = 0;
+    size_t pos = 0;
 
     auto now = out_buffer;
 

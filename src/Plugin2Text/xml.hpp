@@ -18,7 +18,7 @@ struct XmlAttribute {
 };
 
 struct XmlToken {
-    XmlTokenType type = (XmlTokenType)0;
+    XmlTokenType type;
     union {
         String declaration_name;
         XmlAttribute attribute;
@@ -29,7 +29,11 @@ struct XmlToken {
         };
         String text;
     };
-    inline XmlToken() {}
+    
+    inline XmlToken() {
+        memset(this, 0, sizeof(*this));
+    }
+    
     void print();
 };
 
@@ -52,7 +56,7 @@ struct XmlElement : public XmlNode {
 
 struct XmlDocument : public XmlNode {
     int child_count = 0;
-    XmlElement* children[8];
+    XmlElement* children[8]{ 0 };
 };
 
 struct XmlText : public XmlNode {

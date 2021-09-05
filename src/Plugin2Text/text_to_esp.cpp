@@ -180,7 +180,7 @@ RecordFlags TextRecordReader::read_record_flags(RecordDef* def) {
     RecordFlags flags = RecordFlags::None;
 
     int def_count;
-    RecordDef* defs[2];
+    RecordDef* defs[2]{ 0 };
     if (def) {
         def_count = 2;
         defs[0] = def;

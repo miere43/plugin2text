@@ -18,7 +18,7 @@ StaticArray<uint8_t> try_read_file(Allocator& allocator, const wchar_t* path) {
     }
     defer(CloseHandle(handle));
 
-    uint64_t size;
+    uint64_t size = 0;
     if (!GetFileSizeEx(handle, (LARGE_INTEGER*)&size)) {
         return result;
     } else if (size <= 0) {
@@ -93,7 +93,7 @@ double timestamp_to_seconds(int64_t start, int64_t end) {
 }
 
 wchar_t* get_skyrim_se_install_path() {
-    wchar_t path[512];
+    wchar_t path[512]{ 0 };
     DWORD path_size = sizeof(path);
 
     auto result = RegGetValueW(
@@ -141,7 +141,7 @@ void Path::append(std::initializer_list<const wchar_t*> append_paths) {
 }
 
 const wchar_t* get_current_directory() {
-    auto count = GetCurrentDirectoryW(tmpalloc.remaining_size(), (wchar_t*)tmpalloc.now);
+    auto count = GetCurrentDirectoryW((DWORD)tmpalloc.remaining_size(), (wchar_t*)tmpalloc.now);
     verify(GetLastError() == NO_ERROR);
     return (wchar_t*)memalloc(tmpalloc, count * sizeof(wchar_t));
 }

@@ -58,6 +58,11 @@ Array<VMAD_Script> VMAD_Field::parse_scripts(BinaryReader& r, uint16_t script_co
     return scripts;
 }
 
+VMAD_Field::VMAD_Field() {
+    memset(this, 0, sizeof(this));
+    scripts = Array<VMAD_Script>(tmpalloc);
+}
+
 void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type, bool preserve_property_order) {
     BinaryReader r;
     r.start = value;
@@ -155,6 +160,10 @@ void VMAD_ScriptProperty::parse(BinaryReader& r, const VMAD_Field* vmad) {
         status = r.read<uint8_t>();
     }
     value.parse(r, vmad, type);
+}
+
+VMAD_ScriptPropertyValue::VMAD_ScriptPropertyValue() {
+    memset(this, 0, sizeof(*this));
 }
 
 void VMAD_ScriptPropertyValue::parse(BinaryReader& r, const VMAD_Field* vmad, PapyrusPropertyType type) {

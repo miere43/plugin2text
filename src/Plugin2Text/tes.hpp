@@ -161,7 +161,7 @@ union VMAD_ScriptPropertyValue {
         VMAD_ScriptPropertyValue* values;
     } as_array;
 
-    inline VMAD_ScriptPropertyValue() { }
+    VMAD_ScriptPropertyValue();
 
     void parse(BinaryReader& r, const VMAD_Field* vmad, PapyrusPropertyType type);
 };
@@ -192,10 +192,10 @@ struct VMAD_INFO_Fragment {
 };
 
 struct VMAD_QUST_Fragment {
-    uint16_t index;
-    uint32_t log_entry;
-    const WString* script_name;
-    const WString* function_name;
+    uint16_t index = 0;
+    uint32_t log_entry = 0;
+    const WString* script_name = nullptr;
+    const WString* function_name = nullptr;
 
     void parse(BinaryReader& r);
 };
@@ -206,11 +206,11 @@ struct VMAD_QUST_Alias {
 };
 
 struct VMAD_Field {
-    int16_t version = 0;
-    int16_t object_format = 0;
+    int16_t version;
+    int16_t object_format;
 
-    Array<VMAD_Script> scripts{ tmpalloc };
-    bool contains_record_specific_info = false;
+    Array<VMAD_Script> scripts;
+    bool contains_record_specific_info;
 
     union {
         struct {
@@ -227,8 +227,8 @@ struct VMAD_Field {
         } qust;
     };
 
-    inline VMAD_Field() { }
-    
+    VMAD_Field();
+
     void parse(const uint8_t* value, size_t size, RecordType record_type, bool preserve_property_order);
 private:
     Array<VMAD_Script> parse_scripts(BinaryReader& r, uint16_t script_count, bool preserve_property_order);
@@ -239,7 +239,7 @@ struct NVPP_Path {
 };
 
 struct NVPP_Node {
-    uint32_t index;
+    uint32_t index = 0;
     FormID formid;
 };
 

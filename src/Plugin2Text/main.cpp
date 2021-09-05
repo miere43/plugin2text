@@ -175,10 +175,10 @@ static wchar_t* twprintf(const wchar_t* format, ...) {
     verify(count >= 0);
     va_end(args);
 
-    auto buffer = (wchar_t*)memalloc(tmpalloc, sizeof(wchar_t) * (count + 1));
+    auto buffer = (wchar_t*)memalloc(tmpalloc, sizeof(wchar_t) * ((size_t)count + 1));
 
     va_start(args, format);
-    int new_count = _vsnwprintf(buffer, count + 1, format, args);
+    int new_count = _vsnwprintf(buffer, (size_t)count + 1, format, args);
     verify(new_count >= 0 && new_count <= count);
     va_end(args);
 
@@ -389,7 +389,6 @@ int main() {
         const auto model = parser.parse(file);
 
         if (is_bit_set(args.options, ProgramOptions::ExportRelatedFiles)) {
-            // @TODO: remove hardcoded value
             export_related_files(args, get_filespec(source_file.path), model.records);
         }
 
