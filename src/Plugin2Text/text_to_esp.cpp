@@ -375,6 +375,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::VMAD:
         case TypeKind::Vector3:
         case TypeKind::Filter:
+        case TypeKind::XCLW:
             return true;
     }
     return false;
@@ -871,6 +872,17 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             read_type(slice, &Type_float);
             read_type(slice, &Type_float);
             ++indent;
+        } break;
+
+        case TypeKind::XCLW: {
+            if (expect("No Water\n")) {
+                // @TODO: This also can be 0x4F7FFFC9, 0xCF000000.
+                slice->write_constant<uint32_t>(0x7F7FFFFF);
+            } else {
+                --indent;
+                read_type(slice, &Type_float);
+                ++indent;
+            }
         } break;
 
         default: {

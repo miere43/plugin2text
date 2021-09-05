@@ -210,6 +210,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::VMAD:
         case TypeKind::NVPP:
         case TypeKind::VTXT:
+        case TypeKind::XCLW:
             return true;
     }
     return false;
@@ -702,6 +703,26 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                 write_custom_field("Unk0", point.unk0);
                 write_custom_field("Unk1", point.unk1);
                 write_custom_field("Opacity", point.opacity);
+            }
+        } break;
+
+        case TypeKind::XCLW: {
+            verify(size == sizeof(float));
+            enum class NoWater : uint32_t {
+                A = 0x7F7FFFFF,
+                B = 0x4F7FFFC9,
+                C = 0xCF000000,
+            };
+
+            const auto no_water = *(NoWater*)value;
+            if (no_water == NoWater::A || no_water == NoWater::B || no_water == NoWater::C) {
+                write_indent();
+                write_literal("No Water"); // @TODO: Preserve NoWater type.
+                write_newline();
+            } else {
+                --indent;
+                write_type(&Type_float, value, size);
+                ++indent;
             }
         } break;
 

@@ -190,6 +190,7 @@ Type Type_bool{ TypeKind::Boolean, "bool", sizeof(bool) };
 Type Type_VMAD{ TypeKind::VMAD, "VMAD", 0 };
 Type Type_NVPP{ TypeKind::NVPP, "NVPP", 0 };
 Type Type_VTXT{ TypeKind::VTXT, "VTXT", 0 };
+Type Type_XCLW{ TypeKind::XCLW, "XCLW", sizeof(float) };
 TypeInteger Type_int8_t{ "int8", sizeof(int8_t), false };
 TypeInteger Type_int16_t{ "int16", sizeof(int16_t), false };
 TypeInteger Type_int32_t{ "int32", sizeof(int32_t), false };
@@ -565,7 +566,14 @@ static RecordDef Record_CELL{
                 { 0x400, "Light Fade Distance" },
             ),
         ),
-        // @TODO: XCLW
+        rf_formid("XEZN", "Encounter Zone"),
+        rf_formid("XCAS", "Acoustic Space"),
+        rf_formid("XCMO", "Music Type"),
+        rf_formid("XCIM", "Image Space"),
+        rf_formid("XCCM", "Climate"),
+        rf_formid("XOWN", "Owner"),
+        rf_zstring("XWEM", "Water Environment Map"),
+        rf_field("XCLW", "Water Level", &Type_XCLW),
     ),
     .flags = record_flags(
         { 0x400, "Persistent" },
@@ -613,12 +621,18 @@ static RecordDef Record_REFR{
             ),
         ),
         rf_formid("XLRL", "Location"),
-        rf_bytes("XRGD", "Ragdoll Data"),
+        rf_bytes_rle("XRGD", "Ragdoll Data"),
         Type_LocationData,
     ),
     .flags = record_flags(
-        { 0x400, "Persistent" },
-        { 0x800, "Initially Disabled" },
+        { 0x00000200, "Hidden From Local Map" },
+        { 0x00000400, "Persistent" },
+        { 0x00000800, "Initially Disabled" },
+        { 0x00010000, "Is Full LOD" },
+        { 0x02000000, "No AI Acquire" },
+        { 0x10000000, "Reflected By Auto Water" },
+        { 0x20000000, "Don't Havok Settle" },
+        { 0x40000000, "Not Respawns" },
     ),
 };
 
@@ -937,7 +951,12 @@ static RecordDef Record_ACHR{
         Type_LocationData,
     ),
     .flags = record_flags(
-        { 0x200, "Starts Dead" },
+        { 0x00000200, "Starts Dead" },
+        { 0x00000400, "Persistent Reference" },
+        { 0x00000800, "Initially Disabled" },
+        { 0x02000000, "No AI Acquire" },
+        { 0x10000000, "Reflected By Auto Water" },
+        { 0x20000000, "Don't Havok Settle" },
     ),
 };
 

@@ -25,6 +25,7 @@ enum class TypeKind {
     Vector3,
     NVPP,
     VTXT,
+    XCLW,
 };
 
 struct Type {
