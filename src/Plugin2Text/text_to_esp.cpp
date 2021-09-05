@@ -79,7 +79,7 @@ uint32_t TextRecordReader::read_record_unknown() {
         constexpr const char* Unknown = "Unknown = ";
         constexpr size_t UnknownCount = sizeof("Unknown = ") - 1;
 
-        if (curr + UnknownCount <= line_end && memory_equals("Unknown = ", curr, UnknownCount)) {
+        if (curr + UnknownCount <= line_end && memory_equals(Unknown, curr, UnknownCount)) {
             uint32_t value;
             curr += UnknownCount;
             verify(1 == _snscanf_s(curr, line_end - curr, "%X", &value));
@@ -99,15 +99,15 @@ void TextRecordReader::read_grup_record(RawGrupRecord* group) {
             case RecordGroupType::InteriorCellBlock:
             case RecordGroupType::InteriorCellSubBlock: {
                 verify(expect(" "));
-                group->label = expect_int();
+                group->label = read_int32();
             } break;
                 
             case RecordGroupType::ExteriorCellBlock:
             case RecordGroupType::ExteriorCellSubBlock: {
                 verify(expect(" ("));
-                group->grid_x = expect_int();
+                group->grid_x = read_int32();
                 verify(expect("; "));
-                group->grid_y = expect_int();
+                group->grid_y = read_int32();
                 verify(expect(")"));
             } break;
 
@@ -351,11 +351,10 @@ FormID TextRecordReader::read_formid() {
 }
 
 int TextRecordReader::read_int32() {
-    // @TODO: Use std::from_chars
     int value = 0;
-    int nread = 0;
-    verify(1 == _snscanf_s(now, end - now, "%d%n", &value, &nread));
-    now += nread;
+    const auto result = std::from_chars(now, end, value);
+    verify(result.ec == std::errc{});
+    now = result.ptr;
     return value;
 }
 
@@ -1083,14 +1082,6 @@ bool TextRecordReader::expect(const char* string) {
     }
         
     return false;
-}
-
-int TextRecordReader::expect_int() {
-    int value = 0;
-    int nread = 0;
-    verify(1 == _snscanf_s(now, end - now, "%d%n", &value, &nread));
-    now += nread;
-    return value;
 }
 
 bool TextRecordReader::try_continue_current_indent() {

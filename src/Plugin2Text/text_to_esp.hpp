@@ -79,7 +79,6 @@ struct TextRecordReader {
     RecordType read_record_type();
     RecordFieldType read_record_field_type();
     bool expect(const char* string);
-    int expect_int();
     bool try_continue_current_indent();
     int peek_indents();
     const char* peek_end_of_current_line();
