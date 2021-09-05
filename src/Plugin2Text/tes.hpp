@@ -249,3 +249,29 @@ struct NVPP_Field {
 
     void parse(const uint8_t* value, size_t size);
 };
+
+enum class CTDA_Operator : uint8_t {
+    Equal = 0,
+    NotEqual = 1,
+    Greater = 2,
+    GreaterOrEqual = 3,
+    Less = 4,
+    LessOrEqual = 5,
+};
+
+const char* ctda_operator_string(CTDA_Operator op);
+
+enum class CTDA_Flags : uint8_t {
+    Or = 0x01,
+    Parameters = 0x02,
+    UseGlobal = 0x04,
+    UsePackData = 0x08,
+    SwapSubjectAndTarget = 0x10,
+};
+ENUM_BIT_OPS(uint8_t, CTDA_Flags);
+
+struct CTDA_Function {
+    const char* name = nullptr;
+};
+
+extern const CTDA_Function CTDA_Functions[727];

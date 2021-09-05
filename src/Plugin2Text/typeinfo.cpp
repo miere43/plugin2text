@@ -191,6 +191,7 @@ Type Type_VMAD{ TypeKind::VMAD, "VMAD", 0 };
 Type Type_NVPP{ TypeKind::NVPP, "NVPP", 0 };
 Type Type_VTXT{ TypeKind::VTXT, "VTXT", 0 };
 Type Type_XCLW{ TypeKind::XCLW, "XCLW", sizeof(float) };
+Type Type_CTDA{ TypeKind::CTDA, "CTDA", 0 };
 TypeInteger Type_int8_t{ "int8", sizeof(int8_t), false };
 TypeInteger Type_int16_t{ "int16", sizeof(int16_t), false };
 TypeInteger Type_int32_t{ "int32", sizeof(int32_t), false };
@@ -939,6 +940,7 @@ static RecordDef Record_INFO{
             sf_bool("Use Emotion Animation"),
             sf_constant_array(uint8_t, 3, 0x00, 0x00, 0x00),
         ),
+        rf_field("CTDA", "Condition", &Type_CTDA),
     ),
 };
 

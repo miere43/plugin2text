@@ -26,6 +26,7 @@ enum class TypeKind {
     NVPP,
     VTXT,
     XCLW,
+    CTDA,
 };
 
 struct Type {
@@ -199,3 +200,5 @@ constexpr char ByteArrayRLE_SequenceMarker_00 = '?';
 constexpr char ByteArrayRLE_SequenceMarker_FF = '!';
 
 extern TypeEnum Type_ProgramOptions;
+
+constexpr bool CTDA_Enabled = false;

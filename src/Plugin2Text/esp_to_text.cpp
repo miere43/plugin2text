@@ -211,6 +211,7 @@ static bool has_custom_indent_rules(TypeKind kind) {
         case TypeKind::NVPP:
         case TypeKind::VTXT:
         case TypeKind::XCLW:
+        case TypeKind::CTDA:
             return true;
     }
     return false;
@@ -724,6 +725,52 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
                 write_type(&Type_float, value, size);
                 ++indent;
             }
+        } break;
+
+        case TypeKind::CTDA: {
+            if (!CTDA_Enabled) {
+                --indent;
+                write_type(&Type_ByteArray, value, size);
+                ++indent;
+                break;
+            }
+
+            BinaryReader r{ (uint8_t*)value, size };
+            struct OperatorFlagsUnion {
+                uint8_t op : 3;
+                uint8_t flags : 5;
+            };
+            static_assert(sizeof(OperatorFlagsUnion) == 1, "invalid OperatorFlagsUnion size");
+
+            const auto val = r.read<OperatorFlagsUnion>();
+            const auto op = (CTDA_Operator)val.op;
+            const auto flags = (CTDA_Flags)val.flags;
+
+            r.advance(3); // junk
+            union ComparisonValue {
+                FormID formid;
+                float value;
+            };
+            static_assert(sizeof(ComparisonValue) == 4, "invalid ComparisonValue size");
+
+            const auto cmpval = r.read<ComparisonValue>();
+            const auto function_index = r.read<uint16_t>();
+            verify(function_index >= 0 && function_index < _countof(CTDA_Functions));
+
+            const auto func = CTDA_Functions[function_index].name;
+
+            r.advance(2); // junk
+
+            //verify(function_index != 576); // GetEventData
+            const auto arg1 = r.read<FormID>();
+            const auto arg2 = r.read<FormID>();
+
+            const auto run_on_type = r.read<uint32_t>();
+            const auto formid = r.read<FormID>();
+            const auto unk = r.read<int>();
+
+            const auto next_op = (bool)(flags & CTDA_Flags::Or) ? "OR" : "AND";
+            write_format("[%08X].%s([%08X], [%08X]) %s %f %s", formid.value, func, arg1.value, arg2.value, ctda_operator_string(op), cmpval.value, next_op);
         } break;
 
         default: {

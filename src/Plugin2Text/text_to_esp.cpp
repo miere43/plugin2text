@@ -885,6 +885,17 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             }
         } break;
 
+        case TypeKind::CTDA: {
+            if (!CTDA_Enabled) {
+                --indent;
+                read_type(slice, &Type_ByteArray);
+                ++indent;
+                break;
+            }
+
+            verify(false);
+        } break;
+
         default: {
             verify(false);
         } break;
