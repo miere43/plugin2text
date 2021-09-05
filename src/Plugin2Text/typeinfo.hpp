@@ -124,6 +124,8 @@ extern Type Type_Vector3;
 
 extern TypeEnum Type_PapyrusPropertyType;
 extern TypeEnum Type_PapyrusFragmentFlags;
+extern TypeEnum Type_CTDA_Flags;
+extern TypeEnum Type_CTDA_RunOnType;
 
 template<typename T>
 inline const Type* resolve_type() {
@@ -201,4 +203,4 @@ constexpr char ByteArrayRLE_SequenceMarker_FF = '!';
 
 extern TypeEnum Type_ProgramOptions;
 
-constexpr bool CTDA_Enabled = false;
+constexpr bool CTDA_Enabled = true;

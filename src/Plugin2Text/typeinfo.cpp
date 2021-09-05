@@ -272,6 +272,26 @@ TYPE_FLAGS(PapyrusFragmentFlags, "Papyrus Fragment Flags", sizeof(PapyrusFragmen
     { (uint32_t)PapyrusFragmentFlags::HasEndScript, "Has End Script" },
 );
 
+TYPE_FLAGS(CTDA_Flags, "CTDA_Flags", sizeof(CTDA_Flags),
+    { (uint32_t)CTDA_Flags::Or, "Or" },
+    { (uint32_t)CTDA_Flags::Parameters, "Parameters" },
+    { (uint32_t)CTDA_Flags::UseGlobal, "Use Global" },
+    { (uint32_t)CTDA_Flags::UsePackData, "Use Pack Data" },
+    { (uint32_t)CTDA_Flags::SwapSubjectAndTarget, "Swap Subject And Target" },
+);
+
+
+TYPE_ENUM(CTDA_RunOnType, "CTDA_RunOnType", sizeof(CTDA_RunOnType),
+    { (uint32_t)CTDA_RunOnType::Subject, "Subject" },
+    { (uint32_t)CTDA_RunOnType::Target, "Target" },
+    { (uint32_t)CTDA_RunOnType::Reference, "Reference" },
+    { (uint32_t)CTDA_RunOnType::CombatTarget, "Combat Target" },
+    { (uint32_t)CTDA_RunOnType::LinkedReference, "Linked Reference" },
+    { (uint32_t)CTDA_RunOnType::QuestAlias, "Quest Alias" },
+    { (uint32_t)CTDA_RunOnType::PackageData, "Package Data" },
+    { (uint32_t)CTDA_RunOnType::EventData, "Event Data" },
+);
+
 TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     { (uint32_t)ProgramOptions::ExportTimestamp, "Export Timestamp" },
     { (uint32_t)ProgramOptions::PreserveRecordOrder, "Preserve Record Order" },

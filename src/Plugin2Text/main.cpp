@@ -210,6 +210,10 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
     wprintf(L"\nData Folder: %s\n", data_path.path);
     wprintf(L"Export Folder: %s\n\n", export_path.path);
 
+    if (string_equals(data_path.path, export_path.path)) {
+        exit_error(L"Data Folder and Export Folder are same.");
+    }
+
     Array<FormID> facegens{ tmpalloc };
     Array<FormID> seq_formids{ tmpalloc };
     Array<const WString*> script_paths{ tmpalloc }; // @TODO: Remove built-in scripts.

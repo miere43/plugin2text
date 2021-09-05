@@ -270,8 +270,33 @@ enum class CTDA_Flags : uint8_t {
 };
 ENUM_BIT_OPS(uint8_t, CTDA_Flags);
 
+enum class CTDA_RunOnType : uint32_t {
+    Subject = 0,
+    Target = 1,
+    Reference = 2,
+    CombatTarget = 3,
+    LinkedReference = 4,
+    QuestAlias = 5,
+    PackageData = 6,
+    EventData = 7,
+};
+
+enum class CTDA_ArgumentType {
+    FormID = 0,
+    None = 1,
+    Int = 2,
+};
+
+union CTDA_Argument {
+    FormID formid;
+    int number;
+};
+static_assert(sizeof(CTDA_Argument) == 4, "invalid CTDA_Argument size");
+
 struct CTDA_Function {
     const char* name = nullptr;
+    CTDA_ArgumentType arg1 = CTDA_ArgumentType::FormID;
+    CTDA_ArgumentType arg2 = CTDA_ArgumentType::FormID;
 };
 
 extern const CTDA_Function CTDA_Functions[727];

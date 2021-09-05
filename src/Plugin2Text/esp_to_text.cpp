@@ -355,6 +355,12 @@ void TextRecordWriter::write_string(const char* text, size_t count) {
     }
 }
 
+void TextRecordWriter::write_float(float value) {
+    const auto result = std::to_chars((char*)output_buffer.now, (char*)output_buffer.end, value);
+    verify(result.ec == std::errc{});
+    output_buffer.now = (uint8_t*)result.ptr;
+}
+
 void TextRecordWriter::write_type(const Type* type, const void* value, size_t size) {
     ++indent;
 
@@ -468,9 +474,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             verify(type->size == size);
             switch (size) {
                 case sizeof(float): {
-                    const auto result = std::to_chars((char*)output_buffer.now, (char*)output_buffer.end, *(float*)value);
-                    verify(result.ec == std::errc{});
-                    output_buffer.now = (uint8_t*)result.ptr;
+                    write_float(*(float*)value);
                 } break;
 
                 case sizeof(double): {
@@ -737,16 +741,17 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
             BinaryReader r{ (uint8_t*)value, size };
             struct OperatorFlagsUnion {
-                uint8_t op : 3;
-                uint8_t flags : 5;
+                CTDA_Flags flags : 5;
+                CTDA_Operator op : 3;
             };
             static_assert(sizeof(OperatorFlagsUnion) == 1, "invalid OperatorFlagsUnion size");
 
             const auto val = r.read<OperatorFlagsUnion>();
-            const auto op = (CTDA_Operator)val.op;
-            const auto flags = (CTDA_Flags)val.flags;
+            const auto op = val.op;
+            const auto flags = val.flags;
 
             r.advance(3); // junk
+
             union ComparisonValue {
                 FormID formid;
                 float value;
@@ -757,20 +762,78 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             const auto function_index = r.read<uint16_t>();
             verify(function_index >= 0 && function_index < _countof(CTDA_Functions));
 
-            const auto func = CTDA_Functions[function_index].name;
+            const auto& function = CTDA_Functions[function_index];
 
             r.advance(2); // junk
 
             //verify(function_index != 576); // GetEventData
-            const auto arg1 = r.read<FormID>();
-            const auto arg2 = r.read<FormID>();
+            const auto arg1 = r.read<CTDA_Argument>();
+            const auto arg2 = r.read<CTDA_Argument>();
 
-            const auto run_on_type = r.read<uint32_t>();
+            const auto run_on_type = r.read<CTDA_RunOnType>();
             const auto formid = r.read<FormID>();
             const auto unk = r.read<int>();
 
-            const auto next_op = (bool)(flags & CTDA_Flags::Or) ? "OR" : "AND";
-            write_format("[%08X].%s([%08X], [%08X]) %s %f %s", formid.value, func, arg1.value, arg2.value, ctda_operator_string(op), cmpval.value, next_op);
+            {
+                begin_custom_struct("Flags");
+
+                --indent;
+                write_type(&Type_CTDA_Flags, &flags, sizeof(flags));
+                ++indent;
+
+                end_custom_struct();
+            }
+
+            {
+                begin_custom_struct("Run On Type");
+
+                --indent;
+                write_type(&Type_CTDA_RunOnType, &run_on_type, sizeof(run_on_type));
+                ++indent;
+
+                end_custom_struct();
+            }
+
+            {
+                begin_custom_struct("Unknown");
+
+                --indent;
+                write_type(&Type_int32_t, &unk, sizeof(unk));
+                ++indent;
+
+                end_custom_struct();
+            }
+
+            {
+                begin_custom_struct("Condition");
+
+                write_indent();
+
+                if (formid.value) {
+                    write_format("[%08X].", formid.value);
+                }
+
+                write_string(function.name);
+                write_literal("(");
+
+                if (function.arg1 != CTDA_ArgumentType::None) {
+                    write_ctda_argument(arg1, function.arg1);
+                    if (function.arg2 != CTDA_ArgumentType::None) {
+                        write_literal(", ");
+                        write_ctda_argument(arg2, function.arg2);
+                    }
+                }
+                write_literal(") ");
+
+                write_string(ctda_operator_string(op));
+
+                write_literal(" ");
+                write_float(cmpval.value);
+
+                write_newline();
+
+                end_custom_struct();
+            }
         } break;
 
         default: {
@@ -834,6 +897,22 @@ void TextRecordWriter::write_custom_field(const char* field_name, const Type* ty
     write_string(field_name);
     write_newline();
     write_type(type, value, size);
+}
+
+void TextRecordWriter::write_ctda_argument(const CTDA_Argument& argument, CTDA_ArgumentType type) {
+    switch (type) {
+        case CTDA_ArgumentType::FormID: {
+            write_format("[%08X]", argument.formid.value);
+        } break;
+
+        case CTDA_ArgumentType::Int: {
+            write_format("%d", argument.number);
+        } break;
+
+        default: {
+            verify(false);
+        } break;
+    }
 }
 
 void esp_to_text(ProgramOptions options, const EspObjectModel& model, const wchar_t* text_path) {
