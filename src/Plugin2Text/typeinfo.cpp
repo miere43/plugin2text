@@ -294,7 +294,7 @@ TYPE_ENUM(CTDA_RunOnType, "CTDA_RunOnType", sizeof(CTDA_RunOnType),
 
 TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     { (uint32_t)ProgramOptions::ExportTimestamp, "Export Timestamp" },
-    { (uint32_t)ProgramOptions::PreserveRecordOrder, "Preserve Record Order" },
+    { (uint32_t)ProgramOptions::PreserveOrder, "Preserve Order" },
     { (uint32_t)ProgramOptions::PreserveJunk, "Preserve Junk" },
 );
 

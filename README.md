@@ -15,7 +15,7 @@ Options:
 Text serialization options:
 
     --export-timestamp         write timestamps for records
-    --preserve-record-order    always write records in the same order as in ESP
+    --preserve-order           always write records/fields in the same order as in ESP
     --preserve-junk            do not clear fields that may contain junk data
     --export-related-files     export files required for mod to function (scripts,
                                facegen textures, SEQ file). --data-folder and

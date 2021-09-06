@@ -24,7 +24,7 @@ static void print_usage(const char* hint) {
         "Text serialization options:\n"
         "\n"
         "    --export-timestamp         write timestamps for records\n"
-        "    --preserve-record-order    always write records in the same order as in ESP\n"
+        "    --preserve-order           always write records/fields in the same order as in ESP\n"
         "    --preserve-junk            do not clear fields that may contain junk data\n"
         "    --export-related-files     export files required for mod to function (scripts,\n"
         "                               facegen textures, SEQ file). --data-folder and \n"
@@ -143,8 +143,8 @@ struct Args {
                 options |= ProgramOptions::ExportTimestamp;
             } else if (string_equals(flag, L"time")) {
                 time = true;
-            } else if (string_equals(flag, L"preserve-record-order")) {
-                options |= ProgramOptions::PreserveRecordOrder;
+            } else if (string_equals(flag, L"preserve-order")) {
+                options |= ProgramOptions::PreserveOrder;
             } else if (string_equals(flag, L"preserve-junk")) {
                 options |= ProgramOptions::PreserveJunk;
             } else if (string_equals(flag, L"debug-zlib")) {

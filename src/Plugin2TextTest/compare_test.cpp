@@ -59,7 +59,7 @@ public:
 
     TEST_METHOD(TestVMAD) {
         test_esps(
-            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveRecordOrder,
+            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveOrder,
             L"../../../../test/vmad.esp",
             L"../../../../test/vmad_expect.txt",
             nullptr
@@ -68,7 +68,7 @@ public:
 
     TEST_METHOD(TestDLVW) {
         test_esps(
-            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveRecordOrder,
+            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveOrder,
             L"../../../../test/dlvw.esp",
             L"../../../../test/dlvw_expect.txt",
             nullptr

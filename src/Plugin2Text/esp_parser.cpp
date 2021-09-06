@@ -62,7 +62,7 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         switch (result->group_type) {
             case RecordGroupType::CellPersistentChildren:
             case RecordGroupType::CellTemporaryChildren: {
-                if (!is_bit_set(options, ProgramOptions::PreserveRecordOrder)) {
+                if (!is_bit_set(options, ProgramOptions::PreserveOrder)) {
                     qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
                         const Record* a = *(const Record**)aa;
                         const Record* b = *(const Record**)bb;

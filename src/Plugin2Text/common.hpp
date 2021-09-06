@@ -153,7 +153,7 @@ inline bool is_bit_set(const T& obj, const T& bit) {
 enum class ProgramOptions : uint32_t {
     None = 0,
     ExportTimestamp = 0x1,
-    PreserveRecordOrder = 0x2, // @TODO: Rename to PreserveOrder
+    PreserveOrder = 0x2,
     PreserveJunk = 0x4,
     DebugZLib = 0x8,
     ExportRelatedFiles = 0x10,
