@@ -891,10 +891,12 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         } break;
 
         case TypeKind::XCLW: {
-            // @TODO @Test
             if (expect_indented("No Water\n")) {
-                // @TODO: This also can be 0x4F7FFFC9, 0xCF000000.
                 slice->write_constant<uint32_t>(0x7F7FFFFF);
+            } else if (expect_indented("No Water (0x4F7FFFC9)\n")) {
+                slice->write_constant<uint32_t>(0x4F7FFFC9);
+            } else if (expect_indented("No Water (0xCF000000)\n")) {
+                slice->write_constant<uint32_t>(0xCF000000);
             } else {
                 --indent;
                 read_type(slice, &Type_float);

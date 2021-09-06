@@ -720,14 +720,30 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             };
 
             const auto no_water = *(NoWater*)value;
-            if (no_water == NoWater::A || no_water == NoWater::B || no_water == NoWater::C) {
-                write_indent();
-                write_literal("No Water"); // @TODO: Preserve NoWater type.
-                write_newline();
-            } else {
-                --indent;
-                write_type(&Type_float, value, size);
-                ++indent;
+            switch (no_water) {
+                case NoWater::A: {
+                    write_indent();
+                    write_literal("No Water");
+                    write_newline();
+                } break;
+
+                case NoWater::B: {
+                    write_indent();
+                    write_literal("No Water (0x4F7FFFC9)");
+                    write_newline();
+                } break;
+
+                case NoWater::C: {
+                    write_indent();
+                    write_literal("No Water (0xCF000000)");
+                    write_newline();
+                } break;
+
+                default: {
+                    --indent;
+                    write_type(&Type_float, value, size);
+                    ++indent;
+                } break;
             }
         } break;
 

@@ -19,3 +19,4 @@
 
 ..\src\Plugin2Text\x64\Debug\Plugin2Text.exe --export-timestamp ctda.esp ctda_expect.txt
 
+..\src\Plugin2Text\x64\Debug\Plugin2Text.exe --export-timestamp --preserve-junk xclw.esp xclw_expect.txt

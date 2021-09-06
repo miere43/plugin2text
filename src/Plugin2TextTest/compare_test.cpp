@@ -93,5 +93,14 @@ public:
             nullptr
         );
     }
+
+    TEST_METHOD(TestXCLW) {
+        test_esps(
+            ProgramOptions::ExportTimestamp | ProgramOptions::PreserveJunk,
+            L"../../../../test/xclw.esp",
+            L"../../../../test/xclw_expect.txt",
+            nullptr
+        );
+    }
     };
 }

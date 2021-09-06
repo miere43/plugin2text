@@ -1,0 +1,195 @@
+plugin2text version 1.00
+---
+TES4 [00000000] - File Header
+  HEDR - Header
+    Version
+      1.7
+    Number Of Records
+      13
+    Next Object ID
+      [00000D62]
+  CNAM - Author
+    "DEFAULT"
+  MAST - Master File
+    "Skyrim.esm"
+  INTV - Tagified Strings
+    1
+GRUP
+  6 Sep 2021
+  GRUP - Interior Block 0
+    6 Sep 2021
+    GRUP - Interior Sub-Block 0
+      6 Sep 2021
+      CELL [00027D1C] - Cell
+        Unknown = C
+        EDID - Editor ID
+          "KilkreathRuins03"
+        FULL - Name
+          "Kilkreath Catacombs"
+        DATA - Flags
+          + Interior
+        XCLL - Lighting
+          Ambient Color
+            00000000
+          Directional Color
+            00000000
+          Fog Near Color
+            b0dcf700
+          Fog Near
+            340
+          Fog Far
+            14000
+          Rotation XY
+            0
+          Rotation Z
+            0
+          Directional Fade
+            0
+          Fog Clip Distance
+            0
+          Fow Pow
+            1
+          Ambient X+ Color
+            00000000
+          Ambient X- Color
+            00000000
+          Ambient Y+ Color
+            00000000
+          Ambient Y- Color
+            00000000
+          Ambient Z+ Color
+            00000000
+          Ambient Z- Color
+            00000000
+          Specular Color
+            b0dcf700
+          Fresnel Power
+            1
+          Fog Far Color
+            b0dcf700
+          Fog Max
+            1
+          Light Fade Distance Start
+            0
+          Light Fade Distance End
+            0
+          Inheritance Flags
+            + Ambient Color
+            + Directional Color
+            + Fog Color
+            + Fog Near
+            + Fog Far
+            + Directional Rotation
+            + Directional Fade
+            + Clip Distance
+            + Fog Power
+            + Fog Max
+            + Light Fade Distance
+        LTMP - Lighting Template
+          [0001952F]
+        XCLW - Water Level
+          No Water (0xCF000000)
+        XLCN - Location
+          [00019260]
+        XCAS - Acoustic Space
+          [0001AA4D]
+        XEZN - Encounter Zone
+          [0003EC3F]
+        XCMO - Music Type
+          [0005615B]
+        XCIM - Image Space
+          [000A2687]
+      GRUP - Cell [00027D1C]
+        6 Sep 2021
+        GRUP - Temporary [00027D1C]
+          6 Sep 2021
+          REFR [0010D179] - Reference
+            Unknown = 1
+            + Deleted
+            NAME - Base Form ID
+              [00000032]
+GRUP
+  6 Sep 2021
+  WRLD [0000003C] - Worldspace
+    Unknown = C
+    EDID - Editor ID
+      "Tamriel"
+    FULL - Name
+      "Skyrim"
+    CNAM - Climate
+      [00000812]
+    NAM2 - Water
+      [00000018]
+    NAM3 - LOD Water Type
+      [00000018]
+    NAM4 - LOD Water Height
+      -14000
+    DNAM - Land Data
+      Default Land Level
+        -27000
+      Default Ocean Level
+        -14000
+    MNAM
+      0000000000000000e2ff0f002800d8ff0050434700409c4700004842
+    ONAM
+      0000803f000000000000000000000000
+    NAMA
+      0000803f
+    DATA - Flags
+      
+    NAM0 - Bottom Left Coordinates
+      X
+        -932970496
+      Y
+        -936640512
+    NAM9 - Top Right Coordinates
+      X
+        1215823872
+      Y
+        1212940288
+    ZNAM - Music
+      [0001BA72]
+    TNAM - HD LOD Diffuse
+      "Data\Textures\Landscape\Mountains\MountainSlab02.dds"
+    UNAM - HD LOD Normal
+      "Data\Textures\Landscape\Mountains\MountainSlab02_N.dds"
+  GRUP - World [0000003C]
+    6 Sep 2021
+    Unknown = 404
+    GRUP - Exterior (0; 0)
+      6 Sep 2021
+      Unknown = 404
+      GRUP - Exterior Sub-Block (0; 0)
+        6 Sep 2021
+        Unknown = 404
+        CELL [000099A2] - Cell
+          Unknown = C
+          EDID - Editor ID
+            "BleakwindBasinExterior01"
+          DATA - Flags
+            + Has Water
+          XCLC - Data
+            X
+              0
+            Y
+              0
+            Flags
+              + 54873E00
+          TVDT - Occlusion Data
+            eJxjZiAWNDBCGYwdSKIsDAwHmcwZFNb9X894w5qB84/9N24eARR5R0Zm3KbKFf/8/8+eQXrN/n+/fwHV/Xmdz8DwYf7Pt//rGRgEZBj+JR9nUPkQ+kHPgGiHjoJhCgD1Sxzc789c63662016343042198c1d48a22c0c0c0799cc1914d6fd5fcf78c39a81f38ffd376e1e011479474666dca6ca15fffcffcf9e417acdfe7fbf7f01d5fd799dcfc0f061fecfb7ffeb1918046418fe251f6750f910fa41cf8068878e82610a00f54b1cdc
+          MHDT - MHDT
+            eJyN0ksSwyAIAFAC6KTj/W/Tbe9VEaSkaFpXDg/8oADPV614oIwjDwnXarONM8vEA1fnodFjghQzYtj9Wi9eaO8jAZGYiSJAH5ZAXagUpnhC+CT0kyUHdd1LmkMUzq2VPcH8u3vuOkl90/jezW7cMw59geztPO8cGt/Xwy//+3zLASsviXX9GT0X5et/e+2OJSBF1pngfFpfB7Lj5nMJFxx/DJVi+WCh6QytxcYJ0MNcFwj7mNv3T9fEL/e4qzLPK8w+OA9nfgOadQbf789c8dd24b12c32008005002e8a4e3fd6fd36def5511a4a4685a570e0ffca000cf57ad78a08c230f09d76ab38d33cbc40357e7a1d16382143362d8fd5a2f5e68ef230191988922401f96405da814a67842f824f493250775dd4b9a4314cead953dc1fcbb7bee3a497dd3f8decd6edc330e7d81eced3cef1c1adfd7c32ffffb7ccb012b2f8975fd193d17e5eb7f7bed8e252045d699e07c5a5f07b2e3e67309171c7f0c9562f960a1e90cadc5c609d0c35c1708fb98dbf74fd7c42ff7b8ab32cf2bcc3e380f677e039a7506df
+          LTMP - Lighting Template
+            [00000000]
+          XCLW - Water Level
+            -6071
+          XCLR - Regions Containing Cell
+            [000C5859]
+            [0008EED7]
+            [00041449]
+            [000C5858]
+            [000CAD0A]
+          XLCN - Location
+            [00018EEB]
+          XCWT - Water
+            [00015427]
