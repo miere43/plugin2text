@@ -323,6 +323,16 @@ void TextRecordWriter::write_papyrus_info_record_fragment(const VMAD_Field& vmad
     end_custom_struct();
 }
 
+void TextRecordWriter::write_papyrus_scen_record_fragment(const VMAD_Field& vmad, const char* name, const VMAD_SCEN_BeginEndFragment& fragment) {
+    begin_custom_struct(name);
+
+    write_custom_field("Unknown", fragment.unk);
+    write_custom_field("Script Name", fragment.script_name);
+    write_custom_field("Fragment Name", fragment.fragment_name);
+
+    end_custom_struct();
+}
+
 void TextRecordWriter::write_string(const char* text, size_t count) {
     auto now = text;
     const auto end = now + count;
@@ -653,6 +663,60 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
                             write_papyrus_object(vmad, value, PapyrusPropertyType::Object);
                             write_papyrus_scripts(vmad, alias.scripts);
+                        }
+                    } break;
+
+                    case RecordType::PACK: {
+                        // @TODO @Test
+                        write_custom_field("File Name", vmad.pack.file_name);
+
+                        if (is_bit_set(vmad.pack.flags, VMAD_PACK_Flags::OnBegin)) {
+                            write_papyrus_info_record_fragment(vmad, "Begin Fragment", vmad.pack.begin_fragment);
+                        }
+                        if (is_bit_set(vmad.pack.flags, VMAD_PACK_Flags::OnEnd)) {
+                            write_papyrus_info_record_fragment(vmad, "End Fragment", vmad.pack.end_fragment);
+                        }
+                        if (is_bit_set(vmad.pack.flags, VMAD_PACK_Flags::OnChange)) {
+                            write_papyrus_info_record_fragment(vmad, "Change Fragment", vmad.pack.change_fragment);
+                        }
+                    } break;
+
+                    case RecordType::PERK: {
+                        // @TODO @Test
+                        write_custom_field("File Name", vmad.perk.file_name);
+
+                        for (const auto& fragment : vmad.perk.fragments) {
+                            begin_custom_struct("Fragment");
+                            defer(end_custom_struct());
+                            
+                            write_custom_field("Index", fragment.index);
+                            write_custom_field("Unknown 0", fragment.unk0);
+                            write_custom_field("Unknown 1", fragment.unk1);
+                            write_custom_field("Script Name", fragment.script_name);
+                            write_custom_field("Fragment Name", fragment.fragment_name);
+                        }
+                    } break;
+
+                    case RecordType::SCEN: {
+                        // @TODO @Test
+                        write_custom_field("File Name", vmad.scen.file_name);
+
+                        if (is_bit_set(vmad.scen.flags, PapyrusFragmentFlags::HasBeginScript)) {
+                            write_papyrus_scen_record_fragment(vmad, "Begin Fragment", vmad.scen.begin_fragment);
+                        }
+                        if (is_bit_set(vmad.scen.flags, PapyrusFragmentFlags::HasEndScript)) {
+                            write_papyrus_scen_record_fragment(vmad, "End Fragment", vmad.scen.end_fragment);
+                        }
+
+                        for (const auto& fragment : vmad.scen.phase_fragments) {
+                            begin_custom_struct("Fragment");
+                            defer(end_custom_struct());
+
+                            write_custom_field("Unknown 0", fragment.unk0);
+                            write_custom_field("Phase", fragment.phase);
+                            write_custom_field("Unknown 1", fragment.unk1);
+                            write_custom_field("Script Name", fragment.script_name);
+                            write_custom_field("Fragment Name", fragment.fragment_name);
                         }
                     } break;
                 }

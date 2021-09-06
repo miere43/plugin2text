@@ -35,6 +35,7 @@ struct TextRecordWriter {
     void write_papyrus_object(const VMAD_Field& vmad, const VMAD_ScriptPropertyValue& value, PapyrusPropertyType type);
     void write_papyrus_scripts(const VMAD_Field& vmad, const Array<VMAD_Script>& scripts);
     void write_papyrus_info_record_fragment(const VMAD_Field& vmad, const char* name, const VMAD_INFO_Fragment& fragment);
+    void write_papyrus_scen_record_fragment(const VMAD_Field& vmad, const char* name, const VMAD_SCEN_BeginEndFragment& fragment);
     void write_string(const char* text, size_t count);
     void write_float(float value);
     void write_int32(int value);

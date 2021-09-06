@@ -275,6 +275,8 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                             }
                         }
                     } break;
+
+                    // @TODO: Handle rest of RecordTypes's.
                 }
             }
         }

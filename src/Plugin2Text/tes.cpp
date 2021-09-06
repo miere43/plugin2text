@@ -135,10 +135,10 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                     pack.begin_fragment.parse(r);
                 }
                 if (is_bit_set(pack.flags, VMAD_PACK_Flags::OnEnd)) {
-                    pack.begin_fragment.parse(r);
+                    pack.end_fragment.parse(r);
                 }
                 if (is_bit_set(pack.flags, VMAD_PACK_Flags::OnChange)) {
-                    pack.begin_fragment.parse(r);
+                    pack.change_fragment.parse(r);
                 }
             } break;
 
