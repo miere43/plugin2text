@@ -40,6 +40,12 @@ struct Slice {
         now += size;
     }
 
+    void write_zeros(size_t count) {
+        verify(now + count <= end);
+        memset(now, 0, count);
+        now += count;
+    }
+
     void write_bytes_at(uint8_t* pos, const void* data, size_t size) {
         verify(pos >= start);
         verify(pos + size <= end);

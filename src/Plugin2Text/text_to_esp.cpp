@@ -849,7 +849,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                         *fragment_count += 1;
 
                         passthrough_custom_field<uint16_t>(slice, "Index");
-                        slice->write_value<uint16_t>(0);
+                        slice->write_zeros(2);
                         passthrough_custom_field<uint32_t>(slice, "Log Entry");
                         slice->write_value<uint8_t>(1);
                         passthrough_custom_field<WString>(slice, "Script Name");
@@ -960,13 +960,12 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             };
 
             slice->write_value(opflags);
-            slice->write_value<uint16_t>(0); // Junk. @TODO: "write_zeros" method on Slice.
-            slice->write_value<uint8_t>(0); // Junk.
+            slice->write_zeros(3); // Junk.
 
             slice->write_value(comparison_value);
             slice->write_value(function->index);
 
-            slice->write_value<uint16_t>(0); // Junk.
+            slice->write_zeros(2); // Junk.
 
             // @TODO: Handle GetEventData
                 
