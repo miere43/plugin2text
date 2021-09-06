@@ -1386,6 +1386,28 @@ static RecordDef Record_KEYM{
     ),
 };
 
+static RecordDef Record_BOOK{
+    .type = record_type("BOOK"),
+    .comment = "Book",
+    .fields = record_fields(
+        Field_MODL,
+        rf_lstring("DESC", "Text"),
+        rf_struct("DATA", "Data", 16, 
+            sf_flags_uint8("Flags", 
+                { 0x1, "Teaches Skill" },
+                { 0x2, "Can't Be Taken" },
+                { 0x4, "Teaches Spell" },
+            ),
+            sf_fixed_bytes<3>("Unknown"),
+            sf_formid("Teaches"), // @TODO: uint32_t or FormID
+            sf_uint32("Gold"),
+            sf_float("Weight"),
+        ),
+        rf_formid("INAM", "Inventory Art"),
+        rf_lstring("CNAM", "Description"),
+    ),
+};
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -1421,6 +1443,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(LCRT);
         CASE(ACTI);
         CASE(KEYM);
+        CASE(BOOK);
     }
     #undef CASE
     return nullptr;
