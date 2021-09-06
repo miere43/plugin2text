@@ -656,8 +656,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
         case TypeKind::ZString:
         case TypeKind::LString: {
-            // @TODO: localized LString
-            const auto sss = slice->now;
+            // @TODO @Test: localized LString
             read_string(slice);
             slice->write_literal("\0");
         } break;

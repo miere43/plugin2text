@@ -37,6 +37,7 @@ struct TextRecordWriter {
     void write_papyrus_info_record_fragment(const VMAD_Field& vmad, const char* name, const VMAD_INFO_Fragment& fragment);
     void write_string(const char* text, size_t count);
     void write_float(float value);
+    void write_int32(int value);
     void write_type(const Type* type, const void* value, size_t size);
     void write_field(const RecordField* field, const RecordFieldDef* field_def);
     void write_subrecord_fields(const RecordFieldDefSubrecord* field_def, StaticArray<RecordField*> fields);

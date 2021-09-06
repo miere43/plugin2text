@@ -59,6 +59,14 @@ void TextRecordWriter::write_records(const Array<RecordBase*> records) {
 
     write_literal("plugin2text version 1.00\n---\n");
 
+    {
+        verify(records.count >= 1);
+        const auto tes4 = static_cast<Record*>(records[0]);
+        verify(tes4->type == RecordType::TES4);
+
+        localized_strings = (bool)(tes4->flags & RecordFlags::TES4_Localized);
+    }
+
     for (const auto record : records) {
         write_record(record);
     }
@@ -361,6 +369,12 @@ void TextRecordWriter::write_float(float value) {
     output_buffer.now = (uint8_t*)result.ptr;
 }
 
+void TextRecordWriter::write_int32(int value) {
+    const auto result = std::to_chars((char*)output_buffer.now, (char*)output_buffer.end, value);
+    verify(result.ec == std::errc{});
+    output_buffer.now = (uint8_t*)result.ptr;
+}
+
 void TextRecordWriter::write_type(const Type* type, const void* value, size_t size) {
     ++indent;
 
@@ -370,6 +384,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
     switch (type->kind) {
         case TypeKind::ZString: {
+            zstring:
             if (size == 0) {
                 write_literal("\"\"");
             } else {
@@ -378,12 +393,13 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::LString: {
-            verify(!localized_strings);
-            if (size == 0) {
-                write_literal("\"\"");
-            } else {
-                write_string((const char*)value, size - 1);
+            if (!localized_strings) {
+                goto zstring;
             }
+
+            // @TODO @Test
+            verify(size == sizeof(int));
+            write_int32(*(int*)value);
         } break;
 
         case TypeKind::WString: {

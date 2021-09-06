@@ -1075,7 +1075,7 @@ static RecordDef Record_MGEF{
     .type = record_type("MGEF"),
     .comment = "Magic Effect",
     .fields = record_fields(
-        rf_zstring("DNAM", "Description"),
+        rf_lstring("DNAM", "Description"),
     ),
 };
 
@@ -1084,7 +1084,7 @@ static RecordDef Record_SPEL{
     .comment = "Spell",
     .fields = record_fields(
         rf_formid("ETYP", "Equipment Type"),
-        rf_zstring("DESC", "Description"),
+        rf_lstring("DESC", "Description"),
         rf_formid("EFID", "Magic Effect Form ID"),
         rf_struct("EFIT", "Magic Effect", 12,
             sf_float("Magnitude"),
