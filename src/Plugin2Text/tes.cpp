@@ -123,6 +123,8 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                     alias.scripts = parse_scripts(r, script_count, preserve_property_order);
                 }
             } break;
+
+            // @TODO @Dragonborn.esm: "RecordType::PACK"
         }
     }
 

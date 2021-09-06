@@ -55,7 +55,7 @@ LinearAllocator tmpalloc{ tmpalloc_exec };
 Allocator stdalloc{ stdalloc_exec };
 
 void memory_init() {
-    auto data = allocate_virtual_memory(1024 * 1024 * 128);
+    auto data = allocate_virtual_memory(1024 * 1024 * 512);
     tmpalloc.start = data.start;
     tmpalloc.now = data.now;
     tmpalloc.end = data.end;

@@ -6,7 +6,7 @@
 #include <charconv>
 
 void TextRecordWriter::init(ProgramOptions options) {
-    output_buffer = allocate_virtual_memory(1024 * 1024 * 64);
+    output_buffer = allocate_virtual_memory(1024 * 1024 * 512);
     this->options = options;
 }
 
@@ -502,7 +502,8 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::Struct: {
-            verify(type->size == size);
+            // @TODO @Dragonborn.esm: structs have different sizes 
+            verify(type->size == size); 
             auto struct_type = (const TypeStruct*)type;
             size_t offset = 0;
             for (int i = 0; i < struct_type->field_count; ++i) {

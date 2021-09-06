@@ -3,6 +3,9 @@
   <Type Name="Record">
     <DisplayString>{(char*)&amp;type,4na}"</DisplayString>
   </Type>
+  <Type Name="RecordBase">
+    <DisplayString>{(char*)&amp;type,4na}"</DisplayString>
+  </Type>
   <Type Name="RecordField">
     <DisplayString>{(char*)&amp;type,4na}"</DisplayString>
   </Type>
