@@ -77,8 +77,17 @@ struct TypeEnum : Type {
 
 struct TypeConstant : Type {
     const uint8_t* bytes = nullptr;
+    const Type* fallback = nullptr;
 
-    constexpr TypeConstant(const char* name, size_t size, const uint8_t* bytes) : Type(TypeKind::Constant, name, size), bytes(bytes) { }
+    constexpr TypeConstant(
+            const char* name,
+            size_t size,
+            const uint8_t* bytes,
+            const Type* fallback = nullptr)
+        : Type(TypeKind::Constant, name, size)
+        , bytes(bytes)
+        , fallback(fallback)
+    { }
 };
 
 struct TypeFilter : Type {

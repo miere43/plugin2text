@@ -502,24 +502,32 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         } break;
 
         case TypeKind::Struct: {
-            // @TODO @Dragonborn.esm: structs have different sizes 
             verify(type->size == size); 
             auto struct_type = (const TypeStruct*)type;
             size_t offset = 0;
             for (int i = 0; i < struct_type->field_count; ++i) {
+                const auto value_in_struct = (uint8_t*)value + offset;
+                
                 const auto& field = struct_type->fields[i];
-                if (field.type->kind == TypeKind::Constant) {
-                    write_type(field.type, (uint8_t*)value + offset, field.type->size);
-                    offset += field.type->size;
-                    continue;
+                auto field_type = field.type;
+
+                if (field_type->kind == TypeKind::Constant) {
+                    const auto constant_type = static_cast<const TypeConstant*>(field_type);
+                    if (memory_equals(constant_type->bytes, value_in_struct, field_type->size)) {
+                        offset += field_type->size;
+                        continue;
+                    }
+
+                    field_type = constant_type->fallback;
+                    verify(field_type); // No fallback!
                 }
 
                 write_indent();
                 write_string(field.name);
                 write_newline();
 
-                write_type(field.type, (uint8_t*)value + offset, field.type->size);
-                offset += field.type->size;
+                write_type(field_type, value_in_struct, field_type->size);
+                offset += field_type->size;
             }
             verify(offset == size);
         } break;
@@ -655,6 +663,7 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
             verify(type->size == size);
             const auto constant_type = (const TypeConstant*)type;
             verify(memory_equals(value, constant_type->bytes, size));
+            verify(!constant_type->fallback); // Not supported for RecordField's
         } break;
 
         case TypeKind::Filter: {
@@ -869,6 +878,7 @@ void TextRecordWriter::write_subrecord_fields(const RecordFieldDefSubrecord* fie
         verify(inner_field_def->def_type == RecordFieldDefType::Field);
 
         if (inner_field_def->data_type->kind == TypeKind::Constant) {
+            verify(!static_cast<const TypeConstant*>(inner_field_def->data_type)->fallback); // Not supported yet.
             continue;
         }
 

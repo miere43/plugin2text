@@ -130,11 +130,26 @@ constexpr TypeStructField sf_vector3(const char* name) {
         return { &constant, "Constant" };                                                          \
     })()
 
+#define sf_constant_with_fallback(m_name, m_fallback, m_decltype, ...)                                     \
+    ([]() -> TypeStructField {                                                                             \
+        static m_decltype the_value = { __VA_ARGS__ };                                                     \
+        static TypeConstant constant{ m_name, sizeof(the_value), (const uint8_t*)&the_value, m_fallback }; \
+        return { &constant, m_name };                                                                      \
+    })()
+
 #define sf_constant_array(m_decltype, m_count, ...)                                               \
     ([]() -> TypeStructField {                                                                    \
         static m_decltype the_value[m_count] = { __VA_ARGS__ };                                   \
         static TypeConstant constant{ "Constant", sizeof(the_value), (const uint8_t*)the_value }; \
         return { &constant, "Constant" };                                                         \
+    })()
+
+#define sf_constant_array_with_fallback(m_name, m_decltype, m_count, ...)                                \
+    ([]() -> TypeStructField {                                                                           \
+        static m_decltype the_value[m_count] = { __VA_ARGS__ };                                          \
+        static Type fallback{ TypeKind::ByteArrayFixed, m_name, m_count };                               \
+        static TypeConstant constant{ m_name, sizeof(the_value), (const uint8_t*)the_value, &fallback }; \
+        return { &constant, m_name };                                                                    \
     })()
 
 template<size_t N>
@@ -627,7 +642,7 @@ static RecordDef Record_REFR{
         rf_struct("XNDP", "Door Pivot", 8,
             sf_formid("NavMesh"),
             sf_uint16("NavMesh Triangle Index"),
-            sf_constant(uint16_t, 0), // @TODO @Dragonborn.esm: sf_uint16("Unknown"),
+            sf_constant_with_fallback("Unknown", &Type_uint16_t, uint16_t, 0),
         ),
         rf_struct("XLKR", "Linked Reference", 8,
             sf_formid("Keyword"),
@@ -1106,10 +1121,9 @@ static RecordDef Record_STAT{
     .type = record_type("STAT"),
     .comment = "Static",
     .fields = record_fields(
-        rf_struct("DNAM", "Data", 12,
+        rf_struct("DNAM", "Data", 8,
             sf_float("Max Angle"),
             sf_formid("Directional Material"),
-            sf_uint32("Unknown"),
         ),
         Field_MODL,
     ),
@@ -1209,7 +1223,7 @@ static RecordDef Record_LAND{
                 { 2, "Upper Left" },
                 { 3, "Upper Right" },
             ),
-            sf_constant_array(uint8_t, 3, 0x00, 0xff, 0xff), // @TODO @Dragonborn.esm: sf_fixed_bytes<3>("Unknown"), 
+            sf_constant_array_with_fallback("Unknown", uint8_t, 3, 0x00, 0xff, 0xff),
         ),
         rf_struct("ATXT", "Alpha Layer Header", 8,
             sf_formid("Land Texture"),
@@ -1219,7 +1233,7 @@ static RecordDef Record_LAND{
                 { 2, "Upper Left" },
                 { 3, "Upper Right" },
             ),
-            sf_constant(uint8_t, 0), // sf_uint8("Unknown"), // @TODO @Dragonborn.esm: sf_uint8("Unknown"),
+            sf_constant_with_fallback("Unknown", &Type_uint8_t, uint8_t, 0),
             sf_uint16("Texture Layer"),
         ),
         rf_filter("VTXT", "Alpha Layer Data",
