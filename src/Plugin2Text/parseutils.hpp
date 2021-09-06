@@ -31,20 +31,8 @@ struct Slice {
     }
 
     template<typename T>
-    void write_constant(const T& value) {
-        // @TODO: This method probably should be renamed to "write_struct",
-        // current "write_struct" is probably should be deleted.
-        write_bytes(&value, sizeof(T));
-    }
-
-    template<typename T>
-    void write_struct(const T* data) {
-        write_bytes(data, sizeof(T));
-    }
-
-    template<typename T>
-    void write_struct_at(uint8_t* pos, const T* data) {
-        write_bytes_at(pos, data, sizeof(T));
+    void write_value(const T& data) {
+        write_bytes(&data, sizeof(T));
     }
 
     void write_bytes(const void* data, size_t size) {
@@ -61,22 +49,19 @@ struct Slice {
     void write_integer_of_size(uint64_t value, size_t size) {
         switch (size) {
             case sizeof(uint8_t): {
-                const auto value8 = (uint8_t)value;
-                write_struct(&value8);
+                write_value((uint8_t)value);
             } break;
 
             case sizeof(uint16_t): {
-                const auto value16 = (uint16_t)value;
-                write_struct(&value16);
+                write_value((uint16_t)value);
             } break;
 
             case sizeof(uint32_t): {
-                const auto value32 = (uint32_t)value;
-                write_struct(&value32);
+                write_value((uint32_t)value);
             } break;
 
             case sizeof(uint64_t): {
-                write_struct(&value);
+                write_value(value);
             } break;
 
             default: {

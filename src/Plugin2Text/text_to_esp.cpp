@@ -368,8 +368,7 @@ float TextRecordReader::read_float() {
 
 void TextRecordReader::read_formid_line(Slice* slice) {
     auto line_end = peek_end_of_current_line();
-    auto formid = read_formid();
-    slice->write_struct(&formid);
+    slice->write_value(read_formid());
     verify(now == line_end);
     now = line_end + 1; // +1 for '\n'.
 }
@@ -510,7 +509,7 @@ PapyrusFragmentFlags TextRecordReader::read_papyrus_info_record_fragment(Slice* 
         return PapyrusFragmentFlags::None;
     }
 
-    slice->write_constant<uint8_t>(1);
+    slice->write_value<uint8_t>(1);
     passthrough_custom_field<WString>(slice, "Script Name");
     passthrough_custom_field<WString>(slice, "Fragment Name");
         
@@ -680,7 +679,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                 case sizeof(float): {
                     const auto value = read_float();
                     verify(now == line_end);
-                    slice->write_struct(&value);
+                    slice->write_value(value);
                 } break;
 
                 case sizeof(double): {
@@ -688,7 +687,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                     const auto result = std::from_chars(now, line_end, value);
                     verify(result.ec == std::errc{});
                     verify(result.ptr == line_end);
-                    slice->write_struct(&value);
+                    slice->write_value(value);
                 } break;
             }
                 
@@ -807,11 +806,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
         case TypeKind::Boolean: {
             const auto line_end = peek_end_of_current_line();
             if (expect("True\n")) {
-                const auto value = true;
-                slice->write_struct(&value);
+                slice->write_value(true);
             } else if (expect("False\n")) {
-                const auto value = false;
-                slice->write_struct(&value);
+                slice->write_value(false);
             } else {
                 verify(false);
             }
@@ -832,7 +829,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
             switch (current_record_type) {
                 case RecordType::INFO: {
-                    slice->write_constant<uint8_t>(2); // version?
+                    slice->write_value<uint8_t>(2); // version?
 
                     const auto flags = slice->advance<PapyrusFragmentFlags>();
                     passthrough_custom_field<WString>(slice, "Fragment Script File Name");
@@ -842,7 +839,7 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                 } break;
 
                 case RecordType::QUST: {
-                    slice->write_constant<uint8_t>(2); // version?
+                    slice->write_value<uint8_t>(2); // version?
 
                     const auto fragment_count = slice->advance<uint16_t>();
                     passthrough_custom_field<WString>(slice, "File Name");
@@ -852,9 +849,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                         *fragment_count += 1;
 
                         passthrough_custom_field<uint16_t>(slice, "Index");
-                        slice->write_constant<uint16_t>(0);
+                        slice->write_value<uint16_t>(0);
                         passthrough_custom_field<uint32_t>(slice, "Log Entry");
-                        slice->write_constant<uint8_t>(1);
+                        slice->write_value<uint8_t>(1);
                         passthrough_custom_field<WString>(slice, "Script Name");
                         passthrough_custom_field<WString>(slice, "Function Name");
                     }
@@ -865,8 +862,8 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                         *alias_count += 1;
 
                         read_papyrus_object(slice, header, PapyrusPropertyType::Object);
-                        slice->write_constant<uint16_t>(header->version);
-                        slice->write_constant<uint16_t>(header->object_format);
+                        slice->write_value<uint16_t>(header->version);
+                        slice->write_value<uint16_t>(header->object_format);
 
                         const auto script_count = slice->advance<uint16_t>();
                         *script_count = read_papyrus_scripts(slice, header);
@@ -892,11 +889,11 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
 
         case TypeKind::XCLW: {
             if (expect_indented("No Water\n")) {
-                slice->write_constant<uint32_t>(0x7F7FFFFF);
+                slice->write_value<uint32_t>(0x7F7FFFFF);
             } else if (expect_indented("No Water (0x4F7FFFC9)\n")) {
-                slice->write_constant<uint32_t>(0x4F7FFFC9);
+                slice->write_value<uint32_t>(0x4F7FFFC9);
             } else if (expect_indented("No Water (0xCF000000)\n")) {
-                slice->write_constant<uint32_t>(0xCF000000);
+                slice->write_value<uint32_t>(0xCF000000);
             } else {
                 --indent;
                 read_type(slice, &Type_float);
@@ -962,23 +959,23 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
                 .op = op,
             };
 
-            slice->write_struct(&opflags);
-            slice->write_constant<uint16_t>(0); // Junk. @TODO: "write_zeros" method on Slice.
-            slice->write_constant<uint8_t>(0); // Junk.
+            slice->write_value(opflags);
+            slice->write_value<uint16_t>(0); // Junk. @TODO: "write_zeros" method on Slice.
+            slice->write_value<uint8_t>(0); // Junk.
 
-            slice->write_constant(comparison_value);
-            slice->write_constant(function->index);
+            slice->write_value(comparison_value);
+            slice->write_value(function->index);
 
-            slice->write_constant<uint16_t>(0); // Junk.
+            slice->write_value<uint16_t>(0); // Junk.
 
             // @TODO: Handle GetEventData
                 
-            slice->write_struct(&arg1);
-            slice->write_struct(&arg2);
+            slice->write_value(arg1);
+            slice->write_value(arg2);
 
-            slice->write_constant(run_on_type);
-            slice->write_constant(reference);
-            slice->write_constant(unknown);
+            slice->write_value(run_on_type);
+            slice->write_value(reference);
+            slice->write_value(unknown);
 
             end_custom_struct();
 
@@ -1047,7 +1044,7 @@ void TextRecordReader::read_subrecord_fields(const RecordFieldDefSubrecord* fiel
         if (inner_field_def->data_type->kind == TypeKind::Constant) {
             const auto constant_type = (const TypeConstant*)inner_field_def->data_type;
 
-            buffer->write_constant<RawRecordField>({ inner_field_def->type, static_cast<uint16_t>(constant_type->size) });
+            buffer->write_value<RawRecordField>({ inner_field_def->type, static_cast<uint16_t>(constant_type->size) });
             buffer->write_bytes(constant_type->bytes, constant_type->size);
 
             continue;
