@@ -135,6 +135,7 @@ extern TypeEnum Type_PapyrusPropertyType;
 extern TypeEnum Type_PapyrusFragmentFlags;
 extern TypeEnum Type_CTDA_Flags;
 extern TypeEnum Type_CTDA_RunOnType;
+extern TypeEnum Type_VMAD_PACK_Flags;
 
 template<typename T>
 inline const Type* resolve_type() {

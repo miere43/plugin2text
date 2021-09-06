@@ -108,7 +108,7 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                 };
 
                 auto alias_count = (int)r.read<uint16_t>();
-                qust.aliases = Array<VMAD_QUST_Alias>{ tmpalloc };
+                qust.aliases = Array<VMAD_QUST_Alias>{ tmpalloc }; // @TODO: Use StaticArray
                 for (int alias_index = 0; alias_index < alias_count; ++alias_index) {
                     VMAD_QUST_Alias alias;
                     
@@ -124,7 +124,61 @@ void VMAD_Field::parse(const uint8_t* value, size_t size, RecordType record_type
                 }
             } break;
 
-            // @TODO @Dragonborn.esm: "RecordType::PACK"
+            case RecordType::PACK: {
+                // @TODO @Test
+                verify(r.read<uint8_t>() == 2); // version?
+
+                pack.flags = r.read<VMAD_PACK_Flags>();
+                pack.file_name = r.advance_wstring();
+
+                if (is_bit_set(pack.flags, VMAD_PACK_Flags::OnBegin)) {
+                    pack.begin_fragment.parse(r);
+                }
+                if (is_bit_set(pack.flags, VMAD_PACK_Flags::OnEnd)) {
+                    pack.begin_fragment.parse(r);
+                }
+                if (is_bit_set(pack.flags, VMAD_PACK_Flags::OnChange)) {
+                    pack.begin_fragment.parse(r);
+                }
+            } break;
+
+            case RecordType::PERK: {
+                // @TODO @Test
+                verify(r.read<uint8_t>() == 2); // version?
+
+                perk.file_name = r.advance_wstring();
+                const auto fragment_count = r.read<uint16_t>();
+
+                perk.fragments = Array<VMAD_PERK_Fragment>{ tmpalloc }; // @TODO: Use StaticArray
+                for (int i = 0; i < fragment_count; ++i) {
+                    VMAD_PERK_Fragment fragment;
+                    fragment.parse(r);
+                    perk.fragments.push(fragment);
+                }
+            } break;
+
+            case RecordType::SCEN: {
+                // @TODO @Test
+                verify(r.read<uint8_t>() == 2); // version?
+
+                scen.flags = r.read<PapyrusFragmentFlags>();
+                scen.file_name = r.advance_wstring();
+
+                if (is_bit_set(info.flags, PapyrusFragmentFlags::HasBeginScript)) {
+                    scen.begin_fragment.parse(r);
+                }
+                if (is_bit_set(info.flags, PapyrusFragmentFlags::HasEndScript)) {
+                    scen.end_fragment.parse(r);
+                }
+
+                const auto phase_count = r.read<uint16_t>();
+                scen.phase_fragments = Array<VMAD_SCEN_PhaseFragment>{ tmpalloc };
+                for (int i = 0; i < phase_count; ++i) {
+                    VMAD_SCEN_PhaseFragment fragment;
+                    fragment.parse(r);
+                    scen.phase_fragments.push(fragment);
+                }
+            } break;
         }
     }
 
@@ -228,6 +282,28 @@ void VMAD_QUST_Fragment::parse(BinaryReader& r) {
     function_name = r.advance_wstring();
 }
 
+void VMAD_PERK_Fragment::parse(BinaryReader& r) {
+    index = r.read<uint16_t>();
+    unk0 = r.read<int16_t>();
+    unk1 = r.read<int8_t>();
+    script_name = r.advance_wstring();
+    fragment_name = r.advance_wstring();
+}
+
+void VMAD_SCEN_BeginEndFragment::parse(BinaryReader& r) {
+    unk = r.read<int8_t>();
+    script_name = r.advance_wstring();
+    fragment_name = r.advance_wstring();
+}
+
+void VMAD_SCEN_PhaseFragment::parse(BinaryReader& r) {
+    unk0 = r.read<int8_t>();
+    phase = r.read<uint32_t>();
+    unk1 = r.read<int8_t>();
+    script_name = r.advance_wstring();
+    fragment_name = r.advance_wstring();
+}
+
 void NVPP_Field::parse(const uint8_t* value, size_t size) {
     BinaryReader r{ value, size };
 
@@ -280,6 +356,7 @@ const char* ctda_operator_string(CTDA_Operator op) {
 }
 
 const CTDA_Function* find_ctda_function(const char* name, size_t count) {
+    // @TODO: Use hash table.
     for (const auto& function : CTDA_Functions) {
         auto function_count = strlen(function.name);
         if (count == function_count && memory_equals(name, function.name, count)) {

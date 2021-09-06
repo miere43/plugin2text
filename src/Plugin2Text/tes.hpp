@@ -13,6 +13,9 @@ enum class RecordType : uint32_t {
     QUST = fourcc("QUST"),
     NPC_ = fourcc("NPC_"),
     DLVW = fourcc("DLVW"),
+    PACK = fourcc("PACK"),
+    PERK = fourcc("PERK"),
+    SCEN = fourcc("SCEN"),
 };
 
 enum class RecordFlags : uint32_t {
@@ -191,6 +194,10 @@ struct VMAD_INFO_Fragment {
     void parse(BinaryReader& r);
 };
 
+struct VMAD_PACK_Fragment : VMAD_INFO_Fragment {
+    // It's the same as INFO fragment.
+};
+
 struct VMAD_QUST_Fragment {
     uint16_t index = 0;
     uint32_t log_entry = 0;
@@ -205,6 +212,42 @@ struct VMAD_QUST_Alias {
     Array<VMAD_Script> scripts;
 };
 
+enum class VMAD_PACK_Flags : uint8_t {
+    None = 0,
+    OnBegin = 0x1,
+    OnEnd = 0x2,
+    OnChange = 0x4,
+};
+ENUM_BIT_OPS(uint8_t, VMAD_PACK_Flags);
+
+struct VMAD_PERK_Fragment {
+    uint16_t index = 0;
+    int16_t unk0 = 0;
+    int8_t unk1 = 0;
+    const WString* script_name = nullptr;
+    const WString* fragment_name = nullptr;
+
+    void parse(BinaryReader& r);
+};
+
+struct VMAD_SCEN_BeginEndFragment {
+    int8_t unk = 0;
+    const WString* script_name = nullptr;
+    const WString* fragment_name = nullptr;
+
+    void parse(BinaryReader& r);
+};
+
+struct VMAD_SCEN_PhaseFragment {
+    int8_t unk0 = 0;
+    uint32_t phase = 0;
+    int8_t unk1 = 0;
+    const WString* script_name = nullptr;
+    const WString* fragment_name = nullptr;
+
+    void parse(BinaryReader& r);
+};
+
 struct VMAD_Field {
     int16_t version;
     int16_t object_format;
@@ -216,7 +259,7 @@ struct VMAD_Field {
         struct {
             PapyrusFragmentFlags flags;
             const WString* script_name;
-            VMAD_INFO_Fragment start_fragment;
+            VMAD_INFO_Fragment start_fragment; // @TODO: Rename to "begin_fragment".
             VMAD_INFO_Fragment end_fragment;
         } info;
 
@@ -225,6 +268,27 @@ struct VMAD_Field {
             Array<VMAD_QUST_Fragment> fragments;
             Array<VMAD_QUST_Alias> aliases;
         } qust;
+
+        struct {
+            VMAD_PACK_Flags flags;
+            const WString* file_name;
+            VMAD_PACK_Fragment begin_fragment;
+            VMAD_PACK_Fragment end_fragment;
+            VMAD_PACK_Fragment change_fragment;
+        } pack;
+
+        struct {
+            const WString* file_name;
+            Array<VMAD_PERK_Fragment> fragments;
+        } perk;
+
+        struct {
+            PapyrusFragmentFlags flags;
+            const WString* file_name;
+            VMAD_SCEN_BeginEndFragment begin_fragment;
+            VMAD_SCEN_BeginEndFragment end_fragment;
+            Array<VMAD_SCEN_PhaseFragment> phase_fragments;
+        } scen;
     };
 
     VMAD_Field();

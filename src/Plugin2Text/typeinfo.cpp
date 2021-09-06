@@ -307,6 +307,12 @@ TYPE_ENUM(CTDA_RunOnType, "CTDA_RunOnType", sizeof(CTDA_RunOnType),
     { (uint32_t)CTDA_RunOnType::EventData, "Event Data" },
 );
 
+TYPE_FLAGS(VMAD_PACK_Flags, "VMAD_PACK_Flags", sizeof(VMAD_PACK_Flags),
+    { (uint32_t)VMAD_PACK_Flags::OnBegin, "On Begin" },
+    { (uint32_t)VMAD_PACK_Flags::OnEnd, "On End" },
+    { (uint32_t)VMAD_PACK_Flags::OnChange, "On Change" },
+);
+
 TYPE_FLAGS(ProgramOptions, "Program Options", sizeof(ProgramOptions),
     { (uint32_t)ProgramOptions::ExportTimestamp, "Export Timestamp" },
     { (uint32_t)ProgramOptions::PreserveOrder, "Preserve Order" },
