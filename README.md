@@ -89,5 +89,9 @@ Look at `.github/workflows/msbuild.yml` for reference.
 1. Build and install `src/zlib-1.2.11` CMake project with Visual Studio
 2. Build `src/Plugin2Text/Plugin2Text.sln` with Visual Studio
 
+### Credits
+* zlib-ng - https://github.com/zlib-ng/zlib-ng
+* base64 by René Nyffenegger - https://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp
+
 ### License
 MIT

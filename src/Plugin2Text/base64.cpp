@@ -21,6 +21,8 @@
    René Nyffenegger rene.nyffenegger@adp-gmbh.ch
 */
 
+// Source code is modified for plugin2text.
+
 #include "base64.hpp"
 #include "common.hpp"
 
