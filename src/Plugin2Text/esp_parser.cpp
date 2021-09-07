@@ -2,7 +2,7 @@
 #include "os.hpp"
 #include "array.hpp"
 #include <stdlib.h>
-#include <zlib.h>
+#include <zlib-ng.h>
 #include <stdio.h>
 
 void EspParser::init(Allocator& allocator, ProgramOptions options) {
@@ -122,11 +122,11 @@ RecordField* EspParser::process_field(Record* record, const RawRecordField* fiel
 }
 
 uint8_t* EspParser::uncompress_record(const RawRecordCompressed* record, uint32_t* out_uncompressed_data_size) {
-    uLongf uncompressed_data_size = record->uncompressed_data_size;
+    size_t uncompressed_data_size = record->uncompressed_data_size;
     uint8_t* compressed_data = (uint8_t*)(record + 1);
 
-    auto uncompressed_data = (Bytef*)memalloc(*allocator, uncompressed_data_size);
-    auto result = ::uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, record->data_size - sizeof(record->uncompressed_data_size));
+    auto uncompressed_data = (uint8_t*)memalloc(*allocator, uncompressed_data_size);
+    auto result = ::zng_uncompress(uncompressed_data, &uncompressed_data_size, compressed_data, record->data_size - sizeof(record->uncompressed_data_size));
     verify(result == Z_OK);
 
     *out_uncompressed_data_size = uncompressed_data_size;

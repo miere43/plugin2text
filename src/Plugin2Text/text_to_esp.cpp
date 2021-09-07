@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "base64.hpp"
-#include <zlib.h>
+#include <zlib-ng.h>
 #include <charconv>
 
 void TextRecordReader::init() {
@@ -309,12 +309,12 @@ RawRecord* TextRecordReader::read_record() {
 
         const auto record_compressed = (RawRecordCompressed*)record;
 
-        auto compressed_size = static_cast<uLongf>(esp_buffer.end - esp_buffer.now); // remaining ESP size
-        const auto result = ::compress2((uint8_t*)(record_compressed + 1), &compressed_size, buffer->start, uncompressed_data_size, SkyrimZLibCompressionLevel);
+        size_t compressed_size = esp_buffer.end - esp_buffer.now; // remaining ESP size
+        const auto result = ::zng_compress2((uint8_t*)(record_compressed + 1), &compressed_size, buffer->start, uncompressed_data_size, SkyrimZLibCompressionLevel);
         verify(result == Z_OK);
 
         record_compressed->uncompressed_data_size = uncompressed_data_size;
-        record_compressed->data_size = compressed_size + sizeof(uint32_t);
+        record_compressed->data_size = static_cast<uint32_t>(compressed_size + sizeof(uint32_t));
         
         buffer = &esp_buffer;
         buffer->now += record_compressed->data_size;
@@ -601,9 +601,9 @@ size_t TextRecordReader::read_type(Slice* slice, const Type* type) {
             tmpalloc.now += base64_size;
                
             const auto uncompressed_buffer = tmpalloc.now;
-            auto result_size = (uLongf)tmpalloc.remaining_size();
+            auto result_size = tmpalloc.remaining_size();
 
-            const auto result = ::uncompress(uncompressed_buffer, &result_size, base64_buffer, base64_size);
+            const auto result = ::zng_uncompress(uncompressed_buffer, &result_size, base64_buffer, base64_size);
             verify(result == Z_OK);
 
             slice->write_bytes(uncompressed_buffer, result_size);

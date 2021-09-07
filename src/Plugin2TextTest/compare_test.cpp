@@ -44,7 +44,7 @@ public:
             ProgramOptions::ExportTimestamp,
             L"../../../../test/npc.esp",
             L"../../../../test/npc_expect.txt",
-            nullptr
+            L"../../../../test/npc_expect.esp"
         );
     }
 

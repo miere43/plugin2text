@@ -75,13 +75,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\zlib-1.2.11\out\install\x64-Debug\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\zlib-1.2.11\out\install\x64-Debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\zlib-ng-2.0.5\out\install\x64-$(Configuration)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\zlib-ng-2.0.5\out\install\x64-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\zlib-1.2.11\out\install\x64-Release\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\zlib-1.2.11\out\install\x64-Release\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\zlib-ng-2.0.5\out\install\x64-$(Configuration)\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\zlib-ng-2.0.5\out\install\x64-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

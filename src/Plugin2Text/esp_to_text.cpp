@@ -2,7 +2,7 @@
 #include "os.hpp"
 #include "base64.hpp"
 #include <stdio.h>
-#include <zlib.h>
+#include <zlib-ng.h>
 #include <charconv>
 
 void TextRecordWriter::init(ProgramOptions options) {
@@ -430,8 +430,8 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
 
             auto buffer = tmpalloc.now;
 
-            auto compressed_size = static_cast<uLongf>(tmpalloc.remaining_size());
-            auto result = ::compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<uLong>(size));
+            auto compressed_size = tmpalloc.remaining_size();
+            auto result = ::zng_compress(buffer, &compressed_size, (const uint8_t*)value, static_cast<uLong>(size));
             verify(result == Z_OK);
 
             tmpalloc.now += compressed_size;

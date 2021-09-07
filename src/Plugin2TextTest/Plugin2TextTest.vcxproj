@@ -49,12 +49,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\Plugin2Text;$(IncludePath)</IncludePath>
-    <LibraryPath>..\zlib-1.2.11\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\zlib-ng-2.0.5\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\Plugin2Text;$(IncludePath)</IncludePath>
-    <LibraryPath>..\zlib-1.2.11\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\zlib-ng-2.0.5\out\install\$(Platform)-$(Configuration)\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

@@ -7,9 +7,9 @@
 #include <exception>
 
 #ifdef _DEBUG
-#pragma comment(lib, "zlibstaticd.lib")
+#pragma comment(lib, "zlibstatic-ngd.lib")
 #else
-#pragma comment(lib, "zlibstatic.lib")
+#pragma comment(lib, "zlibstatic-ng.lib")
 #endif
 
 __declspec(allocator) void* tmpalloc_exec(Allocator& self_, MemoryOperation op, void* ptr, size_t size) {
