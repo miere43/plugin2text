@@ -19,8 +19,8 @@ jobs:
     - name: Build dependencies
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
-          mkdir "./src/zlib-1.2.11/out/build/x64-${{env.BUILD_CONFIGURATION}}"
-          cd "./src/zlib-1.2.11/out/build/x64-${{env.BUILD_CONFIGURATION}}"
+          mkdir "./src/zlib-ng-2.0.5/out/build/x64-${{env.BUILD_CONFIGURATION}}"
+          cd "./src/zlib-ng-2.0.5/out/build/x64-${{env.BUILD_CONFIGURATION}}"
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_CONFIGURATION}} -DCMAKE_INSTALL_PREFIX:PATH="..\..\install\x64-${{env.BUILD_CONFIGURATION}}" -DCMAKE_C_COMPILER="cl" ..\..\..
           ninja
           cmake --install . --prefix="..\..\install\x64-${{env.BUILD_CONFIGURATION}}"
