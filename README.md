@@ -86,7 +86,7 @@ Look at `.github/workflows/msbuild.yml` for reference.
     * C++ CMake tools for Windows
 
 #### Build steps
-1. Build and install `src/zlib-1.2.11` CMake project with Visual Studio
+1. Build and install `src/zlib-ng-2.0.5` CMake project with Visual Studio
 2. Build `src/Plugin2Text/Plugin2Text.sln` with Visual Studio
 
 ### Credits
@@ -96,4 +96,4 @@ Look at `.github/workflows/msbuild.yml` for reference.
 * [xEdit](https://github.com/TES5Edit/TES5Edit) - used for validation
 
 ### License
-MIT
+[MIT](LICENSE)
