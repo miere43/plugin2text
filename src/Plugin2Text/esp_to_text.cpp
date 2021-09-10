@@ -979,6 +979,12 @@ void TextRecordWriter::write_ctda_argument(const CTDA_Argument& argument, CTDA_A
             write_format("%d", argument.number);
         } break;
 
+        case CTDA_ArgumentType::ActorValue: {
+            // @TODO @Test
+            verify(argument.number >= 0 && argument.number < _countof(ActorValues));
+            write_string(ActorValues[argument.number].name);
+        } break;
+
         default: {
             verify(false);
         } break;

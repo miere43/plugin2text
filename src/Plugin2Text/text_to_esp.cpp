@@ -1160,6 +1160,25 @@ CTDA_Argument TextRecordReader::read_ctda_argument(CTDA_ArgumentType type) {
             result.number = read_int32();
         } break;
 
+        case CTDA_ArgumentType::ActorValue: {
+            // @TODO @Test
+            const char* curr = now;
+            while (curr < end) {
+                char c = *curr;
+                if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+                    ++curr;
+                } else {
+                    break;
+                }
+            }
+
+            const auto value = find_actor_value(now, curr - now);
+            verify(value);
+
+            now = curr;
+            result.number = value->index;
+        } break;
+
         default: {
             verify(false);
         } break;

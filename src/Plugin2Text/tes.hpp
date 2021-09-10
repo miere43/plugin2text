@@ -349,6 +349,7 @@ enum class CTDA_ArgumentType {
     FormID = 0,
     None = 1,
     Int = 2,
+    ActorValue = 3,
 };
 
 union CTDA_Argument {
@@ -374,3 +375,11 @@ struct CTDA_OperatorFlagsUnion {
     CTDA_Operator op : 3;
 };
 static_assert(sizeof(CTDA_OperatorFlagsUnion) == 1, "invalid CTDA_OperatorFlagsUnion size");
+
+struct ActorValue {
+    uint8_t index = 0;
+    const char* name = nullptr;
+};
+
+extern const ActorValue ActorValues[164];
+const ActorValue* find_actor_value(const char* name, size_t count);
