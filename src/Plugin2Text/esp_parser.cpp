@@ -63,7 +63,17 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
         switch (result->group_type) {
             case RecordGroupType::Top: {
                 if (!is_bit_set(options, ProgramOptions::PreserveOrder) && (RecordType)result->label == RecordType::NPC_) {
-                    sort = true;
+                    static const RecordType SortTypes[] = {
+                        RecordType::NPC_,
+                        RecordType::DLVW,
+                    };
+
+                    for (const auto type : SortTypes) {
+                        if ((RecordType)result->label == type) {
+                            sort = true;
+                            break;
+                        }
+                    }
                 }
             } break;
             
