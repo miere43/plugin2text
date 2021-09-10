@@ -865,6 +865,12 @@ static RecordDef Record_NPC_{
             sf_uint8("Alpha"), // this is 0 or 255
         ),
         rf_int32("TINV", "Tint Value"),
+        rf_struct("SNAM", "Faction", 8,
+            sf_formid("Faction"),
+            sf_int8("Rank"),
+            sf_constant_array(uint8_t, 3, 0x00, 0x00, 0x00),
+        ),
+        rf_formid("CRIF", "Crime Faction"),
     ),
 };
 
@@ -1342,6 +1348,7 @@ static RecordDef Record_PACK{
             sf_formid("Package Template"),
             sf_uint32("Unknown"),
         ),
+        rf_formid("QNAM", "Owner Quest"),
     ),
 };
 

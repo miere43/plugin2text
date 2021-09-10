@@ -61,12 +61,21 @@ GRUP
         0
       Bleedout Override
         0
-    SNAM
-      b3bd010000000000
-    SNAM
-      f75b0f0000000000
-    SNAM
-      9343090000000000
+    SNAM - Faction
+      Faction
+        [0001BDB3]
+      Rank
+        0
+    SNAM - Faction
+      Faction
+        [000F5BF7]
+      Rank
+        0
+    SNAM - Faction
+      Faction
+        [00094393]
+      Rank
+        0
     VTCK - Voice Type
       [0001BDAF]
     RNAM - Race
@@ -223,8 +232,8 @@ GRUP
       Normal
     DOFT - Default Outfit
       [00064931]
-    CRIF
-      b3bd0100
+    CRIF - Crime Faction
+      [0001BDB3]
     QNAM - Skin Tone
       Red
         0.77647066
