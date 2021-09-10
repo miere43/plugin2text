@@ -90,8 +90,10 @@ Look at `.github/workflows/msbuild.yml` for reference.
 2. Build `src/Plugin2Text/Plugin2Text.sln` with Visual Studio
 
 ### Credits
-* zlib-ng - https://github.com/zlib-ng/zlib-ng
-* base64 by René Nyffenegger - https://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp
+* [zlib-ng](https://github.com/zlib-ng/zlib-ng) 
+* [base64 by René Nyffenegger](https://renenyffenegger.ch/notes/development/Base64/Encoding-and-decoding-base-64-with-cpp)
+* [UESP](https://en.uesp.net/wiki/Skyrim_Mod:File_Formats) - file format info
+* [xEdit](https://github.com/TES5Edit/TES5Edit) - used for validation
 
 ### License
 MIT
