@@ -59,22 +59,33 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
             now += subrecord->data_size + (subrecord->type == RecordType::GRUP ? 0 : sizeof(RawRecord));
         }
 
+        bool sort = false;
         switch (result->group_type) {
+            case RecordGroupType::Top: {
+                if (!is_bit_set(options, ProgramOptions::PreserveOrder) && (RecordType)result->label == RecordType::NPC_) {
+                    sort = true;
+                }
+            } break;
+            
             case RecordGroupType::CellPersistentChildren:
             case RecordGroupType::CellTemporaryChildren: {
                 if (!is_bit_set(options, ProgramOptions::PreserveOrder)) {
-                    qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
-                        const Record* a = *(const Record**)aa;
-                        const Record* b = *(const Record**)bb;
-
-                        verify(a->type != RecordType::GRUP);
-                        verify(b->type != RecordType::GRUP);
-
-                        verify(a->id.value != b->id.value);
-                        return static_cast<int>(a->id.value) - static_cast<int>(b->id.value);
-                    });
+                    sort = true;
                 }
             } break;
+        }
+
+        if (sort) {
+            qsort(result->records.data, result->records.count, sizeof(result->records.data[0]), [](void const* aa, void const* bb) -> int {
+                const Record* a = *(const Record**)aa;
+                const Record* b = *(const Record**)bb;
+
+                verify(a->type != RecordType::GRUP);
+                verify(b->type != RecordType::GRUP);
+
+                verify(a->id.value != b->id.value);
+                return static_cast<int>(a->id.value) - static_cast<int>(b->id.value);
+            });
         }
     } else {
         auto result = (Record*)result_base;
