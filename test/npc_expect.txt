@@ -298,8 +298,6 @@ GRUP
         176
       Blue
         168
-      Alpha
-        0
     TINV - Tint Value
       100
     TIAS
@@ -313,8 +311,6 @@ GRUP
         84
       Blue
         82
-      Alpha
-        0
     TINV - Tint Value
       38
     TIAS
@@ -328,8 +324,6 @@ GRUP
         4
       Blue
         1
-      Alpha
-        0
     TINV - Tint Value
       42
     TIAS
@@ -343,8 +337,6 @@ GRUP
         9
       Blue
         1
-      Alpha
-        0
     TINV - Tint Value
       50
     TIAS
@@ -358,8 +350,6 @@ GRUP
         84
       Blue
         82
-      Alpha
-        0
     TINV - Tint Value
       38
     TIAS
@@ -373,8 +363,6 @@ GRUP
         84
       Blue
         82
-      Alpha
-        0
     TINV - Tint Value
       19
     TIAS
@@ -388,8 +376,6 @@ GRUP
         84
       Blue
         82
-      Alpha
-        0
     TINV - Tint Value
       38
     TIAS
@@ -403,8 +389,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -418,8 +402,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -433,8 +415,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -448,8 +428,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -463,8 +441,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -478,8 +454,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -493,8 +467,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -508,8 +480,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -523,8 +493,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -538,8 +506,6 @@ GRUP
         255
       Blue
         255
-      Alpha
-        0
     TINV - Tint Value
       0
     TIAS
@@ -552,8 +518,6 @@ GRUP
       Green
         0
       Blue
-        0
-      Alpha
         0
     TINV - Tint Value
       58
