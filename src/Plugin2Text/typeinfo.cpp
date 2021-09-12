@@ -1415,6 +1415,20 @@ static RecordDef Record_BOOK{
     ),
 };
 
+static RecordDef Record_SCEN{
+    .type = record_type("SCEN"),
+    .comment = "Scene",
+    .fields = record_fields(
+        rf_uint32("WNAM", "Width"),
+        rf_uint32("ALID", "Alias"),
+        rf_int32("HTID", "Head Tracking Alias"),
+        rf_float("DMAX", "Looping Max"),
+        rf_float("DMIN", "Looping Min"),
+        rf_uint32("DEMO", "Emotion"),
+        rf_uint32("DEVA", "Emotion Value"),
+    ),
+};
+
 RecordDef* get_record_def(RecordType type) {
     #define CASE(rec) case (RecordType)fourcc(#rec): return &Record_##rec
     switch (type) {
@@ -1451,6 +1465,7 @@ RecordDef* get_record_def(RecordType type) {
         CASE(ACTI);
         CASE(KEYM);
         CASE(BOOK);
+        CASE(SCEN);
     }
     #undef CASE
     return nullptr;
