@@ -67,6 +67,8 @@ RecordBase* EspParser::process_record(const RawRecord* record) {
                         RecordType::NPC_,
                         RecordType::DLVW,
                         RecordType::QUST,
+                        RecordType::DLBR,
+                        RecordType::PACK,
                     };
 
                     for (const auto type : SortTypes) {
