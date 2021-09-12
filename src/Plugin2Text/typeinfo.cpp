@@ -665,6 +665,7 @@ static RecordDef Record_REFR{
         rf_formid("XLRL", "Location"),
         rf_bytes_rle("XRGD", "Ragdoll Data"),
         Type_LocationData,
+        rf_uint32("XTRI", "Collision Layer"),
     ),
     .flags = record_flags(
         { 0x00000200, "Hidden From Local Map" },
@@ -862,7 +863,7 @@ static RecordDef Record_NPC_{
             sf_uint8("Red"),
             sf_uint8("Green"),
             sf_uint8("Blue"),
-            sf_uint8("Alpha"), // this is 0 or 255
+            sf_constant(uint8_t, 0),
         ),
         rf_int32("TINV", "Tint Value"),
         rf_struct("SNAM", "Faction", 8,
