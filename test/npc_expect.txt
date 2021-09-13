@@ -160,42 +160,6 @@ GRUP
         25
       Base Skill - Enchanting
         20
-      Mod Skill - One-Handed
-        0
-      Mod Skill - Two-Handed
-        0
-      Mod Skill - Marksman
-        0
-      Mod Skill - Block
-        0
-      Mod Skill - Smithing
-        0
-      Mod Skill - Heavy Armor
-        0
-      Mod Skill - Light Armor
-        0
-      Mod Skill - Pickpocket
-        0
-      Mod Skill - Lockpicking
-        0
-      Mod Skill - Sneak
-        0
-      Mod Skill - Alchemy
-        0
-      Mod Skill - Speechcraft
-        0
-      Mod Skill - Alteration
-        0
-      Mod Skill - Conjuration
-        0
-      Mod Skill - Destruction
-        0
-      Mod Skill - Illusion
-        0
-      Mod Skill - Restoration
-        0
-      Mod Skill - Enchanting
-        0
       Calculated Health
         375
       Calculated Magicka
