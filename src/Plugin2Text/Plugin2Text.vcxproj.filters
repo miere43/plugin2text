@@ -12,6 +12,7 @@
     <ClCompile Include="esp_parser.cpp" />
     <ClCompile Include="xml.cpp" />
     <ClCompile Include="string.cpp" />
+    <ClCompile Include="papyrus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="typeinfo.hpp" />
@@ -26,6 +27,7 @@
     <ClInclude Include="parseutils.hpp" />
     <ClInclude Include="xml.hpp" />
     <ClInclude Include="string.hpp" />
+    <ClInclude Include="papyrus.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Plugin2Text.natvis" />

@@ -174,3 +174,24 @@ void* operator new[](size_t size, Allocator& allocator) {
 void operator delete[](void* block, Allocator& allocator) {
     allocator.exec(allocator, MemoryOperation::Free, block, 0);
 }
+
+int String::index_of(const String& str) const {
+    if (count >= str.count) {
+        for (int i = 0; i < count - str.count; ++i) {
+            if (0 == memcmp(&chars[i], str.chars, str.count)) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+void String::advance(int count) {
+    verify(this->count >= count);
+    this->chars += count;
+    this->count -= count;
+}
+
+int String::compare(const String& rhs) const {
+    return count == rhs.count ? strncmp(chars, rhs.chars, count) : count - rhs.count;
+}

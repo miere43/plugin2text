@@ -175,6 +175,17 @@ struct TempScope {
 #define TEMP_SCOPE() auto _tmpscope = TempScope()
 
 struct String {
-    char* chars = nullptr;
-    int count = 0;
+    char* chars;
+    int count;
+
+    constexpr String() : chars(nullptr), count(0) { }
+    
+    template<size_t N>
+    constexpr String(const char(&str)[N]) : chars((char*)str), count(N - 1) { }
+    
+    inline String(char* chars, int count) : chars(chars), count(count) { }
+
+    int index_of(const String& str) const;
+    void advance(int count);
+    int compare(const String& rhs) const;
 };

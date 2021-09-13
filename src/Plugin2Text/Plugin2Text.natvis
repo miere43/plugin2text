@@ -21,4 +21,7 @@
       </ArrayItems>
     </Expand>
   </Type>
+  <Type Name="String">
+    <DisplayString>{chars,[count]s}</DisplayString>
+  </Type>
 </AutoVisualizer>

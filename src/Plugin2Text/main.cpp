@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include "array.hpp"
 #include "xml.hpp"
+#include "papyrus.hpp"
 
 static void print_usage(const char* hint) {
     puts(hint);
@@ -282,7 +283,12 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         }
     });
 
-    Array<wchar_t*> paths{ tmpalloc };
+    struct ItemPath {
+        wchar_t* path = nullptr;
+        bool is_papyrus_source = false;
+    };
+
+    Array<ItemPath> paths{ tmpalloc };
     if (facegens.count > 0) {
         const auto folder_path = Path{
             export_path.path,
@@ -297,7 +303,7 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
                 esp_name,
                 twprintf(L"%08X.dds", facegen.value)
             };
-            paths.push(path->path);
+            paths.push({ path->path });
         }
     }
 
@@ -310,18 +316,31 @@ static void export_related_files(const Args& args, const wchar_t* esp_name, cons
         create_folder(folder_path.path);
 
         for (const auto script_path : script_paths) {
-            paths.push(twprintf(L"Scripts\\Source\\%.*S.psc", script_path->count, script_path->data));
-            paths.push(twprintf(L"Scripts\\%.*S.pex", script_path->count, script_path->data));
+            paths.push({ twprintf(L"Scripts\\Source\\%.*S.psc", script_path->count, script_path->data), true });
+            paths.push({ twprintf(L"Scripts\\%.*S.pex", script_path->count, script_path->data) });
         }
     }
 
     for (const auto path : paths) {
-        const auto src_path = Path{ data_path.path, path };
-        const auto dst_path = Path{ export_path.path, path };
-        if (copy_file(src_path.path, dst_path.path)) {
-            wprintf(L"[OK] \"%s\"\n", path);
+        const auto src_path = Path{ data_path.path, path.path };
+        const auto dst_path = Path{ export_path.path, path.path };
+
+        if (path.is_papyrus_source) {
+            auto source = try_read_file(tmpalloc, src_path.path);
+            if (!source.count) {
+                wprintf(L"[ERROR] \"%s\": %s\n", path.path, get_last_error());
+                continue;
+            }
+
+            auto sorted = papyrus_sort_fragments({ (char*)source.data, (int)source.count });
+            write_file(dst_path.path, { (uint8_t*)sorted.chars, (size_t)sorted.count });
+            wprintf(L"[OK] \"%s\"\n", path.path);
         } else {
-            wprintf(L"[ERROR] \"%s\": %s\n", path, get_last_error());
+            if (copy_file(src_path.path, dst_path.path)) {
+                wprintf(L"[OK] \"%s\"\n", path.path);
+            } else {
+                wprintf(L"[ERROR] \"%s\": %s\n", path.path, get_last_error());
+            }
         }
     }
 
