@@ -17,6 +17,7 @@ enum class RecordType : uint32_t {
     PERK = fourcc("PERK"),
     SCEN = fourcc("SCEN"),
     DLBR = fourcc("DLBR"),
+    ACTI = fourcc("ACTI"),
 };
 
 enum class RecordFlags : uint32_t {

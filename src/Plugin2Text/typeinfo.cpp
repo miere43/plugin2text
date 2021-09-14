@@ -989,6 +989,8 @@ static RecordDef Record_INFO{
             sf_constant_array(uint8_t, 3, 0x00, 0x00, 0x00),
         ),
         rf_field("CTDA", "Condition", &Type_CTDA),
+        rf_zstring("CIS1", "Condition Argument 1"),
+        rf_zstring("CIS2", "Condition Argument 2"),
     ),
 };
 

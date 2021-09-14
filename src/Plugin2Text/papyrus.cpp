@@ -162,6 +162,7 @@ struct FragmentCode {
             aliases.push(alias);
 
             source.advance(alias_text.count + BeginAliasProperty.count + EndAliasProperty.count);
+            skip_newlines(source);
         }
 
         while (true) {
@@ -174,7 +175,8 @@ struct FragmentCode {
             fragment.parse(fragment_text);
             fragments.push(fragment);
 
-            source.advance(fragment_text.count + EndFragment.count);
+            source.advance(fragment_text.count + BeginFragment.count + EndFragment.count);
+            skip_newlines(source);
         }
 
         qsort(aliases.data, aliases.count, sizeof(aliases.data[0]), [](void const* aa, void const* bb) -> int {
