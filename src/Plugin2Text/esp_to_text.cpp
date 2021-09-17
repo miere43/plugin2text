@@ -385,6 +385,13 @@ void TextRecordWriter::write_int32(int value) {
     output_buffer.now = (uint8_t*)result.ptr;
 }
 
+static inline void fix_negative_zero(float* value) {
+    if (*(uint32_t*)value == 0x80000000) {
+        // Clear negative zero.
+        *(uint32_t*)value = 0;
+    }
+}
+
 void TextRecordWriter::write_type(const Type* type, const void* value, size_t size) {
     ++indent;
 
@@ -751,11 +758,14 @@ void TextRecordWriter::write_type(const Type* type, const void* value, size_t si
         case TypeKind::Vector3: {
             // @TODO: maybe can replace with fixed array type.
             verify(size == sizeof(Vector3));
-            const auto vector = (const Vector3*)value;
+            auto vector = *(const Vector3*)value;
+            fix_negative_zero(&vector.x);
+            fix_negative_zero(&vector.y);
+            fix_negative_zero(&vector.z);
             --indent;
-            write_type(&Type_float, &vector->x, sizeof(vector->x));
-            write_type(&Type_float, &vector->y, sizeof(vector->y));
-            write_type(&Type_float, &vector->z, sizeof(vector->z));
+            write_type(&Type_float, &vector.x, sizeof(vector.x));
+            write_type(&Type_float, &vector.y, sizeof(vector.y));
+            write_type(&Type_float, &vector.z, sizeof(vector.z));
             ++indent;
         } break;
 
